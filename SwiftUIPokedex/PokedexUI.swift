@@ -22,7 +22,7 @@ struct PokedexUI: View {
                 ScrollView {
                     LazyVGrid(columns: gridLayout, spacing: 20) {
                         ForEach(api.pokemon, id: \.name) { pokemon in
-                            NavigationLink(destination: Text("kffkf")) {
+                            NavigationLink(destination: DetailView(pokemon: pokemon)) {
                                 AsyncGridItem(pokemon: pokemon, url: pokemon.sprite.url)
                                     .onAppear {
                                         if pokemon == api.pokemon.last {

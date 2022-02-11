@@ -21,6 +21,7 @@
 		9396D23C273EBBED00AF0C94 /* PokedexUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396D23B273EBBED00AF0C94 /* PokedexUI.swift */; };
 		9396D23E273EBBEE00AF0C94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9396D23D273EBBEE00AF0C94 /* Assets.xcassets */; };
 		9396D241273EBBEE00AF0C94 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9396D240273EBBEE00AF0C94 /* Preview Assets.xcassets */; };
+		93F7F578274009B2002CEBB5 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F7F577274009B2002CEBB5 /* DetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		9396D23B273EBBED00AF0C94 /* PokedexUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokedexUI.swift; sourceTree = "<group>"; };
 		9396D23D273EBBEE00AF0C94 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9396D240273EBBEE00AF0C94 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		93F7F577274009B2002CEBB5 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +105,7 @@
 			children = (
 				9396D239273EBBED00AF0C94 /* SwiftUIPokedexApp.swift */,
 				9396D23B273EBBED00AF0C94 /* PokedexUI.swift */,
+				93F7F577274009B2002CEBB5 /* DetailView.swift */,
 				9332C0E9273F51E1003AF377 /* AsyncGridItem.swift */,
 				9332C0F3273F6834003AF377 /* Misc */,
 				9332C0E6273F3178003AF377 /* API */,
@@ -198,6 +201,7 @@
 				9396D23C273EBBED00AF0C94 /* PokedexUI.swift in Sources */,
 				9332C0E5273F3171003AF377 /* API.swift in Sources */,
 				9332C0E8273F3219003AF377 /* ImageLoader.swift in Sources */,
+				93F7F578274009B2002CEBB5 /* DetailView.swift in Sources */,
 				9332C0E0273F2A36003AF377 /* Color.swift in Sources */,
 				9332C0D7273F1DA6003AF377 /* PokemonAPI.swift in Sources */,
 				9332C0F2273F5454003AF377 /* UIImageColors.swift in Sources */,
