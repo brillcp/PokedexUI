@@ -49,7 +49,7 @@ extension PokemonViewModel: PokemonViewModelProtocol {
         pokemon.sprite.url
     }
 
-    @Sendable
+    @MainActor
     func loadSprite() async {
         image = await imageLoader.loadImage(from: url)
         color = Color(uiColor: image?.dominantColor ?? .darkGray)
