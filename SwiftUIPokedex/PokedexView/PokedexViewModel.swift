@@ -16,12 +16,12 @@ protocol PokedexViewModelProtocol: ObservableObject {
 
 // MARK: -
 final class PokedexViewModel {
-    private let pokemonService: PokemonAPI
+    private let pokemonService: PokemonService
 
     @Published var pokemon: [PokemonViewModel] = []
     @Published var isLoading: Bool = false
 
-    init(pokemonService: PokemonAPI = PokemonAPI()) {
+    init(pokemonService: PokemonService = PokemonService()) {
         self.pokemonService = pokemonService
     }
 }

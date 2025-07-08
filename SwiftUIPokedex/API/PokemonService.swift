@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-final class PokemonAPI: API, ObservableObject {
+final class PokemonService: API, ObservableObject {
     
     // MARK: Private properties
     private var response: APIResponse?
@@ -41,7 +41,7 @@ final class PokemonAPI: API, ObservableObject {
 }
 
 // MARK: - Private functions
-private extension PokemonAPI {
+private extension PokemonService {
     func pokemonDetails(from url: URL) async throws -> PokemonDetails {
         let request = URLRequest(url: url)
         let result: PokemonDetails = try await NetworkAgent.execute(request)
@@ -53,7 +53,7 @@ private extension PokemonAPI {
             if let urlString, let url = URL(string: urlString) {
                 return url
             } else {
-                return baseURL.appendingPathComponent(PokemonAPI.ItemType.pokemon.rawValue)
+                return baseURL.appendingPathComponent(PokemonService.ItemType.pokemon.rawValue)
             }
         }()
 
