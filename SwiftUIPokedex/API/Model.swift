@@ -12,7 +12,7 @@ struct APIResponse: Decodable {
     let results: [APIItem]
 }
 
-struct APIItem: Decodable {
+struct APIItem: Decodable, Hashable {
     let name: String
     let url: String
 }

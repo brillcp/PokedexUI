@@ -17,7 +17,6 @@ final class PokemonAPI: API, ObservableObject {
     @Published var pokemon = [PokemonDetails]()
     @Published var isLoading = false
 
-
     // MARK: - Public functions
     func requestPokemon() {
         guard !isLoading else { return }
@@ -44,16 +43,14 @@ final class PokemonAPI: API, ObservableObject {
     }
 }
 
-// MARK: -
-extension PokemonAPI {
-    
-    // MARK: Private functions
-    private func pokemonDetails(from urlString: String) -> AnyPublisher<PokemonDetails, Error>? {
+// MARK: - Private functions
+private extension PokemonAPI {
+    func pokemonDetails(from urlString: String) -> AnyPublisher<PokemonDetails, Error>? {
         guard let url = URL(string: urlString) else { return nil }
         return NetworkAgent.execute(URLRequest(url: url))
     }
     
-    private func requestPokemon(at urlString: String?) -> AnyPublisher<APIResponse, Error>? {
+    func requestPokemon(at urlString: String?) -> AnyPublisher<APIResponse, Error>? {
         let finalURL: URL
         
         if let urlString = urlString, let url = URL(string: urlString) {

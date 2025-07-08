@@ -7,10 +7,44 @@
 
 import SwiftUI
 
+struct AsyncImageView: View {
+    private let shared: ImageLoader = .shared
+
+    @State private var image: UIImage?
+    @State private var color: Color?
+
+    let urlString: String
+    var onColorExtracted: ((Color) -> Void?)? = nil
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                ProgressView()
+                    .task {
+                        image = await shared.loadImage(from: urlString)
+                        if let uiColor = image?.dominantColor {
+                            let swiftUIColor = Color(uiColor: uiColor)
+                            color = swiftUIColor
+                            onColorExtracted?(swiftUIColor)
+                        }
+                    }
+            }
+        }
+        .frame(width: 150, height: 150)
+        .background(color)
+        .cornerRadius(20)
+    }
+}
+
+/*
 struct AsyncGridItem: View {
     
     // MARK: Private properties
-    @StateObject private var loader: ImageLoader
+    @State private var loader: ImageLoader
     
     // MARK: - Public properties
     var pokemon: PokemonDetails
@@ -67,6 +101,7 @@ struct NumberOverlay: View {
     }
 }
 
+
 struct AsyncGridItem_Previews: PreviewProvider {
     static var previews: some View {
         let pokemon = PokemonDetails(id: 0,
@@ -83,4 +118,10 @@ struct AsyncGridItem_Previews: PreviewProvider {
         
         AsyncGridItem(pokemon: pokemon, url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png")
     }
+}
+
+ */
+
+#Preview {
+    AsyncImageView(urlString: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png") { _ in }
 }

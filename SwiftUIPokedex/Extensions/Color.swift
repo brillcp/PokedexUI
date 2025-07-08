@@ -8,7 +8,6 @@
 import SwiftUI
 
 extension Color {
-    
     static let darkGrey = Color(hex: "222222")
     static let pokedexRed = Color(hex: "d53b47")
     static let orange = Color(hex: "f89e2e")
@@ -33,6 +32,11 @@ extension Color {
     }
 }
 
+extension Color {
+    var isLight: Bool {
+        UIColor(self).isLight
+    }
+}
 extension UIColor {
     var isLight: Bool {
         guard let components = cgColor.components, components.count > 2 else { return false }

@@ -8,68 +8,57 @@
 import SwiftUI
 
 struct DetailView: View {
-    
-    var pokemon: PokemonDetails
-    
-    var item: AsyncGridItem {
-        AsyncGridItem(pokemon: pokemon, url: "")
-    }
-    
-    var body: some View {
-        ScrollView {
-            VStack {
-                
-                HStack {
-                    ForEach(pokemon.types, id: \.type) { aa in
-                        Text("aa")
-                    }
-                    Spacer()
-                    Text("#\(pokemon.id)")
-                        .foregroundColor(.white)
-                }
-                
-                
-                AsyncImage(
-                    url: URL(string: pokemon.sprite.url),
-                    content: { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: .infinity, maxHeight: 220)
-                    },
-                    placeholder: {
-                        ProgressView()
-                    }
-                )
-                
-                DetailStack()
-            }
-            .background(.green)
+    @State private var dominantColor: Color = .darkGrey
 
+    var pokemon: PokemonDetails
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack {
+                    HStack {
+                        ForEach(pokemon.types, id: \.type) {
+                            Text($0.type.name)
+                        }
+                        Spacer()
+                        Text("#\(pokemon.id)")
+                    }
+                    
+                    AsyncImageView(urlString: pokemon.sprite.url) {
+                        dominantColor = $0
+                    }
+                    DetailStack()
+                }
+                .padding()
+                .background(dominantColor)
+                
+            }
+            .background(Color.darkGrey)
+            .foregroundColor(dominantColor.isLight ? .black : .white)
+            .navigationTitle(pokemon.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(dominantColor, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
-        .background(Color.darkGrey)
-        .navigationTitle(pokemon.name)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
-struct DetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        
-        let pokemon = PokemonDetails(id: 0,
-                                     name: "Pika",
-                                     weight: 0,
-                                     height: 0,
-                                     baseExperience: 0,
-                                     forms: [],
-                                     sprite: Sprite(url: ""),
-                                     abilities: [],
-                                     moves: [],
-                                     types: [],
-                                     stats: [])
-        
-        DetailView(pokemon: pokemon)
-    }
+#Preview {
+    let pokemon = PokemonDetails(
+        id: 0,
+        name: "Pika",
+        weight: 0,
+        height: 0,
+        baseExperience: 0,
+        forms: [],
+        sprite: Sprite(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"),
+        abilities: [],
+        moves: [],
+        types: [.init(type: .init(name: "gunther", url: ""))],
+        stats: []
+    )
+
+    DetailView(pokemon: pokemon)
 }
 
 struct DetailStack: View {
@@ -88,6 +77,5 @@ struct DetailStack: View {
             }
         }
         .padding([.leading, .trailing, .bottom], 30)
-        .foregroundColor(.white)
     }
 }
