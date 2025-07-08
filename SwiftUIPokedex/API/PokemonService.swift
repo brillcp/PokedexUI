@@ -15,16 +15,9 @@ final class PokemonAPI: API, ObservableObject {
 
     // MARK: - Public properties
     @Published var pokemon = [PokemonViewModel]()
-    @Published var isLoading = false
 
     // MARK: - Public functions
     func requestPokemon() async throws -> [PokemonViewModel] {
-        guard !isLoading else { return [] }
-
-        isLoading = true
-
-        defer { isLoading = false }
-
         let newResponse = try await requestPokemon(at: response?.next)
         response = newResponse
 

@@ -44,7 +44,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D54F5AF32E1DBC7900411759 /* PokemonView */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PokemonView; sourceTree = "<group>"; };
+		D54F5AF32E1DBC7900411759 /* PokedexView */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PokedexView; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,7 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				9396D239273EBBED00AF0C94 /* SwiftUIPokedexApp.swift */,
-				D54F5AF32E1DBC7900411759 /* PokemonView */,
+				D54F5AF32E1DBC7900411759 /* PokedexView */,
 				93F7F577274009B2002CEBB5 /* DetailView.swift */,
 				9332C0E9273F51E1003AF377 /* AsyncGridItem.swift */,
 				9332C0F3273F6834003AF377 /* Misc */,
@@ -145,7 +145,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D54F5AF32E1DBC7900411759 /* PokemonView */,
+				D54F5AF32E1DBC7900411759 /* PokedexView */,
 			);
 			name = SwiftUIPokedex;
 			productName = SwiftUIPokedex;

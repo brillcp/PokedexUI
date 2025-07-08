@@ -30,13 +30,14 @@ final class PokedexViewModel {
 extension PokedexViewModel: PokedexViewModelProtocol {
     @MainActor
     func requestPokemon() async {
+        guard !isLoading else { return }
         isLoading = true
+        defer { isLoading = false }
+
         do {
             pokemon = try await pokemonService.requestPokemon()
         } catch {
             print(error.localizedDescription)
         }
-
-        isLoading = false
     }
 }
