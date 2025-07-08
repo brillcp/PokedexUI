@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct DetailView: View {
+struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
     @State private var dominantColor: Color = .darkGrey
 
-    var pokemon: PokemonViewModel
+    var pokemon: ViewModel
 
     var body: some View {
         NavigationStack {
@@ -24,9 +24,7 @@ struct DetailView: View {
                         Text("#\(1)")
                     }
                     
-                    AsyncGridItem(urlString: "pokemon.sprite.url") {
-                        dominantColor = $0
-                    }
+                    AsyncGridItem(viewModel: pokemon)
                     DetailStack()
                 }
                 .padding()

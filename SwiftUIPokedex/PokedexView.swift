@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
-    @State private var dominantColor: Color = .darkGrey
     @Namespace private var namespace
 
     private var gridLayout: [GridItem] = [
@@ -32,20 +31,18 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                                 DetailView(pokemon: pokemon)
                                     .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
                             } label: {
-                                AsyncGridItem(urlString: pokemon.url) { color in
-                                    dominantColor = color
-                                }
-                                .overlay(alignment: .topTrailing) {
-                                    NumberOverlay(
-                                        number: pokemon.id,
-                                        isLight: pokemon.isLight
-                                    )
-                                }
-                                .task {
-                                    if pokemon == viewModel.pokemon.last {
-                                        await viewModel.requestPokemon()
+                                AsyncGridItem(viewModel: pokemon)
+                                    .overlay(alignment: .topTrailing) {
+                                        NumberOverlay(
+                                            number: pokemon.id,
+                                            isLight: pokemon.isLight
+                                        )
                                     }
-                                }
+                                    .task {
+                                        if pokemon == viewModel.pokemon.last {
+                                            await viewModel.requestPokemon()
+                                        }
+                                    }
                             }
                             .tag(pokemon.id)
                         }

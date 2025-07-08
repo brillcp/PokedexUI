@@ -7,36 +7,28 @@
 
 import SwiftUI
 
-struct AsyncGridItem: View {
+struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
     private let shared: ImageLoader = .shared
 
     @State private var image: UIImage?
     @State private var color: Color?
 
-    let urlString: String
-    var onColorExtracted: ((Color) -> Void?)? = nil
+    let viewModel: ViewModel
 
     var body: some View {
         Group {
-            if let image {
+            if let image = viewModel.image {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } else {
                 ProgressView()
-                    .task {
-                        image = await shared.loadImage(from: urlString)
-                        if let uiColor = image?.dominantColor {
-                            let swiftUIColor = Color(uiColor: uiColor)
-                            color = swiftUIColor
-                            onColorExtracted?(swiftUIColor)
-                        }
-                    }
             }
         }
         .frame(width: 150, height: 150)
         .background(color)
         .cornerRadius(20)
+        .task(viewModel.loadSprite)
     }
 }
 
@@ -123,5 +115,19 @@ struct AsyncGridItem_Previews: PreviewProvider {
  */
 
 #Preview {
-    AsyncGridItem(urlString: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png") { _ in }
+    let pokemon = PokemonDetails(
+        id: 0,
+        name: "Pika",
+        weight: 0,
+        height: 0,
+        baseExperience: 0,
+        forms: [],
+        sprite: Sprite(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"),
+        abilities: [],
+        moves: [],
+        types: [.init(type: .init(name: "gunther", url: ""))],
+        stats: []
+    )
+    let vm = PokemonViewModel(pokemon: pokemon)
+    AsyncGridItem(viewModel: vm)
 }

@@ -35,7 +35,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         defer { isLoading = false }
 
         do {
-            pokemon = try await pokemonService.requestPokemon()
+            pokemon += try await pokemonService.requestPokemon()
         } catch {
             print(error.localizedDescription)
         }

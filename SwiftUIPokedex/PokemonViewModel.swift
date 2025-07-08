@@ -13,10 +13,13 @@ protocol PokemonViewModelProtocol: ObservableObject {
     var isLight: Bool { get }
     var url: String { get }
     var id: Int { get }
+
+    func loadSprite() async
 }
 
 // MARK: -
 final class PokemonViewModel {
+    private let imageLoader: ImageLoader = .shared
     private let pokemon: PokemonDetails
 
     @Published var image: UIImage?
@@ -39,6 +42,12 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 
     var url: String {
         pokemon.sprite.url
+    }
+
+    @Sendable
+    func loadSprite() async {
+        image = await imageLoader.loadImage(from: url)
+        color = Color(uiColor: image?.dominantColor ?? .darkGray)
     }
 }
 
