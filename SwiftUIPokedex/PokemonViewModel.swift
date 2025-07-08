@@ -11,6 +11,7 @@ protocol PokemonViewModelProtocol: ObservableObject {
     var image: UIImage? { get }
     var color: Color? { get }
     var isLight: Bool { get }
+    var name: String { get }
     var url: String { get }
     var id: Int { get }
 
@@ -34,6 +35,10 @@ final class PokemonViewModel {
 extension PokemonViewModel: PokemonViewModelProtocol {
     var id: Int {
         pokemon.id
+    }
+
+    var name: String {
+        pokemon.name
     }
 
     var isLight: Bool {

@@ -28,7 +28,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                     LazyVGrid(columns: gridLayout, spacing: 20) {
                         ForEach(viewModel.pokemon, id: \.id) { pokemon in
                             NavigationLink {
-                                DetailView(pokemon: pokemon)
+                                DetailView(viewModel: pokemon)
                                     .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
                             } label: {
                                 AsyncGridItem(viewModel: pokemon)

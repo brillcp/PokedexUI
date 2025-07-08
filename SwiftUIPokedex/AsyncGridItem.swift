@@ -10,10 +10,7 @@ import SwiftUI
 struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
     private let shared: ImageLoader = .shared
 
-    @State private var image: UIImage?
-    @State private var color: Color?
-
-    let viewModel: ViewModel
+    @ObservedObject var viewModel: ViewModel
 
     var body: some View {
         Group {
@@ -23,12 +20,12 @@ struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
                     .aspectRatio(contentMode: .fit)
             } else {
                 ProgressView()
+                    .task { await viewModel.loadSprite() }
             }
         }
         .frame(width: 150, height: 150)
-        .background(color)
+        .background(viewModel.color)
         .cornerRadius(20)
-        .task(viewModel.loadSprite)
     }
 }
 
@@ -131,3 +128,4 @@ struct AsyncGridItem_Previews: PreviewProvider {
     let vm = PokemonViewModel(pokemon: pokemon)
     AsyncGridItem(viewModel: vm)
 }
+

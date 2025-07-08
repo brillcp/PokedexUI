@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
-    @State private var dominantColor: Color = .darkGrey
-
-    var pokemon: ViewModel
+    var viewModel: ViewModel
 
     var body: some View {
         NavigationStack {
@@ -21,21 +19,21 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
 //                            Text($0.type.name)
 //                        }
                         Spacer()
-                        Text("#\(1)")
+                        Text("#\(viewModel.id)")
                     }
                     
-                    AsyncGridItem(viewModel: pokemon)
+                    AsyncGridItem(viewModel: viewModel)
                     DetailStack()
                 }
                 .padding()
-                .background(dominantColor)
-                
+                .background(viewModel.color)
+
             }
             .background(Color.darkGrey)
-            .foregroundColor(dominantColor.isLight ? .black : .white)
-            .navigationTitle("pokemon.name")
+            .foregroundColor(viewModel.isLight ? .black : .white)
+            .navigationTitle(viewModel.name)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(dominantColor, for: .navigationBar)
+            .toolbarBackground(viewModel.color ?? .darkGrey, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
     }
@@ -56,7 +54,7 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
         stats: []
     )
     let vm = PokemonViewModel(pokemon: pokemon)
-    DetailView(pokemon: vm)
+    DetailView(viewModel: vm)
 }
 
 struct DetailStack: View {
