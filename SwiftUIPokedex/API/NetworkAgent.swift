@@ -9,10 +9,8 @@ import Foundation
 import Combine
 
 struct NetworkAgent {
-    static func execute<T: Decodable>(_ request: URLRequest) -> AnyPublisher<T, Error> {
-        URLSession.shared.dataTaskPublisher(for: request)
-            .tryMap { $0.data }
-            .decode(type: T.self, decoder: JSONDecoder())
-            .eraseToAnyPublisher()
+    static func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONDecoder().decode(T.self, from: data)
     }
 }

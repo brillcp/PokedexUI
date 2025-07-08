@@ -3,12 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		9332C0D5273F1CC2003AF377 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D4273F1CC2003AF377 /* Model.swift */; };
-		9332C0D7273F1DA6003AF377 /* PokemonAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D6273F1DA6003AF377 /* PokemonAPI.swift */; };
+		9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D6273F1DA6003AF377 /* PokemonService.swift */; };
 		9332C0D9273F1F58003AF377 /* NetworkAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D8273F1F58003AF377 /* NetworkAgent.swift */; };
 		9332C0DB273F206E003AF377 /* Publisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0DA273F206E003AF377 /* Publisher.swift */; };
 		9332C0E0273F2A36003AF377 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0DF273F2A36003AF377 /* Color.swift */; };
@@ -18,16 +18,16 @@
 		9332C0EA273F51E1003AF377 /* AsyncGridItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0E9273F51E1003AF377 /* AsyncGridItem.swift */; };
 		9332C0F2273F5454003AF377 /* UIImageColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0F1273F5454003AF377 /* UIImageColors.swift */; };
 		9396D23A273EBBED00AF0C94 /* SwiftUIPokedexApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396D239273EBBED00AF0C94 /* SwiftUIPokedexApp.swift */; };
-		9396D23C273EBBED00AF0C94 /* PokedexUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396D23B273EBBED00AF0C94 /* PokedexUI.swift */; };
 		9396D23E273EBBEE00AF0C94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9396D23D273EBBEE00AF0C94 /* Assets.xcassets */; };
 		9396D241273EBBEE00AF0C94 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9396D240273EBBEE00AF0C94 /* Preview Assets.xcassets */; };
 		93F7F578274009B2002CEBB5 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F7F577274009B2002CEBB5 /* DetailView.swift */; };
 		D54F5AA02E1D851E00411759 /* ScaleButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54F5A9F2E1D851E00411759 /* ScaleButtonStyle.swift */; };
+		D54F5AA52E1DA48200411759 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = D54F5AA42E1DA48200411759 /* Networking */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9332C0D4273F1CC2003AF377 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
-		9332C0D6273F1DA6003AF377 /* PokemonAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonAPI.swift; sourceTree = "<group>"; };
+		9332C0D6273F1DA6003AF377 /* PokemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonService.swift; sourceTree = "<group>"; };
 		9332C0D8273F1F58003AF377 /* NetworkAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAgent.swift; sourceTree = "<group>"; };
 		9332C0DA273F206E003AF377 /* Publisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publisher.swift; sourceTree = "<group>"; };
 		9332C0DF273F2A36003AF377 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
@@ -38,18 +38,22 @@
 		9332C0F1273F5454003AF377 /* UIImageColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIImageColors.swift; sourceTree = "<group>"; };
 		9396D236273EBBED00AF0C94 /* SwiftUIPokedex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftUIPokedex.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9396D239273EBBED00AF0C94 /* SwiftUIPokedexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIPokedexApp.swift; sourceTree = "<group>"; };
-		9396D23B273EBBED00AF0C94 /* PokedexUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokedexUI.swift; sourceTree = "<group>"; };
 		9396D23D273EBBEE00AF0C94 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9396D240273EBBEE00AF0C94 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		93F7F577274009B2002CEBB5 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		D54F5A9F2E1D851E00411759 /* ScaleButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleButtonStyle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D54F5AF32E1DBC7900411759 /* PokemonView */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PokemonView; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		9396D233273EBBED00AF0C94 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D54F5AA52E1DA48200411759 /* Networking in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,7 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				9332C0D8273F1F58003AF377 /* NetworkAgent.swift */,
-				9332C0D6273F1DA6003AF377 /* PokemonAPI.swift */,
+				9332C0D6273F1DA6003AF377 /* PokemonService.swift */,
 				9332C0D4273F1CC2003AF377 /* Model.swift */,
 				9332C0E4273F3171003AF377 /* API.swift */,
 			);
@@ -82,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				9332C0E7273F3219003AF377 /* ImageLoader.swift */,
+				D54F5A9F2E1D851E00411759 /* ScaleButtonStyle.swift */,
 			);
 			path = Misc;
 			sourceTree = "<group>";
@@ -89,7 +94,6 @@
 		9396D22D273EBBED00AF0C94 = {
 			isa = PBXGroup;
 			children = (
-				D54F5A9F2E1D851E00411759 /* ScaleButtonStyle.swift */,
 				9396D238273EBBED00AF0C94 /* SwiftUIPokedex */,
 				9396D237273EBBED00AF0C94 /* Products */,
 			);
@@ -107,7 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				9396D239273EBBED00AF0C94 /* SwiftUIPokedexApp.swift */,
-				9396D23B273EBBED00AF0C94 /* PokedexUI.swift */,
+				D54F5AF32E1DBC7900411759 /* PokemonView */,
 				93F7F577274009B2002CEBB5 /* DetailView.swift */,
 				9332C0E9273F51E1003AF377 /* AsyncGridItem.swift */,
 				9332C0F3273F6834003AF377 /* Misc */,
@@ -142,6 +146,9 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				D54F5AF32E1DBC7900411759 /* PokemonView */,
+			);
 			name = SwiftUIPokedex;
 			productName = SwiftUIPokedex;
 			productReference = 9396D236273EBBED00AF0C94 /* SwiftUIPokedex.app */;
@@ -155,7 +162,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1300;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					9396D235273EBBED00AF0C94 = {
 						CreatedOnToolsVersion = 13.0;
@@ -171,6 +178,8 @@
 				Base,
 			);
 			mainGroup = 9396D22D273EBBED00AF0C94;
+			packageReferences = (
+			);
 			productRefGroup = 9396D237273EBBED00AF0C94 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -201,12 +210,11 @@
 				9332C0EA273F51E1003AF377 /* AsyncGridItem.swift in Sources */,
 				9332C0DB273F206E003AF377 /* Publisher.swift in Sources */,
 				9332C0D9273F1F58003AF377 /* NetworkAgent.swift in Sources */,
-				9396D23C273EBBED00AF0C94 /* PokedexUI.swift in Sources */,
 				9332C0E5273F3171003AF377 /* API.swift in Sources */,
 				9332C0E8273F3219003AF377 /* ImageLoader.swift in Sources */,
 				93F7F578274009B2002CEBB5 /* DetailView.swift in Sources */,
 				9332C0E0273F2A36003AF377 /* Color.swift in Sources */,
-				9332C0D7273F1DA6003AF377 /* PokemonAPI.swift in Sources */,
+				9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */,
 				D54F5AA02E1D851E00411759 /* ScaleButtonStyle.swift in Sources */,
 				9332C0F2273F5454003AF377 /* UIImageColors.swift in Sources */,
 				9332C0E3273F3149003AF377 /* Data.swift in Sources */,
@@ -252,8 +260,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = V39999UVRP;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -273,6 +283,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -313,8 +324,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = V39999UVRP;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -327,6 +340,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
@@ -341,7 +355,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftUIPokedex/Preview Content\"";
-				DEVELOPMENT_TEAM = V39999UVRP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -371,7 +384,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"SwiftUIPokedex/Preview Content\"";
-				DEVELOPMENT_TEAM = V39999UVRP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -415,6 +427,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D54F5AA32E1DA48200411759 /* XCRemoteSwiftPackageReference "Networking" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/brillcp/Networking";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D54F5AA42E1DA48200411759 /* Networking */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D54F5AA32E1DA48200411759 /* XCRemoteSwiftPackageReference "Networking" */;
+			productName = Networking;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9396D22E273EBBED00AF0C94 /* Project object */;
 }

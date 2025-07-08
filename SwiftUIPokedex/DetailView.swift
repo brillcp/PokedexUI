@@ -10,21 +10,21 @@ import SwiftUI
 struct DetailView: View {
     @State private var dominantColor: Color = .darkGrey
 
-    var pokemon: PokemonDetails
+    var pokemon: PokemonViewModel
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
                     HStack {
-                        ForEach(pokemon.types, id: \.type) {
-                            Text($0.type.name)
-                        }
+//                        ForEach(pokemon.types, id: \.type) {
+//                            Text($0.type.name)
+//                        }
                         Spacer()
-                        Text("#\(pokemon.id)")
+                        Text("#\(1)")
                     }
                     
-                    AsyncImageView(urlString: pokemon.sprite.url) {
+                    AsyncGridItem(urlString: "pokemon.sprite.url") {
                         dominantColor = $0
                     }
                     DetailStack()
@@ -35,7 +35,7 @@ struct DetailView: View {
             }
             .background(Color.darkGrey)
             .foregroundColor(dominantColor.isLight ? .black : .white)
-            .navigationTitle(pokemon.name)
+            .navigationTitle("pokemon.name")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(dominantColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -57,8 +57,8 @@ struct DetailView: View {
         types: [.init(type: .init(name: "gunther", url: ""))],
         stats: []
     )
-
-    DetailView(pokemon: pokemon)
+    let vm = PokemonViewModel(pokemon: pokemon)
+    DetailView(pokemon: vm)
 }
 
 struct DetailStack: View {

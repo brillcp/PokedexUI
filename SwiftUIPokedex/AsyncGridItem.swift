@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AsyncImageView: View {
+struct AsyncGridItem: View {
     private let shared: ImageLoader = .shared
 
     @State private var image: UIImage?
@@ -123,5 +123,5 @@ struct AsyncGridItem_Previews: PreviewProvider {
  */
 
 #Preview {
-    AsyncImageView(urlString: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png") { _ in }
+    AsyncGridItem(urlString: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png") { _ in }
 }

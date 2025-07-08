@@ -7,39 +7,43 @@
 
 import SwiftUI
 
-struct PokedexUI: View {
+struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
+    @State private var dominantColor: Color = .darkGrey
     @Namespace private var namespace
 
     private var gridLayout: [GridItem] = [
         GridItem(.flexible(minimum: 100, maximum: .infinity)),
         GridItem(.flexible(minimum: 100, maximum: .infinity))
     ]
-    
-    @ObservedObject private var api = PokemonAPI()
-    @State private var dominantColor: Color = .darkGrey
+
+    @ObservedObject var viewModel: ViewModel
+
+    init(viewModel: ViewModel) {
+        self.viewModel = viewModel
+    }
 
     var body: some View {
         NavigationView {
             TabView {
                 ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: gridLayout, spacing: 20) {
-                        ForEach(api.pokemon, id: \.id) { pokemon in
+                        ForEach(viewModel.pokemon, id: \.id) { pokemon in
                             NavigationLink {
                                 DetailView(pokemon: pokemon)
                                     .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
                             } label: {
-                                AsyncImageView(urlString: pokemon.sprite.url) { color in
+                                AsyncGridItem(urlString: pokemon.url) { color in
                                     dominantColor = color
                                 }
                                 .overlay(alignment: .topTrailing) {
                                     NumberOverlay(
                                         number: pokemon.id,
-                                        isLight: dominantColor.isLight
+                                        isLight: pokemon.isLight
                                     )
                                 }
-                                .onAppear {
-                                    if pokemon == api.pokemon.last {
-                                        api.requestPokemon()
+                                .task {
+                                    if pokemon == viewModel.pokemon.last {
+                                        await viewModel.requestPokemon()
                                     }
                                 }
                             }
@@ -48,7 +52,7 @@ struct PokedexUI: View {
                     }
                     .padding(20)
 
-                    if api.isLoading {
+                    if viewModel.isLoading {
                         ProgressView()
                             .tint(.white)
                     }
@@ -62,7 +66,7 @@ struct PokedexUI: View {
             .toolbarBackground(Color.pokedexRed, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
-        .onAppear(perform: api.requestPokemon)
+        .task { await viewModel.requestPokemon() }
     }
 }
 
@@ -78,5 +82,5 @@ struct NumberOverlay: View {
 }
 
 #Preview {
-    PokedexUI()
+    PokedexView(viewModel: PokedexViewModel())
 }
