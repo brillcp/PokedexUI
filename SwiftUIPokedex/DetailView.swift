@@ -39,24 +39,6 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
     }
 }
 
-#Preview {
-    let pokemon = PokemonDetails(
-        id: 0,
-        name: "Pika",
-        weight: 0,
-        height: 0,
-        baseExperience: 0,
-        forms: [],
-        sprite: Sprite(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"),
-        abilities: [],
-        moves: [],
-        types: [.init(type: .init(name: "gunther", url: ""))],
-        stats: []
-    )
-    let vm = PokemonViewModel(pokemon: pokemon)
-    DetailView(viewModel: vm)
-}
-
 struct DetailStack: View {
     var body: some View {
         HStack {
@@ -74,4 +56,8 @@ struct DetailStack: View {
         }
         .padding([.leading, .trailing, .bottom], 30)
     }
+}
+
+#Preview {
+    DetailView(viewModel: PokemonViewModel(pokemon: .pikachu))
 }

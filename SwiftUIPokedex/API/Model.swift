@@ -70,3 +70,22 @@ struct Stat: Decodable {
         case baseStat = "base_stat"
     }
 }
+
+// MARK: - Mock pokemon
+extension PokemonDetails {
+    static var pikachu: PokemonDetails {
+        PokemonDetails(
+            id: 0,
+            name: "Pika",
+            weight: 0,
+            height: 0,
+            baseExperience: 0,
+            forms: [],
+            sprite: Sprite(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"),
+            abilities: [],
+            moves: [],
+            types: [.init(type: .init(name: "gunther", url: ""))],
+            stats: []
+        )
+    }
+}
