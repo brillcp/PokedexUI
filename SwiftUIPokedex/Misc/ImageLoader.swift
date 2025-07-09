@@ -29,14 +29,11 @@ actor ImageLoader {
 
         do {
             let (data, response) = try await session.data(for: request)
-
-            // Cache if valid HTTP response
-            if let httpResponse = response as? HTTPURLResponse,
-               200..<300 ~= httpResponse.statusCode {
-                let cachedData = CachedURLResponse(response: response, data: data)
-                cache.storeCachedResponse(cachedData, for: request)
-            }
-
+            cache.cache(
+                response: response,
+                withData: data,
+                for: request
+            )
             return UIImage(data: data)
         } catch {
             return nil
@@ -44,36 +41,13 @@ actor ImageLoader {
     }
 }
 
-/*
-final class ImageLoader: ObservableObject {
-    
-    // MARK: Private properties
-    private var cancellable: AnyCancellable?
-    private let url: URL
-    
-    // MARK: - Public properties
-    @Published var image: UIImage?
-
-    // MARK: - Init
-    init(url: URL) {
-        self.url = url
-    }
-    
-    deinit {
-        cancel()
-    }
-    
-    // MARK: - Public functions
-    func load() {
-        cancellable = URLSession.shared.dataTaskPublisher(for: url)
-            .map { UIImage(data: $0.data) }
-            .replaceError(with: nil)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.image = $0 }
-    }
-    
-    func cancel() {
-        cancellable?.cancel()
+// MARK: - Cache helper function
+private extension URLCache {
+    func cache(response: URLResponse, withData data: Data, for request: URLRequest) {
+        guard let httpResponse = response as? HTTPURLResponse,
+              200 ..< 300 ~= httpResponse.statusCode
+        else { return }
+        let cachedData = CachedURLResponse(response: response, data: data)
+        storeCachedResponse(cachedData, for: request)
     }
 }
-*/

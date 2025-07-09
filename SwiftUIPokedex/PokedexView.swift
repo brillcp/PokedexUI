@@ -13,8 +13,8 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     @ObservedObject var viewModel: ViewModel
 
     private var gridLayout: [GridItem] = [
-        GridItem(.flexible(minimum: 100, maximum: .infinity)),
-        GridItem(.flexible(minimum: 100, maximum: .infinity))
+        GridItem(.adaptive(minimum: 150, maximum: .infinity)),
+        GridItem(.adaptive(minimum: 150, maximum: .infinity)),
     ]
 
     // MARK: - Initialization
@@ -27,8 +27,15 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
         NavigationView {
             TabView {
                 pokemonGridView
+                    .tabItem {
+                        Label("Pokedex", systemImage: "square.grid.2x2.fill")
+                    }
                 placeholderTabView
+                    .tabItem {
+                        Label("Items", systemImage: "square.fill.on.circle.fill")
+                    }
             }
+            .tint(.pokedexRed)
             .navigationTitle("Pokedex")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.pokedexRed, for: .navigationBar)

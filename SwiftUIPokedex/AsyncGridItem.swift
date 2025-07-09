@@ -18,13 +18,16 @@ struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .background(viewModel.color)
             } else {
                 ProgressView()
                     .task { await viewModel.loadSprite() }
+                    .tint(.white)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.darkGray))
             }
         }
-        .frame(width: 150, height: 150)
-        .background(viewModel.color)
+//        .frame(width: 150, height: 150)
         .cornerRadius(20)
     }
 }
