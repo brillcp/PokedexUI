@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		9332C0D5273F1CC2003AF377 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D4273F1CC2003AF377 /* Model.swift */; };
 		9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D6273F1DA6003AF377 /* PokemonService.swift */; };
-		9332C0D9273F1F58003AF377 /* NetworkAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D8273F1F58003AF377 /* NetworkAgent.swift */; };
+		9332C0D9273F1F58003AF377 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D8273F1F58003AF377 /* NetworkService.swift */; };
 		9332C0DB273F206E003AF377 /* Publisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0DA273F206E003AF377 /* Publisher.swift */; };
 		9332C0E0273F2A36003AF377 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0DF273F2A36003AF377 /* Color.swift */; };
 		9332C0E3273F3149003AF377 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0E2273F3149003AF377 /* Data.swift */; };
@@ -30,7 +30,7 @@
 /* Begin PBXFileReference section */
 		9332C0D4273F1CC2003AF377 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		9332C0D6273F1DA6003AF377 /* PokemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonService.swift; sourceTree = "<group>"; };
-		9332C0D8273F1F58003AF377 /* NetworkAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAgent.swift; sourceTree = "<group>"; };
+		9332C0D8273F1F58003AF377 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		9332C0DA273F206E003AF377 /* Publisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publisher.swift; sourceTree = "<group>"; };
 		9332C0DF273F2A36003AF377 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9332C0E2273F3149003AF377 /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
@@ -74,7 +74,7 @@
 		9332C0E6273F3178003AF377 /* API */ = {
 			isa = PBXGroup;
 			children = (
-				9332C0D8273F1F58003AF377 /* NetworkAgent.swift */,
+				9332C0D8273F1F58003AF377 /* NetworkService.swift */,
 				9332C0D6273F1DA6003AF377 /* PokemonService.swift */,
 				9332C0D4273F1CC2003AF377 /* Model.swift */,
 				9332C0E4273F3171003AF377 /* API.swift */,
@@ -208,7 +208,7 @@
 				9332C0D5273F1CC2003AF377 /* Model.swift in Sources */,
 				9332C0EA273F51E1003AF377 /* AsyncGridItem.swift in Sources */,
 				9332C0DB273F206E003AF377 /* Publisher.swift in Sources */,
-				9332C0D9273F1F58003AF377 /* NetworkAgent.swift in Sources */,
+				9332C0D9273F1F58003AF377 /* NetworkService.swift in Sources */,
 				9396D23C273EBBED00AF0C94 /* PokedexView.swift in Sources */,
 				9332C0E5273F3171003AF377 /* API.swift in Sources */,
 				9332C0E8273F3219003AF377 /* ImageLoader.swift in Sources */,

@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct NetworkAgent {
-    static private let session: URLSession = .shared
+actor NetworkService {
+    private let session: URLSession = .shared
 
-    static func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
+    func execute<T: Decodable>(_ request: URLRequest) async throws -> T {
         let (data, _) = try await session.data(for: request)
         return try JSONDecoder().decode(T.self, from: data)
     }

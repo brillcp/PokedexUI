@@ -11,7 +11,13 @@ import Combine
 final class PokemonService: API, ObservableObject {
     
     // MARK: Private properties
+    private let networkService: NetworkService
     private var response: APIResponse?
+
+    // MARK: - Init
+    init(networkAgent: NetworkService = NetworkService()) {
+        self.networkService = networkAgent
+    }
 
     // MARK: - Public properties
     @Published var pokemon = [PokemonViewModel]()
@@ -44,7 +50,7 @@ final class PokemonService: API, ObservableObject {
 private extension PokemonService {
     func pokemonDetails(from url: URL) async throws -> PokemonDetails {
         let request = URLRequest(url: url)
-        let result: PokemonDetails = try await NetworkAgent.execute(request)
+        let result: PokemonDetails = try await networkService.execute(request)
         return result
     }
 
@@ -58,6 +64,6 @@ private extension PokemonService {
         }()
 
         let request = URLRequest(url: finalURL)
-        return try await NetworkAgent.execute(request)
+        return try await networkService.execute(request)
     }
 }
