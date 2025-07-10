@@ -66,7 +66,7 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var abilities: String {
         pokemon.abilities
             .map { $0.ability.name.capitalized }
-            .joined(separator: ", ")
+            .joined(separator: ",\n\n")
 
     }
 
