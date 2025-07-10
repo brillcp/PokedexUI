@@ -84,26 +84,28 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
 // MARK: - Private functions
 private extension DetailView {
     func detailRow(title: String, subtitle: String) -> some View {
-        HStack(spacing: 20) {
-            Text(title)
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 96, alignment: .leading)
+        row(title: title) {
             Text(subtitle)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical)
     }
 
     func detailRowStat(title: String, value: Int, color: Color) -> some View {
-        HStack(spacing: 20) {
-            Text(title.capitalized)
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 96, alignment: .leading)
+        row(title: title.capitalized) {
             ProgressView(value: Double(value), total: 100)
                 .frame(height: 20)
                 .tint(color)
             Text("\(value) / 100")
+        }
+    }
+
+    func row<Content: View>(title: String, @ViewBuilder content: @escaping  () -> Content) -> some View {
+        HStack(spacing: 20) {
+            Text(title)
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 96, alignment: .leading)
+            content()
         }
         .padding(.vertical)
     }
