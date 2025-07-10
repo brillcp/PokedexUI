@@ -9,9 +9,10 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         AsyncGridItem(viewModel: viewModel)
+                            .padding(44)
 
                         ContentCard {
-                            VStack(spacing: 0) {
+                            VStack {
                                 BasicInfoSection(viewModel: viewModel)
                                 SectionDivider()
                                 StatsSection(viewModel: viewModel)
@@ -31,7 +32,7 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
 // MARK: - Content Sections
 private extension DetailView {
     func BasicInfoSection(viewModel: ViewModel) -> some View {
-        VStack(spacing: 0) {
+        VStack {
             DetailRow(title: "Types", subtitle: viewModel.types)
             DetailRow(title: "Height", subtitle: viewModel.height)
             DetailRow(title: "Weight", subtitle: viewModel.weight)
@@ -122,12 +123,13 @@ private extension View {
             .foregroundColor(viewModel.isLight ? .black : .white)
             .navigationTitle(viewModel.name)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(viewModel.color ?? .darkGrey, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 Text("#\(viewModel.id)")
             }
             .background(viewModel.color)
-            .ignoresSafeArea()
+            .ignoresSafeArea(edges: .bottom)
     }
 }
 

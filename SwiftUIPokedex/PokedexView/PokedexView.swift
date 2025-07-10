@@ -101,7 +101,7 @@ private extension PokedexView {
             Spacer()
             pokemonName(for: pokemon)
         }
-        .padding(.bottom, 8)
+        .padding(.bottom)
     }
 }
 
@@ -110,7 +110,7 @@ private extension PokedexView {
     func numberBadge(for pokemon: PokemonViewModel) -> some View {
         Text("#\(pokemon.id)")
             .foregroundColor(pokemon.isLight ? .black : .white)
-            .padding(10)
+            .padding(8)
     }
 
     func pokemonName(for pokemon: PokemonViewModel) -> some View {
