@@ -4,28 +4,24 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
     let viewModel: ViewModel
 
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry in
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        AsyncGridItem(viewModel: viewModel)
-                            .padding(.horizontal, 44)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                AsyncGridItem(viewModel: viewModel)
+                    .padding(.horizontal, 44)
 
-                        ContentCard {
-                            VStack {
-                                BasicInfoSection(viewModel: viewModel)
-                                SectionDivider()
-                                StatsSection(viewModel: viewModel)
-                                SectionDivider()
-                                MovesSection(viewModel: viewModel)
-                                BottomSpacer()
-                            }
-                        }
+                ContentCard {
+                    VStack {
+                        BasicInfoSection(viewModel: viewModel)
+                        SectionDivider()
+                        StatsSection(viewModel: viewModel)
+                        SectionDivider()
+                        MovesSection(viewModel: viewModel)
+                        BottomSpacer()
                     }
                 }
-                .applyDetailViewStyling(viewModel: viewModel)
             }
         }
+        .applyDetailViewStyling(viewModel: viewModel)
     }
 }
 
