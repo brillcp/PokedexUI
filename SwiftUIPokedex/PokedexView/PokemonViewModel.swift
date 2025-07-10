@@ -75,7 +75,9 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     }
 
     var moves: String {
-        pokemon.moves[0 ... 20]
+        let count = pokemon.moves.count
+        let end = min(count, 20)
+        return pokemon.moves[0 ..< end]
             .map { $0.move.name.capitalized }
             .joined(separator: ", ")
     }

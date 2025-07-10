@@ -4,9 +4,9 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
     @Namespace private var namespace
 
-    private var gridLayout: [GridItem] = [
+    private let gridLayout: [GridItem] = [
         GridItem(.flexible(maximum: .infinity)),
-        GridItem(.flexible(maximum: .infinity)),
+        GridItem(.flexible(maximum: .infinity))
     ]
 
     // MARK: - Public properties
@@ -19,7 +19,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        NavigationView {
+        NavigationStack {
             TabView {
                 pokemonGridView
                     .tabItem {
@@ -30,11 +30,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                         Label("Items", systemImage: "square.fill.on.circle.fill")
                     }
             }
-            .tint(.pokedexRed)
-            .navigationTitle("Pokedex")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.pokedexRed, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .applyPokedexStyling()
         }
         .task {
             await viewModel.requestPokemon()
@@ -42,52 +38,54 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     }
 }
 
-// MARK: - View Components
+// MARK: - Tab Views
 private extension PokedexView {
     var pokemonGridView: some View {
         ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: gridLayout) {
-                ForEach(viewModel.pokemon, id: \.id) {
-                    pokemonGridItem(for: $0)
-                        .padding(8)
-                }
-            }
-            .padding(8)
+            pokemonGrid
 
             if viewModel.isLoading {
-                loadingView
+                loadingIndicator
             }
         }
         .background(Color.darkGrey)
         .font(.pixel17)
     }
 
+    var placeholderTabView: some View {
+        Text("Items Coming Soon")
+            .foregroundStyle(.secondary)
+    }
+}
+
+// MARK: - Grid Components
+private extension PokedexView {
+    var pokemonGrid: some View {
+        LazyVGrid(columns: gridLayout) {
+            ForEach(viewModel.pokemon, id: \.id) { pokemon in
+                pokemonGridItem(for: pokemon)
+                    .padding(8)
+            }
+        }
+        .padding(8)
+    }
+
     func pokemonGridItem(for pokemon: PokemonViewModel) -> some View {
         NavigationLink {
             DetailView(viewModel: pokemon)
-                .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
+                .navigationTransition(
+                    .zoom(sourceID: pokemon.id, in: namespace)
+                )
         } label: {
-            gridItem(pokemon: pokemon)
+            pokemonCard(for: pokemon)
+                .matchedTransitionSource(id: pokemon.id, in: namespace)
         }
-        .tag(pokemon.id)
     }
 
-    func gridItem(pokemon: PokemonViewModel) -> some View {
+    func pokemonCard(for pokemon: PokemonViewModel) -> some View {
         AsyncGridItem(viewModel: pokemon)
             .overlay(alignment: .bottom) {
-                VStack {
-                    HStack {
-                        Spacer()
-                        NumberOverlay(
-                            number: pokemon.id,
-                            isLight: pokemon.isLight
-                        )
-                    }
-                    Spacer()
-                    Text(pokemon.name)
-                }
-                .padding(.bottom, 8)
-                .foregroundStyle(pokemon.isLight ? .black : .white)
+                cardOverlay(for: pokemon)
             }
             .task {
                 if pokemon == viewModel.pokemon.last {
@@ -96,25 +94,47 @@ private extension PokedexView {
             }
     }
 
-    var loadingView: some View {
-        ProgressView()
-            .tint(.white)
-    }
-
-    var placeholderTabView: some View {
-        Text("dladl")
+    func cardOverlay(for pokemon: PokemonViewModel) -> some View {
+        VStack {
+            HStack {
+                Spacer()
+                numberBadge(for: pokemon)
+            }
+            Spacer()
+            pokemonName(for: pokemon)
+        }
+        .padding(.bottom, 8)
     }
 }
 
-// MARK: - Supporting Views
-private struct NumberOverlay: View {
-    let number: Int
-    let isLight: Bool
-
-    var body: some View {
-        Text("#\(number)")
-            .foregroundColor(isLight ? .black : .white)
+// MARK: - Supporting Components
+private extension PokedexView {
+    func numberBadge(for pokemon: PokemonViewModel) -> some View {
+        Text("#\(pokemon.id)")
+            .foregroundColor(pokemon.isLight ? .black : .white)
             .padding(10)
+    }
+
+    func pokemonName(for pokemon: PokemonViewModel) -> some View {
+        Text(pokemon.name)
+            .foregroundStyle(pokemon.isLight ? .black : .white)
+    }
+
+    var loadingIndicator: some View {
+        ProgressView()
+            .tint(.white)
+    }
+}
+
+// MARK: - View Modifiers
+private extension View {
+    func applyPokedexStyling() -> some View {
+        self
+            .tint(.pokedexRed)
+            .navigationTitle("Pokedex")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.pokedexRed, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 

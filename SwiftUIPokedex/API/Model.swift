@@ -76,10 +76,10 @@ extension PokemonDetails {
             baseExperience: 0,
             forms: [],
             sprite: Sprite(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"),
-            abilities: [],
-            moves: [],
+            abilities: [.init(ability: .init(name: "Hp", url: ""))],
+            moves: [.init(move: .init(name: "Move", url: ""))],
             types: [.init(type: .init(name: "gunther", url: ""))],
-            stats: []
+            stats: [.init(baseStat: 69, stat: .init(name: "stat", url: ""))]
         )
     }
 }

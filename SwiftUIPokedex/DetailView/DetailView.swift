@@ -40,7 +40,7 @@ private extension DetailView {
     }
 
     func StatsSection(viewModel: ViewModel) -> some View {
-        ForEach(viewModel.stats, id: \.stat.name) { stat in
+        ForEach(viewModel.stats) { stat in
             DetailRowStat(
                 title: stat.stat.name,
                 value: stat.baseStat,
@@ -69,6 +69,7 @@ private extension DetailView {
     func SectionDivider() -> some View {
         Divider()
             .background(.secondary)
+            .padding(.vertical)
     }
 
     func BottomSpacer() -> some View {
