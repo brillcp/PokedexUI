@@ -6,7 +6,7 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
                         AsyncGridItem(viewModel: viewModel)
                             .padding(.horizontal, 44)
