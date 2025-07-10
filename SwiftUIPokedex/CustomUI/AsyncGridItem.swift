@@ -1,10 +1,3 @@
-//
-//  AsyncGridItem.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2021-11-13.
-//
-
 import SwiftUI
 
 struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {

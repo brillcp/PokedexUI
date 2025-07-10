@@ -1,10 +1,3 @@
-//
-//  PokedexUI.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2021-11-12.
-//
-
 import SwiftUI
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {

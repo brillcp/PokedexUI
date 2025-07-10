@@ -1,10 +1,3 @@
-//
-//  PokedexViewModel.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2025-07-08.
-//
-
 import Foundation
 
 protocol PokedexViewModelProtocol: ObservableObject {

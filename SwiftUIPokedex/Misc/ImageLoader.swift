@@ -1,12 +1,4 @@
-//
-//  ImageLoader.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2021-11-13.
-//
-
 import UIKit
-import Combine
 
 actor ImageLoader {
     static let shared = ImageLoader()

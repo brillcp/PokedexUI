@@ -1,10 +1,3 @@
-//
-//  Color.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2021-11-13.
-//
-
 import SwiftUI
 
 extension Color {

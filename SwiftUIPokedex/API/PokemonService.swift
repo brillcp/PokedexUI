@@ -1,18 +1,16 @@
-//
-//  PokemonService.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2021-11-12.
-//
-
 import Foundation
-import Combine
 
 final class PokemonService: API, ObservableObject {
-    
+    private static let baseURL = URL(string: "https://pokeapi.co/api/v2/")!
+
     // MARK: Private properties
     private let networkService: NetworkService
     private var response: APIResponse?
+
+    private enum ItemType: String {
+        case pokemon
+        case items = "item"
+    }
 
     // MARK: - Init
     init(networkAgent: NetworkService = NetworkService()) {
@@ -59,7 +57,7 @@ private extension PokemonService {
             if let urlString, let url = URL(string: urlString) {
                 return url
             } else {
-                return baseURL.appendingPathComponent(PokemonService.ItemType.pokemon.rawValue)
+                return Self.baseURL.appendingPathComponent(ItemType.pokemon.rawValue)
             }
         }()
 
