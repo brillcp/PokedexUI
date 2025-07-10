@@ -108,7 +108,7 @@ private extension DetailView {
         title: String,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        HStack(spacing: 20) {
+        HStack(alignment: .top, spacing: 20) {
             Text(title)
                 .foregroundStyle(.secondary)
                 .frame(minWidth: 96, alignment: .leading)
