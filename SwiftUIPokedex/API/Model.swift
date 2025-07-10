@@ -26,7 +26,7 @@ struct PokemonDetails: Decodable, Equatable {
     let moves: [Move]
     let types: [Type]
     let stats: [Stat]
-    
+
     private enum CodingKeys: String, CodingKey {
         case id, name, weight, height, forms, abilities, moves, types, stats
         case baseExperience = "base_experience"
@@ -36,7 +36,7 @@ struct PokemonDetails: Decodable, Equatable {
 
 struct Sprite: Decodable {
     let url: String
-    
+
     private enum CodingKeys: String, CodingKey {
         case url = "front_default"
     }
@@ -58,7 +58,7 @@ struct Stat: Decodable, Identifiable {
     var id = UUID()
     let baseStat: Int
     let stat: APIItem
-    
+
     private enum CodingKeys: String, CodingKey {
         case stat
         case baseStat = "base_stat"

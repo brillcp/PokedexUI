@@ -1,6 +1,6 @@
 import Foundation
 
-final class PokemonService: API, ObservableObject {
+final class PokemonService: ObservableObject {
     private static let baseURL = URL(string: "https://pokeapi.co/api/v2/")!
 
     // MARK: Private properties
@@ -12,15 +12,17 @@ final class PokemonService: API, ObservableObject {
         case items = "item"
     }
 
+    // MARK: - Public properties
+    @Published var pokemon = [PokemonViewModel]()
+
     // MARK: - Init
     init(networkAgent: NetworkService = NetworkService()) {
         self.networkService = networkAgent
     }
+}
 
-    // MARK: - Public properties
-    @Published var pokemon = [PokemonViewModel]()
-
-    // MARK: - Public functions
+// MARK: - Public functions
+extension PokemonService {
     func requestPokemon() async throws -> [PokemonViewModel] {
         let newResponse = try await requestPokemon(at: response?.next)
         response = newResponse
