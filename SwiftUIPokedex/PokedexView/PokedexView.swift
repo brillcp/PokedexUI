@@ -1,14 +1,16 @@
 import SwiftUI
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
-    // MARK: - Properties
+    // MARK: Private properties
     @Namespace private var namespace
-    @ObservedObject var viewModel: ViewModel
 
     private var gridLayout: [GridItem] = [
         GridItem(.flexible(maximum: .infinity)),
         GridItem(.flexible(maximum: .infinity)),
     ]
+
+    // MARK: - Public properties
+    @ObservedObject var viewModel: ViewModel
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
