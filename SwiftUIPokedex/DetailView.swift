@@ -8,99 +8,106 @@
 import SwiftUI
 
 struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
-    var viewModel: ViewModel
+    let viewModel: ViewModel
 
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                let safeArea = geometry.safeAreaInsets.top
                 ScrollView {
-                    VStack {
+                    VStack(spacing: 0) {
                         AsyncGridItem(viewModel: viewModel)
 
-                        VStack {
-                            detailRow(
-                                title: "Types",
-                                subtitle: viewModel.types
-                            )
-                            detailRow(
-                                title: "Height",
-                                subtitle: viewModel.height
-                            )
-                            detailRow(
-                                title: "Weight", 
-                                subtitle: viewModel.weight
-                            )
-                            detailRow(
-                                title: "Abilities",
-                                subtitle: viewModel.abilities
-                            )
-
-                            Divider()
-                                .background(.secondary)
-
-                            ForEach(viewModel.stats) {
-                                detailRowStat(
-                                    title: $0.stat.name,
-                                    value: $0.baseStat,
-                                    color: viewModel.color ?? .white
-                                )
+                        ContentCard {
+                            VStack(spacing: 0) {
+                                BasicInfoSection(viewModel: viewModel)
+                                SectionDivider()
+                                StatsSection(viewModel: viewModel)
+                                SectionDivider()
+                                MovesSection(viewModel: viewModel)
+                                BottomSpacer()
                             }
-
-                            Divider()
-                                .background(.secondary)
-
-                            VStack(alignment: .leading, spacing: 16.0) {
-                                Text("Moves")
-                                    .foregroundStyle(.secondary)
-                                Text(viewModel.moves)
-                            }
-                            .padding(.vertical)
-
-                            Spacer()
-                                .frame(height: 64)
                         }
-                        .padding()
-                        .background(Color.darkGrey)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .foregroundStyle(.white)
                     }
                 }
-                .font(.pixel14)
-                .foregroundColor(viewModel.isLight ? .black : .white)
-                .navigationTitle(viewModel.name)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(.visible, for: .navigationBar)
-                .toolbar {
-                    Text("#\(viewModel.id)")
-                }
-                .background(viewModel.color)
-                .ignoresSafeArea()
+                .applyDetailViewStyling(viewModel: viewModel)
             }
         }
     }
 }
 
-// MARK: - Private functions
+// MARK: - Content Sections
 private extension DetailView {
-    func detailRow(title: String, subtitle: String) -> some View {
-        row(title: title) {
+    func BasicInfoSection(viewModel: ViewModel) -> some View {
+        VStack(spacing: 0) {
+            DetailRow(title: "Types", subtitle: viewModel.types)
+            DetailRow(title: "Height", subtitle: viewModel.height)
+            DetailRow(title: "Weight", subtitle: viewModel.weight)
+            DetailRow(title: "Abilities", subtitle: viewModel.abilities)
+        }
+    }
+
+    func StatsSection(viewModel: ViewModel) -> some View {
+        ForEach(viewModel.stats, id: \.stat.name) { stat in
+            DetailRowStat(
+                title: stat.stat.name,
+                value: stat.baseStat,
+                color: viewModel.color ?? .white
+            )
+        }
+    }
+
+    func MovesSection(viewModel: ViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Moves")
+                .foregroundStyle(.secondary)
+            Text(viewModel.moves)
+        }
+        .padding(.vertical)
+    }
+
+    func ContentCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding()
+            .background(Color.darkGrey)
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .foregroundStyle(.white)
+    }
+
+    func SectionDivider() -> some View {
+        Divider()
+            .background(.secondary)
+    }
+
+    func BottomSpacer() -> some View {
+        Spacer()
+            .frame(height: 64)
+    }
+}
+
+// MARK: - Reusable Row Components
+private extension DetailView {
+    func DetailRow(title: String, subtitle: String) -> some View {
+        BaseRow(title: title) {
             Text(subtitle)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
-    func detailRowStat(title: String, value: Int, color: Color) -> some View {
-        row(title: title.capitalized) {
-            ProgressView(value: Double(value), total: 100)
+    func DetailRowStat(title: String, value: Int, color: Color) -> some View {
+        let clampedValue = min(max(value, 0), 100)
+        return BaseRow(title: title.capitalized) {
+            ProgressView(value: Double(clampedValue), total: 100)
                 .frame(height: 20)
                 .tint(color)
-            Text("\(value) / 100")
+            Text("\(clampedValue) / 100")
         }
     }
 
-    func row<Content: View>(title: String, @ViewBuilder content: @escaping  () -> Content) -> some View {
+    func BaseRow<Content: View>(
+        title: String,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
         HStack(spacing: 20) {
             Text(title)
                 .foregroundStyle(.secondary)
@@ -108,6 +115,25 @@ private extension DetailView {
             content()
         }
         .padding(.vertical)
+    }
+}
+
+// MARK: - View Modifiers
+private extension View {
+    func applyDetailViewStyling<ViewModel: PokemonViewModelProtocol>(
+        viewModel: ViewModel
+    ) -> some View {
+        self
+            .font(.pixel14)
+            .foregroundColor(viewModel.isLight ? .black : .white)
+            .navigationTitle(viewModel.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                Text("#\(viewModel.id)")
+            }
+            .background(viewModel.color)
+            .ignoresSafeArea()
     }
 }
 
