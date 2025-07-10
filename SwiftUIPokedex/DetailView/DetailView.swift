@@ -9,7 +9,7 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         AsyncGridItem(viewModel: viewModel)
-                            .padding(44)
+                            .padding(.horizontal, 44)
 
                         ContentCard {
                             VStack {
