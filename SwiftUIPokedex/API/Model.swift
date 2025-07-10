@@ -21,7 +21,7 @@ struct PokemonDetails: Decodable, Equatable {
     static func == (lhs: PokemonDetails, rhs: PokemonDetails) -> Bool {
         lhs.id == rhs.id
     }
-    
+
     let id: Int
     let name: String
     let weight: Int
@@ -61,7 +61,8 @@ struct Type: Decodable {
     let type: APIItem
 }
 
-struct Stat: Decodable {
+struct Stat: Decodable, Identifiable {
+    var id = UUID()
     let baseStat: Int
     let stat: APIItem
     

@@ -15,9 +15,7 @@ actor ImageLoader {
     private let session: URLSession = .shared
 
     func loadImage(from urlString: String) async -> UIImage? {
-        guard let url = URL(string: urlString) else {
-            return nil
-        }
+        guard let url = URL(string: urlString) else { return nil }
 
         let request = URLRequest(url: url)
 

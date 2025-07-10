@@ -20,15 +20,16 @@ struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
                     .aspectRatio(contentMode: .fit)
                     .background(viewModel.color)
             } else {
-                ProgressView()
-                    .task { await viewModel.loadSprite() }
-                    .tint(.white)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(.darkGray))
+                ZStack {
+                    Color(.darkGray)
+                    ProgressView()
+                        .task { await viewModel.loadSprite() }
+                        .tint(.white)
+                }
             }
         }
-//        .frame(width: 150, height: 150)
-        .cornerRadius(20)
+        .aspectRatio(1.0, contentMode: .fit)
+        .cornerRadius(16.0)
     }
 }
 

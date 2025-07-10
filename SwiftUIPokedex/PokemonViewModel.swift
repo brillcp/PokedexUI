@@ -11,7 +11,13 @@ protocol PokemonViewModelProtocol: ObservableObject {
     var image: UIImage? { get }
     var color: Color? { get }
     var isLight: Bool { get }
+    var types: String { get }
+    var abilities: String { get }
     var name: String { get }
+    var stats: [Stat] { get }
+    var moves: String { get }
+    var height: String { get }
+    var weight: String { get }
     var url: String { get }
     var id: Int { get }
 
@@ -20,13 +26,14 @@ protocol PokemonViewModelProtocol: ObservableObject {
 
 // MARK: -
 final class PokemonViewModel {
-    private let imageLoader: ImageLoader = .shared
+    private let imageLoader: ImageLoader
     private let pokemon: PokemonDetails
 
     @Published var image: UIImage?
     @Published var color: Color?
 
-    init(pokemon: PokemonDetails) {
+    init(pokemon: PokemonDetails, imageLoader: ImageLoader = .shared) {
+        self.imageLoader = imageLoader
         self.pokemon = pokemon
     }
 }
@@ -38,7 +45,15 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     }
 
     var name: String {
-        pokemon.name
+        pokemon.name.capitalized
+    }
+
+    var height: String {
+        "\(Double(pokemon.height) / 10.0) m"
+    }
+
+    var weight: String {
+        "\(Double(pokemon.weight) / 10.0) kg"
     }
 
     var isLight: Bool {
@@ -47,6 +62,29 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 
     var url: String {
         pokemon.sprite.url
+    }
+
+    var types: String {
+        pokemon.types
+            .map { $0.type.name.capitalized }
+            .joined(separator: ", ")
+    }
+
+    var abilities: String {
+        pokemon.abilities
+            .map { $0.ability.name.capitalized }
+            .joined(separator: ", ")
+
+    }
+
+    var stats: [Stat] {
+        pokemon.stats
+    }
+
+    var moves: String {
+        pokemon.moves[0 ... 20]
+            .map { $0.move.name.capitalized }
+            .joined(separator: ", ")
     }
 
     @MainActor

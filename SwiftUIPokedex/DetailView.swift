@@ -12,49 +12,100 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack {
-                    HStack {
-//                        ForEach(pokemon.types, id: \.type) {
-//                            Text($0.type.name)
-//                        }
-                        Spacer()
-                        Text("#\(viewModel.id)")
-                    }
-                    
-                    AsyncGridItem(viewModel: viewModel)
-                    DetailStack()
-                }
-                .padding()
-                .background(viewModel.color)
+            GeometryReader { geometry in
+                let safeArea = geometry.safeAreaInsets.top
+                ScrollView {
+                    VStack {
+                        AsyncGridItem(viewModel: viewModel)
 
+                        VStack {
+                            detailRow(
+                                title: "Types",
+                                subtitle: viewModel.types
+                            )
+                            detailRow(
+                                title: "Height",
+                                subtitle: viewModel.height
+                            )
+                            detailRow(
+                                title: "Weight", 
+                                subtitle: viewModel.weight
+                            )
+                            detailRow(
+                                title: "Abilities",
+                                subtitle: viewModel.abilities
+                            )
+
+                            Divider()
+                                .background(.secondary)
+
+                            ForEach(viewModel.stats) {
+                                detailRowStat(
+                                    title: $0.stat.name,
+                                    value: $0.baseStat,
+                                    color: viewModel.color ?? .white
+                                )
+                            }
+
+                            Divider()
+                                .background(.secondary)
+
+                            VStack(alignment: .leading, spacing: 16.0) {
+                                Text("Moves")
+                                    .foregroundStyle(.secondary)
+                                Text(viewModel.moves)
+                            }
+                            .padding(.vertical)
+
+                            Spacer()
+                                .frame(height: 64)
+                        }
+                        .padding()
+                        .background(Color.darkGrey)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .foregroundStyle(.white)
+                    }
+                }
+                .font(.pixel14)
+                .foregroundColor(viewModel.isLight ? .black : .white)
+                .navigationTitle(viewModel.name)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbar {
+                    Text("#\(viewModel.id)")
+                }
+                .background(viewModel.color)
+                .ignoresSafeArea()
             }
-            .background(Color.darkGrey)
-            .foregroundColor(viewModel.isLight ? .black : .white)
-            .navigationTitle(viewModel.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(viewModel.color ?? .darkGrey, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
         }
     }
 }
 
-struct DetailStack: View {
-    var body: some View {
-        HStack {
-            VStack {
-                Text("Height")
-                Text("xxx")
-            }
-            
-            Spacer()
-            
-            VStack {
-                Text("Width")
-                Text("xxx")
-            }
+// MARK: - Private functions
+private extension DetailView {
+    func detailRow(title: String, subtitle: String) -> some View {
+        HStack(spacing: 20) {
+            Text(title)
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 96, alignment: .leading)
+            Text(subtitle)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding([.leading, .trailing, .bottom], 30)
+        .padding(.vertical)
+    }
+
+    func detailRowStat(title: String, value: Int, color: Color) -> some View {
+        HStack(spacing: 20) {
+            Text(title.capitalized)
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 96, alignment: .leading)
+            ProgressView(value: Double(value), total: 100)
+                .frame(height: 20)
+                .tint(color)
+            Text("\(value) / 100")
+        }
+        .padding(.vertical)
     }
 }
 

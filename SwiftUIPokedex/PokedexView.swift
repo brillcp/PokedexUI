@@ -13,8 +13,8 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     @ObservedObject var viewModel: ViewModel
 
     private var gridLayout: [GridItem] = [
-        GridItem(.adaptive(minimum: 150, maximum: .infinity)),
-        GridItem(.adaptive(minimum: 150, maximum: .infinity)),
+        GridItem(.flexible(maximum: .infinity)),
+        GridItem(.flexible(maximum: .infinity)),
     ]
 
     // MARK: - Initialization
@@ -51,18 +51,20 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 private extension PokedexView {
     var pokemonGridView: some View {
         ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: gridLayout, spacing: 20) {
+            LazyVGrid(columns: gridLayout) {
                 ForEach(viewModel.pokemon, id: \.id) {
                     pokemonGridItem(for: $0)
+                        .padding(8)
                 }
             }
-            .padding(20)
+            .padding(8)
 
             if viewModel.isLoading {
                 loadingView
             }
         }
         .background(Color.darkGrey)
+        .font(.pixel17)
     }
 
     func pokemonGridItem(for pokemon: PokemonViewModel) -> some View {
@@ -77,11 +79,20 @@ private extension PokedexView {
 
     func gridItem(pokemon: PokemonViewModel) -> some View {
         AsyncGridItem(viewModel: pokemon)
-            .overlay(alignment: .topTrailing) {
-                NumberOverlay(
-                    number: pokemon.id,
-                    isLight: pokemon.isLight
-                )
+            .overlay(alignment: .bottom) {
+                VStack {
+                    HStack {
+                        Spacer()
+                        NumberOverlay(
+                            number: pokemon.id,
+                            isLight: pokemon.isLight
+                        )
+                    }
+                    Spacer()
+                    Text(pokemon.name)
+                }
+                .padding(.bottom, 8)
+                .foregroundStyle(pokemon.isLight ? .black : .white)
             }
             .task {
                 if pokemon == viewModel.pokemon.last {
@@ -101,7 +112,7 @@ private extension PokedexView {
 }
 
 // MARK: - Supporting Views
-struct NumberOverlay: View {
+private struct NumberOverlay: View {
     let number: Int
     let isLight: Bool
 
