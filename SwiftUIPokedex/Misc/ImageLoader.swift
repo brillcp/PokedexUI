@@ -37,7 +37,6 @@ private extension URLCache {
         guard let httpResponse = response as? HTTPURLResponse,
               200 ..< 300 ~= httpResponse.statusCode
         else { return }
-        let cachedData = CachedURLResponse(response: response, data: data)
-        storeCachedResponse(cachedData, for: request)
+        storeCachedResponse(.init(response: response, data: data), for: request)
     }
 }
