@@ -32,9 +32,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
             }
             .applyPokedexStyling()
         }
-        .task {
-            await viewModel.requestPokemon()
-        }
+        .task { await viewModel.requestPokemon() }
     }
 }
 
