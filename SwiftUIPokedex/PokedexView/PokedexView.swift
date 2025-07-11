@@ -30,7 +30,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                         Label("Items", systemImage: "square.fill.on.circle.fill")
                     }
             }
-            .applyPokedexStyling()
+            .applyPokedexStyling(title: "Pokedex")
         }
         .task { await viewModel.requestPokemon() }
     }
@@ -69,7 +69,7 @@ private extension PokedexView {
 
     func pokemonGridItem(for pokemon: PokemonViewModel) -> some View {
         NavigationLink {
-            DetailView(viewModel: pokemon)
+            PokemonDetailView(viewModel: pokemon)
                 .navigationTransition(
                     .zoom(sourceID: pokemon.id, in: namespace)
                 )
@@ -120,18 +120,6 @@ private extension PokedexView {
     var loadingIndicator: some View {
         ProgressView()
             .tint(.white)
-    }
-}
-
-// MARK: - View Modifiers
-private extension View {
-    func applyPokedexStyling() -> some View {
-        self
-            .tint(.pokedexRed)
-            .navigationTitle("Pokedex")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.pokedexRed, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 

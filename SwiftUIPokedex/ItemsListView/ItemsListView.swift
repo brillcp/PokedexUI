@@ -9,7 +9,7 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
                 LazyVStack(alignment: .leading) {
                     ForEach(viewModel.items, id: \.title) { item in
                         NavigationLink {
-                            Text("dldl")
+                            ItemDetailView(item: item)
                         } label: {
                             HStack {
                                 Text(item.title ?? "none")
@@ -32,7 +32,7 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
             )
             .onChange(of: viewModel.query, viewModel.clearSearch)
             .onSubmit(of: .search, performSearch)
-            .applyPokedexStyling()
+            .applyPokedexStyling(title: "Items")
         }
         .task { await viewModel.loadItems() }
     }
@@ -46,11 +46,11 @@ private extension ItemsListView {
 }
 
 // MARK: - View Modifiers
-private extension View {
-    func applyPokedexStyling() -> some View {
+extension View {
+    func applyPokedexStyling(title: String) -> some View {
         self
             .tint(.pokedexRed)
-            .navigationTitle("Items")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.pokedexRed, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)

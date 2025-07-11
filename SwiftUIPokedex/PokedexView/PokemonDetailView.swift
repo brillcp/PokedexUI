@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
+struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
     let viewModel: ViewModel
 
     var body: some View {
@@ -26,7 +26,7 @@ struct DetailView<ViewModel: PokemonViewModelProtocol>: View {
 }
 
 // MARK: - Content Sections
-private extension DetailView {
+private extension PokemonDetailView {
     func BasicInfoSection(viewModel: ViewModel) -> some View {
         VStack {
             DetailRow(title: "Types", subtitle: viewModel.types)
@@ -76,7 +76,7 @@ private extension DetailView {
 }
 
 // MARK: - Reusable Row Components
-private extension DetailView {
+private extension PokemonDetailView {
     func DetailRow(title: String, subtitle: String) -> some View {
         BaseRow(title: title) {
             Text(subtitle)
@@ -130,5 +130,5 @@ private extension View {
 }
 
 #Preview {
-    DetailView(viewModel: PokemonViewModel(pokemon: .pikachu))
+    PokemonDetailView(viewModel: PokemonViewModel(pokemon: .pikachu))
 }
