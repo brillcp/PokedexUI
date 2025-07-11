@@ -27,9 +27,8 @@ extension ItemsListViewModel: ItemsListViewModelProtocol {
     func loadItems() async {
         do {
             items = try await itemService.requestItems()
-            print()
         } catch {
-            print()
+            print(error.localizedDescription)
         }
     }
 
