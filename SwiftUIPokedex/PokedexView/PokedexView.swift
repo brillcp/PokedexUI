@@ -25,7 +25,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                     .tabItem {
                         Label("Pokedex", systemImage: "square.grid.2x2.fill")
                     }
-                placeholderTabView
+                itemsListView
                     .tabItem {
                         Label("Items", systemImage: "square.fill.on.circle.fill")
                     }
@@ -50,9 +50,8 @@ private extension PokedexView {
         .font(.pixel17)
     }
 
-    var placeholderTabView: some View {
-        Text("Items Coming Soon")
-            .foregroundStyle(.secondary)
+    var itemsListView: some View {
+        ItemsListView(viewModel: ItemsListViewModel())
     }
 }
 
