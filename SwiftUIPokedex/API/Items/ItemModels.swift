@@ -13,22 +13,8 @@ struct ItemDetails: Decodable {
     }
 }
 
-// MARK: - Hashable
-extension ItemDetails: Hashable {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
-
-// MARK: - Equatable
-extension ItemDetails: Equatable {
-    static func == (lhs: ItemDetails, rhs: ItemDetails) -> Bool {
-        lhs.id == rhs.id
-    }
-}
-
 // MARK: -
-struct ItemData: Hashable {
+struct ItemData {
     var title: String? = nil
     var items: [ItemDetails] = []
 }

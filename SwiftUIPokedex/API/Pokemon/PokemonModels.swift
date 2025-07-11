@@ -19,20 +19,6 @@ struct PokemonDetails: Decodable {
     }
 }
 
-// MARK: - Hashable
-extension PokemonDetails: Hashable {
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
-
-// MARK: - Equatable
-extension PokemonDetails: Equatable {
-    static func == (lhs: PokemonDetails, rhs: PokemonDetails) -> Bool {
-        lhs.id == rhs.id
-    }
-}
-
 // MARK: -
 struct Sprite: Decodable {
     let url: String
