@@ -6,6 +6,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 
     private let gridLayout: [GridItem] = [
         GridItem(.flexible(maximum: .infinity)),
+        GridItem(.flexible(maximum: .infinity)),
         GridItem(.flexible(maximum: .infinity))
     ]
 
@@ -23,11 +24,11 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
             TabView {
                 pokemonGridView
                     .tabItem {
-                        Label("Pokedex", systemImage: "square.grid.2x2.fill")
+                        Label("Pokedex", systemImage: "square.grid.3x3.fill")
                     }
                 itemsListView
                     .tabItem {
-                        Label("Items", systemImage: "square.fill.on.circle.fill")
+                        Label("Items", systemImage: "xmark.triangle.circle.square.fill")
                     }
             }
             .applyPokedexStyling(title: "Pokedex")
@@ -47,7 +48,7 @@ private extension PokedexView {
             }
         }
         .background(Color.darkGrey)
-        .font(.pixel17)
+        .font(.pixel12)
     }
 
     var itemsListView: some View {
@@ -100,7 +101,7 @@ private extension PokedexView {
             Spacer()
             pokemonName(for: pokemon)
         }
-        .padding(.bottom)
+        .padding(.bottom, 10)
     }
 }
 

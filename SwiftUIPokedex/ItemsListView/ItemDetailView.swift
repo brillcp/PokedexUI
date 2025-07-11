@@ -19,52 +19,62 @@ struct ItemDetailView: View {
             ScrollView(showsIndicators: false) {
                 LazyVStack(alignment: .leading) {
                     ForEach(item.items, id: \.id) { item in
-                        HStack(alignment: .top) {
-                            sprite(item: item)
-
-                            VStack(alignment: .leading, spacing: 16.0) {
-                                Text("\(item.name)")
-                                Text("\(item.effect.first?.description ?? "")")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.vertical)
-
-                        Divider()
-                            .background(.secondary)
+                        ItemRowView(item: item)
+                        Divider().background(.secondary)
                     }
                 }
                 .font(.pixel14)
                 .foregroundStyle(.white)
                 .padding()
             }
-            .applyPokedexStyling(title: item.title ?? "Unknown")
+            .applyPokedexStyling(title: item.title?.pretty ?? "Unknown")
         }
     }
 }
 
 // MARK: - Private functions
 private extension ItemDetailView {
-    func sprite(item: ItemDetails) -> some View {
-        Group {
-            if let image {
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else {
-                ProgressView()
-                    .tint(.white)
-                    .task {
-                        image = await image(item: item)
-                    }
+    struct ItemRowView: View {
+        private let imageLoader = ImageLoader()
+
+        @State private var image: Image?
+
+        let item: ItemDetails
+
+        var body: some View {
+            HStack(alignment: .top) {
+                sprite
+                    .frame(width: 38)
+
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(item.name.pretty)
+                    Text(item.effect.first?.description ?? "")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical)
+            .task {
+                image = await loadImage()
             }
         }
-        .frame(width: 32.0)
-    }
 
-    func image(item: ItemDetails) async -> Image {
-        let uiImage = await imageLoader.loadImage(from: item.sprites.default)
-        return Image(uiImage: uiImage ?? UIImage())
+        private var sprite: some View {
+            Group {
+                if let image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    ProgressView()
+                        .tint(.white)
+                }
+            }
+        }
+
+        private func loadImage() async -> Image {
+            let uiImage = await imageLoader.loadImage(from: item.sprites.default)
+            return Image(uiImage: uiImage ?? UIImage())
+        }
     }
 }
 

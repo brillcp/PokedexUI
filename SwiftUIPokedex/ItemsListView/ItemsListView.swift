@@ -12,7 +12,7 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
                             ItemDetailView(item: item)
                         } label: {
                             HStack {
-                                Text(item.title ?? "none")
+                                Text(item.title?.pretty ?? "none")
                                 Spacer()
                                 Text(">")
                             }
@@ -20,7 +20,7 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
                         }
                     }
                 }
-                .font(.pixel17)
+                .font(.pixel14)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal)
