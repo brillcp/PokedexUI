@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
-    private let shared: ImageLoader = .shared
-
     @ObservedObject var viewModel: ViewModel
 
     var body: some View {

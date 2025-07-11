@@ -1,15 +1,15 @@
 import Networking
 
-/// An enum for requesting pokemon detail data
-enum DetailRequest: Requestable {
-    case details(String)
+/// An enum for requesting the item detail data
+enum ItemDetailsRequest: Requestable {
+    case item(String)
 
     var encoding: Request.Encoding { .query }
     var httpMethod: HTTP.Method { .get }
 
     var endpoint: EndpointType {
         switch self {
-        case .details(let id): return Endpoint.details(id)
+        case .item(let id): return Endpoint.itemDetails(id)
         }
     }
 }

@@ -1,11 +1,19 @@
 import UIKit
 
 actor ImageLoader {
-    static let shared = ImageLoader()
+    // MARK: Private properties
+    private let session: URLSession
+    private let cache: URLCache
 
-    private let cache = URLCache.shared
-    private let session: URLSession = .shared
+    // MARK: - Init
+    init(session: URLSession = .shared, cache: URLCache = .shared) {
+        self.session = session
+        self.cache = cache
+    }
+}
 
+// MARK: - Public functions
+extension ImageLoader {
     func loadImage(from urlString: String) async -> UIImage? {
         guard let url = URL(string: urlString) else { return nil }
 

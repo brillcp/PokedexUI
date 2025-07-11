@@ -14,10 +14,7 @@ struct APIItem: Decodable {
 // MARK: -
 extension Network.Service {
     static var `default`: Network.Service {
-        Network.Service(
-            server: ServerConfig(
-                baseURL: try! "https://pokeapi.co/api/v2/".asURL()
-            )
-        )
+        let url = try! "https://pokeapi.co/api/v2/".asURL()
+        return Network.Service(server: .basic(baseURL: url))
     }
 }

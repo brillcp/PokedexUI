@@ -6,7 +6,9 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-
+                ForEach(viewModel.items, id: \.title) { item in
+                    Text(item.title ?? "none")
+                }
             }
             .searchable(
                 text: $viewModel.query,
@@ -15,7 +17,9 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
             )
             .onChange(of: viewModel.query, viewModel.clearSearch)
             .onSubmit(of: .search, performSearch)
+            .applyPokedexStyling()
         }
+        .task { await viewModel.loadItems() }
     }
 }
 

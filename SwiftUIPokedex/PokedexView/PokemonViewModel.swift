@@ -25,7 +25,7 @@ final class PokemonViewModel {
     @Published var image: UIImage?
     @Published var color: Color?
 
-    init(pokemon: PokemonDetails, imageLoader: ImageLoader = .shared) {
+    init(pokemon: PokemonDetails, imageLoader: ImageLoader = .init()) {
         self.imageLoader = imageLoader
         self.pokemon = pokemon
     }
