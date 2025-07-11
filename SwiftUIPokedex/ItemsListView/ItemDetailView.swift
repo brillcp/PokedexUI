@@ -1,10 +1,3 @@
-//
-//  ItemDetailView.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2025-07-11.
-//
-
 import SwiftUI
 
 struct ItemDetailView: View {
