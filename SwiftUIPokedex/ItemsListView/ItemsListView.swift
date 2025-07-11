@@ -5,7 +5,7 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVStack(alignment: .leading) {
                     ForEach(viewModel.items, id: \.title) { item in
                         NavigationLink {

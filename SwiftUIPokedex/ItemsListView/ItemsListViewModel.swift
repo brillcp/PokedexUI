@@ -25,6 +25,8 @@ final class ItemsListViewModel {
 extension ItemsListViewModel: ItemsListViewModelProtocol {
     @MainActor
     func loadItems() async {
+        guard items.isEmpty else { return }
+
         do {
             items = try await itemService.requestItems()
         } catch {
