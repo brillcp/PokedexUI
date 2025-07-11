@@ -16,11 +16,11 @@ struct ItemDetailView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVStack(alignment: .leading) {
                     ForEach(item.items, id: \.id) { item in
                         HStack(alignment: .top) {
-                            image
+                            sprite(item: item)
 
                             VStack(alignment: .leading, spacing: 16.0) {
                                 Text("\(item.name)")
@@ -29,9 +29,7 @@ struct ItemDetailView: View {
                             }
                         }
                         .padding(.vertical)
-                        .task {
-                            image = Image(uiImage: await imageLoader.loadImage(from: item.sprites.default) ?? UIImage())
-                        }
+
                         Divider()
                             .background(.secondary)
                     }
@@ -42,6 +40,31 @@ struct ItemDetailView: View {
             }
             .applyPokedexStyling(title: item.title ?? "Unknown")
         }
+    }
+}
+
+// MARK: - Private functions
+private extension ItemDetailView {
+    func sprite(item: ItemDetails) -> some View {
+        Group {
+            if let image {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                ProgressView()
+                    .tint(.white)
+                    .task {
+                        image = await image(item: item)
+                    }
+            }
+        }
+        .frame(width: 32.0)
+    }
+
+    func image(item: ItemDetails) async -> Image {
+        let uiImage = await imageLoader.loadImage(from: item.sprites.default)
+        return Image(uiImage: uiImage ?? UIImage())
     }
 }
 
@@ -57,5 +80,5 @@ struct ItemDetailView: View {
             .init(description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat")
         ]
     )
-    ItemDetailView(item: .init(title: "name", items: [details]))
+    ItemDetailView(item: .init(title: "Item", items: [details]))
 }
