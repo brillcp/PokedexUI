@@ -20,7 +20,14 @@ struct ItemServiceConfig: ServiceConfiguration, Sendable {
     }
 
     func transformDetails(_ details: [ItemDetails]) -> [ItemData] {
-        details.map { ItemData(title: $0.name, items: []) }
+        let organizedItems = details.reduce([String: [ItemDetails]]()) { itemsDict, item -> [String: [ItemDetails]] in
+            var itemsDict = itemsDict
+            let items = details.filter { $0.category.name == item.category.name }.sorted(by: { $0.name < $1.name })
+            itemsDict[item.category.name] = items
+            return itemsDict
+        }
+        let categories = organizedItems.sorted(by: { $0.key < $1.key }).map { ItemData(title: $0.key, items: $0.value) }
+        return categories
     }
 }
 

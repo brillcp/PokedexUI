@@ -6,9 +6,24 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                ForEach(viewModel.items, id: \.title) { item in
-                    Text(item.title ?? "none")
+                LazyVStack(alignment: .leading) {
+                    ForEach(viewModel.items, id: \.title) { item in
+                        NavigationLink {
+                            Text("dldl")
+                        } label: {
+                            HStack {
+                                Text(item.title ?? "none")
+                                Spacer()
+                                Text(">")
+                            }
+                            .padding(.vertical)
+                        }
+                    }
                 }
+                .font(.pixel17)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal)
             }
             .searchable(
                 text: $viewModel.query,
