@@ -3,9 +3,9 @@ import Networking
 // MARK: - Service Configuration Protocol
 /// A protocol that defines a configuration blueprint for a generic API service.
 /// Used to create requests and transform API responses into app-specific models.
-protocol ServiceConfiguration: Sendable {
+protocol ServiceConfiguration {
     /// The type returned from each detail API call.
-    associatedtype ResponseType: Decodable
+    associatedtype ResponseType: Decodable & Sendable
 
     /// The transformed output model returned to the view layer.
     associatedtype OutputModel

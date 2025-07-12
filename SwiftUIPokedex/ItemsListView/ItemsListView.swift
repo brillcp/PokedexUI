@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
+struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
     @ObservedObject var viewModel: ViewModel
 
     var body: some View {
