@@ -22,6 +22,7 @@ protocol ServiceConfiguration: Sendable {
     /// - Parameter response: The raw decoded response items.
     func transformResponse(_ response: [ResponseType]) -> [OutputModel]
 }
+
 // MARK: - Generic API Service Actor
 /// A generic actor responsible for performing paginated API requests,
 /// downloading detailed records concurrently, and transforming them into
@@ -85,6 +86,7 @@ extension APIService {
         lastResponse?.next != nil
     }
 }
+
 // MARK: - Error Handling
 /// An error representing common API failure cases.
 enum APIError: Error {
