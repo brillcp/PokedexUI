@@ -8,9 +8,16 @@ protocol PokemonServiceProtocol {
 }
 
 // MARK: - PokemonService implementation
-final class PokemonService: PokemonServiceProtocol {
-    let service = APIService(config: Config())
+final class PokemonService {
+    let service: APIService<Config>
 
+    init(service: APIService<Config> = .init(config: Config())) {
+        self.service = service
+    }
+}
+
+// MARK: - PokemonServiceProtocol
+extension PokemonService: PokemonServiceProtocol {
     func requestPokemon() async throws -> [PokemonViewModel] {
         try await service.requestData()
     }
@@ -21,7 +28,7 @@ final class PokemonService: PokemonServiceProtocol {
     }
 }
 
-// MARK: - Pokemon service configuration
+// MARK: - PokemonService configuration
 extension PokemonService {
     struct Config: ServiceConfiguration {
         typealias ResponseType = PokemonDetails

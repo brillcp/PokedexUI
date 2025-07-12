@@ -7,15 +7,22 @@ protocol ItemServiceProtocol {
 }
 
 // MARK: - ItemService implementation
-final class ItemService: ItemServiceProtocol {
-    let service = APIService(config: Config())
+final class ItemService {
+    let service: APIService<Config>
 
+    init(service: APIService<Config> = .init(config: Config())) {
+        self.service = service
+    }
+}
+
+// MARK: - ItemServiceProtocol
+extension ItemService: ItemServiceProtocol {
     func requestItems() async throws -> [ItemData] {
         try await service.requestData()
     }
 }
 
-// MARK: - Item service configuration
+// MARK: - ItemService configuration
 extension ItemService {
     struct Config: ServiceConfiguration {
         typealias ResponseType = ItemDetails
