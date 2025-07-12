@@ -56,7 +56,7 @@ enum APIError: Error {
     case noMoreData
 }
 
-// MARK: -
+// MARK: - Default network service for the PokeAPI
 extension Network.Service {
     static var `default`: Network.Service {
         let url = try! "https://pokeapi.co/api/v2/".asURL()
