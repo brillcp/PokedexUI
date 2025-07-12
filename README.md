@@ -9,7 +9,7 @@ This sample app demonstrates:
 
 - Grid-based UI with LazyVGrid and smooth scrolling  
 - Async image loading and dominant color extraction  
-- Network abstraction using Combine and async/await  
+- Modern network abstraction using async/await with the [Networking](https://github.com/brillcp/Networking) framework
 - Custom transitions and matched geometry effects  
 - View composition with protocol-oriented VVM  
 - Infinite scrolling and pagination  
