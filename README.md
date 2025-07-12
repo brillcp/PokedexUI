@@ -17,11 +17,8 @@ This sample app demonstrates:
 
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
-
-
 <img width="280" alt="pd1" src="https://github.com/user-attachments/assets/49340bb1-e3a6-4373-8f01-0b359ce3506b" />
 <img width="280" alt="pd2" src="https://github.com/user-attachments/assets/79044b0b-516d-455f-a989-c6fd6a7eb8ac" />
-
 
 # Architecture 🏛
 
@@ -45,7 +42,7 @@ TabView {
 ##  🧾
 
 The `Pokedex` manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
-```
+```swift
 final class PokedexViewModel: ObservableObject {
     @Published var pokemon: [PokemonViewModel] = []
     @Published var isLoading: Bool = false
@@ -61,7 +58,7 @@ final class PokedexViewModel: ObservableObject {
 ```
 
 Each `PokemonViewModel` also loads its sprite and computes the dominant color:
-```
+```swift
 @MainActor
 func loadSprite() async {
     image = await imageLoader.loadImage(from: url)
@@ -77,7 +74,7 @@ Raw models like PokemonDetails, ItemData, and Stat are decoded from the PokeAPI 
 ## API Layer 🌐
 
 Networking is abstracted via a generic APIService actor, which handles pagination and detail resolution in parallel:
-```
+```swift
 actor APIService<Config: ServiceConfiguration> {
     func requestData() async throws -> [Config.OutputModel] {
         // Uses withThrowingTaskGroup to fetch details concurrently
@@ -90,7 +87,6 @@ actor APIService<Config: ServiceConfiguration> {
 ## Dominant Color Extraction 🎨
 
 Each Pokémon card’s background is tinted with its sprite’s dominant color. This color is computed by extending UIImage with a method that samples and ranks pixel data.
-
 
 # Dependencies 
 SwiftUIPokedex uses the HTTP framework [Networking](https://github.com/brillcp/Networking) for all the API calls to the PokeAPI. You can read more about that [here](https://github.com/brillcp/Networking#readme). It can be installed through Swift Package Manager:
