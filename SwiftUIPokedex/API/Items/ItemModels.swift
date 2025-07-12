@@ -33,10 +33,19 @@ struct Effect: Decodable {
     }
 }
 
-extension String {
-    var pretty: String {
-        self
-            .replacingOccurrences(of: "-", with: " ")
-            .capitalized
+// MARK: -  Mock item
+extension ItemDetails {
+    static var common: ItemDetails {
+        .init(
+            id: 0,
+            name: "Item",
+            sprites: .init(
+                default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/honey.png"
+            ),
+            category: .init(name: "category", url: ""),
+            effect: [
+                .init(description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat")
+            ]
+        )
     }
 }
