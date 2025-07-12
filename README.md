@@ -7,13 +7,12 @@ It integrates with the [PokeAPI](https://pokeapi.co) to fetch and display Pokém
 
 This sample app demonstrates:
 
-- Grid-based UI with LazyVGrid and smooth scrolling  
-- Async image loading and dominant color extraction  
-- Modern network abstraction using async/await with the [Networking](https://github.com/brillcp/Networking) framework
-- Custom transitions and matched geometry effects  
-- View composition with protocol-oriented VVM  
-- Infinite scrolling and pagination  
-- Item search and filtering  
+- Grid-based UI with LazyVGrid and smooth scrolling
+- Async image loading and dominant color extraction
+- Modern network abstraction using `async/await` with the [Networking](https://github.com/brillcp/Networking) framework
+- Custom transitions and matched geometry effects
+- View composition with protocol-oriented VM
+- Infinite scrolling and pagination
 
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
