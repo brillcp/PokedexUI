@@ -1,7 +1,7 @@
 import Networking
 
 struct PokemonServiceConfig: ServiceConfiguration {
-    typealias DetailResponse = PokemonDetails
+    typealias ResponseType = PokemonDetails
     typealias OutputModel = PokemonViewModel
 
     func createListRequest(lastResponse: APIResponse?) -> Requestable {
@@ -19,8 +19,8 @@ struct PokemonServiceConfig: ServiceConfiguration {
         PokemonDetailsRequest.details(urlComponent)
     }
 
-    func transformDetails(_ details: [PokemonDetails]) -> [OutputModel] {
-        details
+    func transformResponse(_ response: [PokemonDetails]) -> [OutputModel] {
+        response
             .sorted(by: { $0.id < $1.id })
             .map { PokemonViewModel(pokemon: $0) }
     }

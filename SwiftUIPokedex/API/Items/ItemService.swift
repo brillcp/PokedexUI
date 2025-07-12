@@ -1,7 +1,7 @@
 import Networking
 
 struct ItemServiceConfig: ServiceConfiguration, Sendable {
-    typealias DetailResponse = ItemDetails
+    typealias ResponseType = ItemDetails
     typealias OutputModel = ItemData
 
     func createListRequest(lastResponse: APIResponse?) -> Requestable {
@@ -19,8 +19,8 @@ struct ItemServiceConfig: ServiceConfiguration, Sendable {
         ItemDetailsRequest.item(urlComponent)
     }
 
-    func transformDetails(_ details: [ItemDetails]) -> [ItemData] {
-        let grouped = Dictionary(grouping: details, by: { $0.category.name })
+    func transformResponse(_ response: [ItemDetails]) -> [ItemData] {
+        let grouped = Dictionary(grouping: response, by: { $0.category.name })
             .mapValues { $0.sorted(by: { $0.name < $1.name }) }
 
         let categories = grouped

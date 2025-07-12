@@ -2,12 +2,12 @@ import Networking
 
 // MARK: - Service Configuration Protocol
 protocol ServiceConfiguration: Sendable {
-    associatedtype DetailResponse: Decodable
+    associatedtype ResponseType: Decodable
     associatedtype OutputModel
 
     func createListRequest(lastResponse: APIResponse?) -> Requestable
     func createDetailRequest(from urlComponent: String) -> Requestable
-    func transformDetails(_ details: [DetailResponse]) -> [OutputModel]
+    func transformResponse(_ response: [ResponseType]) -> [OutputModel]
 }
 
 // MARK: - Generic API Service Actor
@@ -29,7 +29,7 @@ extension APIService {
         let response: APIResponse = try await networkService.request(request, logResponse: false)
         lastResponse = response
 
-        let details = try await withThrowingTaskGroup(of: Config.DetailResponse.self) { group in
+        let details = try await withThrowingTaskGroup(of: Config.ResponseType.self) { group in
             for result in response.results {
                 group.addTask { [config, networkService] in
                     let request = config.createDetailRequest(from: try result.url.asURL().lastPathComponent)
@@ -37,13 +37,13 @@ extension APIService {
                 }
             }
 
-            var collected = [Config.DetailResponse]()
+            var collected = [Config.ResponseType]()
             for try await detail in group {
                 collected.append(detail)
             }
             return collected
         }
-        return config.transformDetails(details)
+        return config.transformResponse(details)
     }
 
     func hasMore() -> Bool {
