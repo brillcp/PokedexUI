@@ -16,7 +16,7 @@ struct ItemServiceConfig: ServiceConfiguration, Sendable {
     }
 
     func createDetailRequest(from urlComponent: String) -> Requestable {
-        ItemRequest.itemDetails(urlComponent)
+        ItemRequest.details(urlComponent)
     }
 
     func transformResponse(_ response: [ItemDetails]) -> [ItemData] {

@@ -4,7 +4,7 @@ import Networking
 enum ItemRequest: Requestable {
     case items(limit: Int)
     case next(offset: String, limit: String)
-    case itemDetails(String)
+    case details(String)
 
     var encoding: Request.Encoding { .query }
     var httpMethod: HTTP.Method { .get }
@@ -13,7 +13,7 @@ enum ItemRequest: Requestable {
         switch self {
             case .items, .next:
                 Endpoint.items
-            case .itemDetails(let id):
+            case .details(let id):
                 Endpoint.itemDetails(id)
         }
     }
