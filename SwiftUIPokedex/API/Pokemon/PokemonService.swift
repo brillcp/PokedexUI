@@ -27,7 +27,7 @@ struct PokemonServiceConfig: ServiceConfiguration {
 }
 
 // MARK: -
-final class PokemonServiceV2 {
+final class PokemonService {
     private let service = APIService(config: PokemonServiceConfig())
 
     func requestPokemon() async throws -> [PokemonViewModel] {

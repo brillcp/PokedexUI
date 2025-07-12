@@ -11,12 +11,12 @@ protocol ItemsListViewModelProtocol: ObservableObject {
 
 // MARK: -
 final class ItemsListViewModel {
-    private let itemService: ItemServiceV2
+    private let itemService: ItemService
 
     @Published var items: [ItemData] = []
     @Published var query: String = ""
 
-    init(itemService: ItemServiceV2 = ItemServiceV2()) {
+    init(itemService: ItemService = ItemService()) {
         self.itemService = itemService
     }
 }

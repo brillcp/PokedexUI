@@ -32,7 +32,7 @@ struct ItemServiceConfig: ServiceConfiguration, Sendable {
 }
 
 // MARK: -
-final class ItemServiceV2 {
+final class ItemService {
     private let service = APIService(config: ItemServiceConfig())
 
     func requestItems() async throws -> [ItemData] {

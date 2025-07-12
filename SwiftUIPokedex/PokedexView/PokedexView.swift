@@ -20,19 +20,24 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        NavigationStack {
-            TabView {
+        TabView {
+            NavigationStack {
                 pokemonGridView
-                    .tabItem {
-                        Label("Pokedex", systemImage: "square.grid.3x3.fill")
-                    }
-                itemsListView
-                    .tabItem {
-                        Label("Items", systemImage: "xmark.triangle.circle.square.fill")
-                    }
+                    .applyPokedexStyling(title: "Pokedex")
             }
-            .applyPokedexStyling(title: "Pokedex")
+            .tabItem {
+                Label("Pokedex", systemImage: "square.grid.3x3.fill")
+            }
+
+            NavigationStack {
+                itemsListView
+                    .applyPokedexStyling(title: "Items")
+            }
+            .tabItem {
+                Label("Items", systemImage: "xmark.triangle.circle.square.fill")
+            }
         }
+        .tint(Color.pokedexRed)
         .task { await viewModel.requestPokemon() }
     }
 }
