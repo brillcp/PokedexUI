@@ -38,6 +38,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
             }
         }
         .tint(Color.pokedexRed)
+        .tabBarMinimizeBehavior(.onScrollDown)
         .task { await viewModel.requestPokemon() }
     }
 }
