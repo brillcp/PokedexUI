@@ -28,7 +28,6 @@ private extension ItemsListView {
         }
         .font(.pixel14)
         .foregroundStyle(.white)
-        .frame(maxWidth: .infinity)
         .padding(.horizontal)
     }
 
