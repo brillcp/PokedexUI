@@ -18,9 +18,14 @@ This sample app demonstrates:
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
 
+
+<img width="280" alt="pd1" src="https://github.com/user-attachments/assets/49340bb1-e3a6-4373-8f01-0b359ce3506b" />
+<img width="280" alt="pd2" src="https://github.com/user-attachments/assets/79044b0b-516d-455f-a989-c6fd6a7eb8ac" />
+
+
 # Architecture 🏛
 
-SwiftPokedex is built using a **View + ViewModel + Model (VVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
+SwiftPokedex is built using a **Model +View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
 
 ## View 📱
 
@@ -37,9 +42,9 @@ TabView {
 .task { await viewModel.requestPokemon() }
 ```
 
-## ViewModel 🧾
+##  🧾
 
-The `PokedexViewModel` manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
+The `Pokedex` manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
 ```
 final class PokedexViewModel: ObservableObject {
     @Published var pokemon: [PokemonViewModel] = []
