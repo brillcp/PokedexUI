@@ -16,7 +16,7 @@ struct PokemonServiceConfig: ServiceConfiguration {
     }
 
     func createDetailRequest(from urlComponent: String) -> Requestable {
-        PokemonDetailsRequest.details(urlComponent)
+        PokemonRequest.details(urlComponent)
     }
 
     func transformResponse(_ response: [PokemonDetails]) -> [OutputModel] {

@@ -4,10 +4,19 @@ import Networking
 enum ItemRequest: Requestable {
     case items(limit: Int)
     case next(offset: String, limit: String)
+    case itemDetails(String)
 
-    var endpoint: EndpointType { Endpoint.items }
     var encoding: Request.Encoding { .query }
     var httpMethod: HTTP.Method { .get }
+
+    var endpoint: EndpointType {
+        switch self {
+            case .items, .next:
+                Endpoint.items
+            case .itemDetails(let id):
+                Endpoint.itemDetails(id)
+        }
+    }
 
     var parameters: HTTP.Parameters {
         switch self {
@@ -15,6 +24,8 @@ enum ItemRequest: Requestable {
                 ["limit": limit]
             case .next(let offset, let limit):
                 ["offset": offset, "limit": limit]
+            default:
+                HTTP.Parameters()
         }
     }
 
