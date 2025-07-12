@@ -41,7 +41,7 @@ TabView {
 
 ##  🧾
 
-The `Pokedex` manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
+The Pokedex manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
 ```swift
 final class PokedexViewModel: ObservableObject {
     @Published var pokemon: [PokemonViewModel] = []
