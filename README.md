@@ -21,7 +21,7 @@ The app displays a scrollable grid of Pokémon, each with a dynamically extracte
 
 # Architecture 🏛
 
-SwiftPokedex is built using a **Model +View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
+SwiftPokedex is built using a **Model + View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
 
 ## View 📱
 
