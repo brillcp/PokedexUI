@@ -6,7 +6,7 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
-                AsyncGridItem(viewModel: viewModel)
+                AsyncImageView(viewModel: viewModel)
                     .padding(.horizontal, 44)
 
                 ContentCard {

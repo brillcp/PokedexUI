@@ -49,7 +49,8 @@ private extension PokedexView {
             pokemonGrid
 
             if viewModel.isLoading {
-                loadingIndicator
+                ProgressView()
+                    .tint(.white)
             }
         }
         .background(Color.darkGrey)
@@ -86,7 +87,7 @@ private extension PokedexView {
     }
 
     func pokemonCard(for pokemon: PokemonViewModel) -> some View {
-        AsyncGridItem(viewModel: pokemon)
+        AsyncImageView(viewModel: pokemon)
             .overlay(alignment: .bottom) {
                 cardOverlay(for: pokemon)
             }
@@ -101,31 +102,15 @@ private extension PokedexView {
         VStack {
             HStack {
                 Spacer()
-                numberBadge(for: pokemon)
+                Text("#\(pokemon.id)")
+                    .foregroundColor(pokemon.isLight ? .black : .white)
+                    .padding(8)
             }
             Spacer()
-            pokemonName(for: pokemon)
+            Text(pokemon.name)
+                .foregroundStyle(pokemon.isLight ? .black : .white)
         }
         .padding(.bottom, 10)
-    }
-}
-
-// MARK: - Supporting Components
-private extension PokedexView {
-    func numberBadge(for pokemon: PokemonViewModel) -> some View {
-        Text("#\(pokemon.id)")
-            .foregroundColor(pokemon.isLight ? .black : .white)
-            .padding(8)
-    }
-
-    func pokemonName(for pokemon: PokemonViewModel) -> some View {
-        Text(pokemon.name)
-            .foregroundStyle(pokemon.isLight ? .black : .white)
-    }
-
-    var loadingIndicator: some View {
-        ProgressView()
-            .tint(.white)
     }
 }
 

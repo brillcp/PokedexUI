@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
+struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
     @ObservedObject var viewModel: ViewModel
 
     var body: some View {
@@ -25,5 +25,5 @@ struct AsyncGridItem<ViewModel: PokemonViewModelProtocol>: View {
 }
 
 #Preview {
-    AsyncGridItem(viewModel: PokemonViewModel(pokemon: .pikachu))
+    AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu))
 }
