@@ -11,10 +11,10 @@ enum ItemRequest: Requestable {
 
     var endpoint: EndpointType {
         switch self {
-            case .items, .next:
-                Endpoint.items
             case .details(let id):
                 Endpoint.itemDetails(id)
+            default:
+                Endpoint.items
         }
     }
 

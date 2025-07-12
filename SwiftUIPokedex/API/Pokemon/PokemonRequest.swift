@@ -11,19 +11,19 @@ enum PokemonRequest: Requestable {
 
     var endpoint: EndpointType {
         switch self {
-            case .pokemon, .next:
-                Endpoint.pokemon
             case .details(let id):
                 Endpoint.pokemonDetails(id)
+            default:
+                Endpoint.pokemon
         }
     }
 
     var parameters: HTTP.Parameters {
         switch self {
-            case .pokemon, .details:
-                HTTP.Parameters()
             case .next(let offset, let limit):
                 ["offset": offset, "limit": limit]
+            default:
+                HTTP.Parameters()
         }
     }
 
