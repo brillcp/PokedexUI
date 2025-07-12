@@ -1,50 +1,50 @@
 import Networking
 
-struct ItemServiceConfig: ServiceConfiguration, Sendable {
-    typealias ResponseType = ItemDetails
-    typealias OutputModel = ItemData
+protocol ItemServiceProtocol {
+    var service: APIService<ItemService.Config> { get }
 
-    func createListRequest(lastResponse: APIResponse?) -> Requestable {
-        guard let lastResponse,
-              let parameters = try? lastResponse.next.asURL().queryParameters()
-        else { return ItemRequest.items(limit: 420) }
-
-        let parameterKey = ItemRequest.ParameterKey.self
-        let offset = parameters[parameterKey.offset.rawValue] ?? ""
-        let limit = parameters[parameterKey.limit.rawValue] ?? "420"
-        return ItemRequest.next(offset: offset, limit: limit)
-    }
-
-    func createDetailRequest(from urlComponent: String) -> Requestable {
-        ItemRequest.details(urlComponent)
-    }
-
-    func transformResponse(_ response: [ItemDetails]) -> [ItemData] {
-        let grouped = Dictionary(grouping: response, by: { $0.category.name })
-            .mapValues { $0.sorted(by: { $0.name < $1.name }) }
-
-        let categories = grouped
-            .sorted(by: { $0.key < $1.key })
-            .map { ItemData(title: $0.key, items: $0.value) }
-
-        return categories
-    }
+    func requestItems() async throws -> [ItemData]
 }
 
-// MARK: -
-final class ItemService {
-    private let service = APIService(config: ItemServiceConfig())
+// MARK: - ItemService implementation
+final class ItemService: ItemServiceProtocol {
+    let service = APIService(config: Config())
 
     func requestItems() async throws -> [ItemData] {
         try await service.requestData()
     }
+}
 
-    func requestNextItems() async throws -> [ItemData] {
-        guard await service.hasMore() else { throw APIError.noMoreData }
-        return try await service.requestData()
-    }
+// MARK: - Item service configuration
+extension ItemService {
+    struct Config: ServiceConfiguration {
+        typealias ResponseType = ItemDetails
+        typealias OutputModel = ItemData
 
-    func hasMoreItems() async -> Bool {
-        await service.hasMore()
+        func createListRequest(lastResponse: APIResponse?) -> Requestable {
+            guard let lastResponse,
+                  let parameters = try? lastResponse.next.asURL().queryParameters()
+            else { return ItemRequest.items(limit: 420) }
+
+            let parameterKey = ItemRequest.ParameterKey.self
+            let offset = parameters[parameterKey.offset.rawValue] ?? ""
+            let limit = parameters[parameterKey.limit.rawValue] ?? "420"
+            return ItemRequest.next(offset: offset, limit: limit)
+        }
+
+        func createDetailRequest(from urlComponent: String) -> Requestable {
+            ItemRequest.details(urlComponent)
+        }
+
+        func transformResponse(_ response: [ItemDetails]) -> [ItemData] {
+            let grouped = Dictionary(grouping: response, by: { $0.category.name })
+                .mapValues { $0.sorted(by: { $0.name < $1.name }) }
+
+            let categories = grouped
+                .sorted(by: { $0.key < $1.key })
+                .map { ItemData(title: $0.key, items: $0.value) }
+
+            return categories
+        }
     }
 }
