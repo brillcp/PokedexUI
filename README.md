@@ -25,7 +25,7 @@ SwiftPokedex is built using a **Model +View + ViewModel (MVVM)** architecture. I
 
 ## View 📱
 
-The SwiftUI `PokedexView` is the root view and hosts a `TabView` with two sections: Pokémon and Items. The Pokémon grid uses a `LazyVGrid` and triggers sprite loading and pagination automatically:
+The SwiftUI `PokedexView` is the root view and hosts a `TabView` with two sections: "Pokedex" and "Items". The Pokémon grid uses a `LazyVGrid` and triggers sprite loading and pagination automatically:
 
 ```swift
 TabView {
@@ -40,7 +40,7 @@ TabView {
 
 ##  🧾
 
-The Pokedex manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
+The view model manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
 ```swift
 final class PokedexViewModel: ObservableObject {
     @Published var pokemon: [PokemonViewModel] = []
