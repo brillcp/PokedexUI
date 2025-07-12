@@ -21,7 +21,7 @@ extension ItemService {
         typealias ResponseType = ItemDetails
         typealias OutputModel = ItemData
 
-        func createListRequest(lastResponse: APIResponse?) -> Requestable {
+        func createRequest(lastResponse: APIResponse?) -> Requestable {
             guard let lastResponse,
                   let parameters = try? lastResponse.next.asURL().queryParameters()
             else { return ItemRequest.items(limit: 420) }

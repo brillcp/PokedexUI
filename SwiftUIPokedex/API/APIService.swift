@@ -5,7 +5,7 @@ protocol ServiceConfiguration: Sendable {
     associatedtype ResponseType: Decodable
     associatedtype OutputModel
 
-    func createListRequest(lastResponse: APIResponse?) -> Requestable
+    func createRequest(lastResponse: APIResponse?) -> Requestable
     func createDetailRequest(from urlComponent: String) -> Requestable
     func transformResponse(_ response: [ResponseType]) -> [OutputModel]
 }
@@ -25,7 +25,7 @@ actor APIService<Config: ServiceConfiguration & Sendable> {
 // MARK: - Public functions
 extension APIService {
     func requestData() async throws -> [Config.OutputModel] {
-        let request = config.createListRequest(lastResponse: lastResponse)
+        let request = config.createRequest(lastResponse: lastResponse)
         let response: APIResponse = try await networkService.request(request, logResponse: false)
         lastResponse = response
 

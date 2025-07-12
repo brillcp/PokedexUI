@@ -27,7 +27,7 @@ extension PokemonService {
         typealias ResponseType = PokemonDetails
         typealias OutputModel = PokemonViewModel
 
-        func createListRequest(lastResponse: APIResponse?) -> Requestable {
+        func createRequest(lastResponse: APIResponse?) -> Requestable {
             guard let lastResponse,
                   let parameters = try? lastResponse.next.asURL().queryParameters()
             else { return PokemonRequest.pokemon }
