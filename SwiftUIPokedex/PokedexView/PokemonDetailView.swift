@@ -114,18 +114,22 @@ private extension View {
     func applyDetailViewStyling<ViewModel: PokemonViewModelProtocol>(
         viewModel: ViewModel
     ) -> some View {
-        self
-            .font(.pixel14)
-            .foregroundColor(viewModel.isLight ? .black : .white)
-            .navigationTitle(viewModel.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(viewModel.color ?? .darkGrey, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                Text("#\(viewModel.id)")
-            }
-            .background(viewModel.color)
-            .ignoresSafeArea(edges: .bottom)
+        ZStack {
+            viewModel.color
+                .ignoresSafeArea()
+
+            self
+                .font(.pixel14)
+                .foregroundColor(viewModel.isLight ? .black : .white)
+                .navigationTitle(viewModel.name)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(viewModel.color ?? .darkGrey, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbar {
+                    Text("#\(viewModel.id)")
+                }
+        }
+        .ignoresSafeArea(edges: .bottom) // ensure bottom is covered too
     }
 }
 
