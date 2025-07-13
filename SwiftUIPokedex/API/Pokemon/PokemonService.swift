@@ -33,10 +33,18 @@ final class PokemonService {
 
 // MARK: - PokemonServiceProtocol
 extension PokemonService: PokemonServiceProtocol {
+    /// Requests the initial set of Pokémon from the API.
+    ///
+    /// - Returns: An array of `PokemonViewModel` representing the fetched Pokémon.
+    /// - Throws: An error if the network request or decoding fails.
     func requestPokemon() async throws -> [PokemonViewModel] {
         try await service.requestData()
     }
 
+    /// Requests the next page of Pokémon if available.
+    ///
+    /// - Returns: An array of `PokemonViewModel` representing the next page of Pokémon.
+    /// - Throws: `APIError.noMoreData` if there are no more pages, or another error if the network request or decoding fails.
     func requestNextPokemon() async throws -> [PokemonViewModel] {
         guard await service.hasMore() else { throw APIError.noMoreData }
         return try await service.requestData()

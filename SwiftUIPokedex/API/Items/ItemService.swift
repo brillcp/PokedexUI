@@ -40,11 +40,25 @@ final class ItemService {
 
 // MARK: - ItemServiceProtocol
 extension ItemService: ItemServiceProtocol {
+    /// Requests and loads all available item data from the API.
+    ///
+    /// This method performs an asynchronous fetch using the underlying `APIService` to retrieve all item details,
+    /// storing the result locally in `allItems` for later querying. The returned array is grouped by category and sorted as defined by the API configuration.
+    ///
+    /// - Returns: An array of `ItemData` containing all categorized items fetched from the API.
+    /// - Throws: Any error encountered during the network request or data decoding process.
     func requestItems() async throws -> [ItemData] {
         allItems = try await service.requestData()
         return allItems
     }
 
+    /// Filters the locally stored items using a query string.
+    ///
+    /// The search is case- and diacritic-insensitive, comparing the query against both the item's name and description.
+    /// Items whose names start with the query are prioritized in the results. Only items already loaded via `requestItems()` are considered.
+    ///
+    /// - Parameter query: The search string to use when filtering items.
+    /// - Returns: An array of `ItemData` whose contained items match the query.
     func searchItems(matching query: String) -> [ItemData] {
         allItems.filter { $0.items.contains { $0.matches(query: query) } }
     }
@@ -98,3 +112,4 @@ extension ItemService {
         }
     }
 }
+
