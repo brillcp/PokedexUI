@@ -13,6 +13,7 @@ This sample app demonstrates:
 - Custom transitions and matched geometry effects
 - View composition with protocol-oriented VM
 - Infinite scrolling and pagination
+- Item search and filtering
 
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
