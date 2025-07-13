@@ -1,5 +1,9 @@
 import SwiftUI
 
+enum Tabs: Int {
+    case pokedex, items, search
+}
+
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
     @Namespace private var namespace

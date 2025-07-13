@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct ItemDetailView: View {
-    let item: ItemData
+struct ItemDetailView<ViewModel: ItemdetailViewModelProtocol>: View {
+    let viewModel: ViewModel
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(alignment: .leading) {
-                ForEach(item.items, id: \.id) { item in
+                ForEach(viewModel.items, id: \.id) { item in
                     ItemRowView(item: item)
                     Divider().background(.secondary)
                 }
@@ -15,10 +15,10 @@ struct ItemDetailView: View {
             .foregroundStyle(.white)
             .padding()
         }
-        .applyPokedexStyling(title: item.title?.pretty ?? "Unknown")
+        .applyPokedexStyling(title: viewModel.title)
     }
 }
 
 #Preview {
-    ItemDetailView(item: .init(title: "Item", items: [.common]))
+    ItemDetailView(viewModel: ItemDetailViewModel(item: .init()))
 }

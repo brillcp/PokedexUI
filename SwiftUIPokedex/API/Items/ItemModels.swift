@@ -1,6 +1,6 @@
 import Foundation
 
-struct ItemDetails: Decodable {
+struct ItemDetail: Decodable {
     let id: Int
     let name: String
     let sprites: ItemSprite
@@ -16,7 +16,7 @@ struct ItemDetails: Decodable {
 // MARK: -
 struct ItemData {
     var title: String? = nil
-    var items: [ItemDetails] = []
+    var items: [ItemDetail] = []
 }
 
 // MARK: -
@@ -34,7 +34,7 @@ struct Effect: Decodable {
 }
 
 // MARK: - Query matching for search
-extension ItemDetails {
+extension ItemDetail {
     func matches(query: String) -> Bool {
         name.localizedCaseInsensitiveContains(query)
         || category.name.localizedCaseInsensitiveContains(query)
@@ -43,8 +43,8 @@ extension ItemDetails {
 }
 
 // MARK: -  Mock item
-extension ItemDetails {
-    static var common: ItemDetails {
+extension ItemDetail {
+    static var common: ItemDetail {
         .init(
             id: 0,
             name: "Item",

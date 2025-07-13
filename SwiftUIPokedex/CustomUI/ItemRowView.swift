@@ -1,10 +1,3 @@
-//
-//  ItemRowView.swift
-//  SwiftUIPokedex
-//
-//  Created by Viktor Gidlöf on 2025-07-12.
-//
-
 import SwiftUI
 
 struct ItemRowView: View {
@@ -12,7 +5,7 @@ struct ItemRowView: View {
 
     @State private var image: Image?
 
-    let item: ItemDetails
+    let item: ItemDetail
 
     var body: some View {
         HStack(alignment: .top) {

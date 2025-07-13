@@ -54,7 +54,7 @@ extension ItemService: ItemServiceProtocol {
 extension ItemService {
     /// A configuration used by `APIService` to define item-specific requests and response transformation.
     struct Config: ServiceConfiguration {
-        typealias ResponseType = ItemDetails
+        typealias ResponseType = ItemDetail
         typealias OutputModel = ItemData
 
         /// Builds the request used to fetch the next page of item summaries.
@@ -86,7 +86,7 @@ extension ItemService {
         ///
         /// - Parameter response: The array of detailed item objects.
         /// - Returns: An array of `ItemData`, grouped by category and sorted alphabetically.
-        func transformResponse(_ response: [ItemDetails]) -> [ItemData] {
+        func transformResponse(_ response: [ItemDetail]) -> [ItemData] {
             let grouped = Dictionary(grouping: response, by: { $0.category.name })
                 .mapValues { $0.sorted(by: { $0.name < $1.name }) }
 

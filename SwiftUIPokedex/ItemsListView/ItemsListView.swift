@@ -33,7 +33,7 @@ private extension ItemsListView {
 
     func itemRow(for item: ItemData) -> some View {
         NavigationLink {
-            ItemDetailView(item: item)
+            ItemDetailView(viewModel: ItemDetailViewModel(item: item))
         } label: {
             HStack {
                 Text(item.title?.pretty ?? "none")
