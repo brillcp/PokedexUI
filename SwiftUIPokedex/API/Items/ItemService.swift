@@ -100,7 +100,7 @@ extension ItemService {
         ///
         /// - Parameter response: The array of detailed item objects.
         /// - Returns: An array of `ItemData`, grouped by category and sorted alphabetically.
-        func transformResponse(_ response: [ItemDetail]) -> [ItemData] {
+        func transformResponse(_ response: [ResponseType]) -> [OutputModel] {
             let grouped = Dictionary(grouping: response, by: { $0.category.name })
                 .mapValues { $0.sorted(by: { $0.name < $1.name }) }
 

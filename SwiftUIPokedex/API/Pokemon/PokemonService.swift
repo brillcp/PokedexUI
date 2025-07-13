@@ -87,7 +87,7 @@ extension PokemonService {
         ///
         /// - Parameter response: The array of detailed Pokémon data.
         /// - Returns: An array of `PokemonViewModel`, sorted by ID.
-        func transformResponse(_ response: [PokemonDetails]) -> [OutputModel] {
+        func transformResponse(_ response: [ResponseType]) -> [OutputModel] {
             response
                 .sorted(by: { $0.id < $1.id })
                 .map { PokemonViewModel(pokemon: $0) }
