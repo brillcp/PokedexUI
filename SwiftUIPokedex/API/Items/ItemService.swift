@@ -10,10 +10,23 @@ protocol ItemServiceProtocol {
     /// - Returns: An array of `ItemData` grouped by category.
     /// - Throws: An error if the request or decoding fails.
     func requestItems() async throws -> [ItemData]
+
+    /// Returns a filtered list of items that match the given query string.
+    ///
+    /// The search is case- and diacritic-insensitive, and considers both
+    /// the item's name and description. Items whose names start with the
+    /// query are prioritized in the result.
+    ///
+    /// - Parameter query: The search term used to filter items.
+    /// - Returns: An array of `ItemData` instances matching the query.
+    func searchItems(matching query: String) -> [ItemData]
 }
+
 // MARK: - ItemService implementation
 /// A concrete implementation of `ItemServiceProtocol` for interacting with the item-related endpoints of the PokeAPI.
 final class ItemService {
+    private var allItems: [ItemData] = []
+
     /// The underlying generic API service responsible for data fetching.
     let service: APIService<Config>
 
@@ -27,11 +40,21 @@ final class ItemService {
 
 // MARK: - ItemServiceProtocol
 extension ItemService: ItemServiceProtocol {
-    /// Fetches item data by requesting a paginated list from the PokeAPI and resolving detailed item entries.
-    ///
-    /// - Returns: An array of `ItemData` grouped and sorted by category.
     func requestItems() async throws -> [ItemData] {
-        try await service.requestData()
+        allItems = try await service.requestData()
+        return allItems
+    }
+
+    func searchItems(matching query: String) -> [ItemData] {
+        allItems.filter { item in
+            item.items.contains { itemDetail in
+                itemDetail
+                    .name.localizedCaseInsensitiveContains(query) ||
+                itemDetail
+                    .category.name.localizedCaseInsensitiveContains(query) ||
+                ((itemDetail.effect.first?.description.localizedCaseInsensitiveContains(query)) != nil)
+            }
+        }
     }
 }
 

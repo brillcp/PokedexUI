@@ -12,6 +12,7 @@ protocol ItemsListViewModelProtocol: ObservableObject {
 // MARK: -
 final class ItemsListViewModel {
     private let itemService: ItemService
+    private var allItems: [ItemData] = []
 
     @Published var items: [ItemData] = []
     @Published var query: String = ""
@@ -28,17 +29,30 @@ extension ItemsListViewModel: ItemsListViewModelProtocol {
         guard items.isEmpty else { return }
 
         do {
-            items = try await itemService.requestItems()
+            let data = try await itemService.requestItems()
+            allItems = data
+            items = data
         } catch {
             print(error.localizedDescription)
         }
     }
 
+    @MainActor
     func search() async {
+        guard !query.isEmpty else {
+            items = allItems
+            return
+        }
 
+        if allItems.isEmpty {
+            await loadItems()
+        }
+
+        items = itemService.searchItems(matching: query)
     }
 
     func clearSearch(_ oldValue: String, _ newValue: String) {
-
+        guard newValue.isEmpty else { return }
+        items = allItems
     }
 }
