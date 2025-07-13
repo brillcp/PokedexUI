@@ -1,10 +1,6 @@
 import SwiftUI
 
 struct ItemDetailView: View {
-    private let imageLoader = ImageLoader()
-
-    @State private var image: Image?
-
     let item: ItemData
 
     var body: some View {
