@@ -46,15 +46,7 @@ extension ItemService: ItemServiceProtocol {
     }
 
     func searchItems(matching query: String) -> [ItemData] {
-        allItems.filter { item in
-            item.items.contains { itemDetail in
-                itemDetail
-                    .name.localizedCaseInsensitiveContains(query) ||
-                itemDetail
-                    .category.name.localizedCaseInsensitiveContains(query) ||
-                ((itemDetail.effect.first?.description.localizedCaseInsensitiveContains(query)) != nil)
-            }
-        }
+        allItems.filter { $0.items.contains { $0.matches(query: query) } }
     }
 }
 

@@ -33,6 +33,15 @@ struct Effect: Decodable {
     }
 }
 
+// MARK: - Query matching for search
+extension ItemDetails {
+    func matches(query: String) -> Bool {
+        name.localizedCaseInsensitiveContains(query)
+        || category.name.localizedCaseInsensitiveContains(query)
+        || effect.first?.description.localizedCaseInsensitiveContains(query) == true
+    }
+}
+
 // MARK: -  Mock item
 extension ItemDetails {
     static var common: ItemDetails {
