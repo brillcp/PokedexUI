@@ -100,11 +100,11 @@
 		9332C0E6273F3178003AF377 /* API */ = {
 			isa = PBXGroup;
 			children = (
-				D57366172E21160F00FE4ED0 /* Pokemon */,
-				D573660B2E2115FA00FE4ED0 /* Endpoints.swift */,
-				D573660A2E2115EE00FE4ED0 /* Items */,
-				D57366182E2116B200FE4ED0 /* APIModels.swift */,
 				D573661C2E217D5700FE4ED0 /* APIService.swift */,
+				D57366182E2116B200FE4ED0 /* APIModels.swift */,
+				D573660B2E2115FA00FE4ED0 /* Endpoints.swift */,
+				D57366172E21160F00FE4ED0 /* Pokemon */,
+				D573660A2E2115EE00FE4ED0 /* Items */,
 			);
 			path = API;
 			sourceTree = "<group>";
