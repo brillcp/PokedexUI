@@ -1,4 +1,4 @@
-![icon](https://user-images.githubusercontent.com/15960525/117062071-47808e00-ad23-11eb-83df-95d8efadac58.png)
+![icon](https://github.com/user-attachments/assets/b21f172d-c4d7-4a6b-984d-61a6b3a0acf3)
 
 # SwiftUIPokedex
 
