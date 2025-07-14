@@ -1,49 +1,51 @@
 import SwiftUI
 
 struct ItemRowView: View {
-    private let imageLoader = ImageLoader()
+    private let imageLoader: ImageLoader
+    private let item: ItemData
 
     @State private var image: Image?
 
-    let item: ItemDetail
+    init(item: ItemData, imageLoader: ImageLoader = .init()) {
+        self.item = item
+        self.imageLoader = imageLoader
+    }
 
     var body: some View {
-        HStack(alignment: .top) {
-            sprite
-                .frame(width: 38)
-
-            VStack(alignment: .leading, spacing: 16) {
-                Text(item.name.pretty)
-                Text(item.effect.first?.description ?? "")
-                    .foregroundStyle(.secondary)
+        HStack {
+            Group {
+                if let image {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Color(.darkGray)
+                        .clipShape(RoundedRectangle(cornerRadius: 8.0))
+                }
             }
+            .aspectRatio(1, contentMode: .fit)
+            .frame(width: 38.0)
+
+            Text(item.title?.pretty ?? "none")
+            Spacer()
+            Text(">")
         }
         .padding(.vertical)
-        .task { image = await loadImage() }
+        .task { await loadItemSprite() }
     }
 }
 
-// MARK: - Private properties
+// MARK: - Private functions
 private extension ItemRowView {
-    var sprite: some View {
-        Group {
-            if let image {
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } else {
-                ProgressView()
-                    .tint(.white)
-            }
-        }
-    }
+    @MainActor
+    func loadItemSprite() async {
+        guard let sprite = item.items.first?.sprites.default else { return }
 
-    func loadImage() async -> Image {
-        let uiImage = await imageLoader.loadImage(from: item.sprites.default)
-        return Image(uiImage: uiImage ?? UIImage())
+        let uiImage = await imageLoader.loadImage(from: sprite)
+        image = Image(uiImage: uiImage ?? UIImage())
     }
 }
 
 #Preview {
-    ItemRowView(item: .common)
+    ItemRowView(item: .init())
 }

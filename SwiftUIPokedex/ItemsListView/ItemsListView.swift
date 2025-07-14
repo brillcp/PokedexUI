@@ -1,7 +1,13 @@
 import SwiftUI
 
 struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
+    private let imageLoader: ImageLoader
     @ObservedObject var viewModel: ViewModel
+
+    init(viewModel: ViewModel, imageLoader: ImageLoader = .init()) {
+        self.imageLoader = imageLoader
+        self.viewModel = viewModel
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -35,12 +41,7 @@ private extension ItemsListView {
         NavigationLink {
             ItemDetailView(viewModel: ItemDetailViewModel(item: item))
         } label: {
-            HStack {
-                Text(item.title?.pretty ?? "none")
-                Spacer()
-                Text(">")
-            }
-            .padding(.vertical)
+            ItemRowView(item: item)
         }
     }
 }

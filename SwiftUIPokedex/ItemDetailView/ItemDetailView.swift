@@ -7,7 +7,7 @@ struct ItemDetailView<ViewModel: ItemdetailViewModelProtocol>: View {
         ScrollView(showsIndicators: false) {
             LazyVStack(alignment: .leading) {
                 ForEach(viewModel.items, id: \.id) { item in
-                    ItemRowView(item: item)
+                    ItemDetailRowView(item: item)
                     Divider().background(.secondary)
                 }
             }
