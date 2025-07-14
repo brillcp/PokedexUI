@@ -59,7 +59,7 @@ private extension PokemonDetailView {
         content()
             .padding()
             .background(Color.darkGrey)
-            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .clipShape(RoundedRectangle(cornerRadius: 32.0))
             .foregroundStyle(.white)
     }
 
