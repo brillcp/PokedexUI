@@ -6,8 +6,10 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
-                AsyncImageView(viewModel: viewModel)
-                    .padding(.horizontal, 44)
+                Image(uiImage: viewModel.image ?? UIImage())
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 320)
 
                 ContentCard {
                     VStack {

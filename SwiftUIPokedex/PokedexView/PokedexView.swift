@@ -91,29 +91,11 @@ private extension PokedexView {
 
     func pokemonCard(for pokemon: PokemonViewModel) -> some View {
         AsyncImageView(viewModel: pokemon)
-            .overlay(alignment: .bottom) {
-                cardOverlay(for: pokemon)
-            }
             .task {
                 if pokemon == viewModel.pokemon.last {
                     await viewModel.requestPokemon()
                 }
             }
-    }
-
-    func cardOverlay(for pokemon: PokemonViewModel) -> some View {
-        VStack {
-            HStack {
-                Spacer()
-                Text("#\(pokemon.id)")
-                    .foregroundColor(pokemon.isLight ? .black : .white)
-                    .padding(8)
-            }
-            Spacer()
-            Text(pokemon.name)
-                .foregroundStyle(pokemon.isLight ? .black : .white)
-        }
-        .padding(.bottom, 10)
     }
 }
 
