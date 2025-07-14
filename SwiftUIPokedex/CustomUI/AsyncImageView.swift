@@ -9,7 +9,6 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
         Group {
             ZStack {
                 Color(.darkGray)
-                    .task { await viewModel.loadSprite() }
 
                 if let image = viewModel.image {
                     Image(uiImage: image)
@@ -28,9 +27,8 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
         .aspectRatio(1.0, contentMode: .fit)
         .cornerRadius(16.0)
         .animation(.easeInOut(duration: 0.3), value: opacity)
-        .overlay(alignment: .bottom) {
-            cardOverlay(for: viewModel)
-        }
+        .overlay(cardOverlay(for: viewModel))
+        .task { await viewModel.loadSprite() }
     }
 }
 
