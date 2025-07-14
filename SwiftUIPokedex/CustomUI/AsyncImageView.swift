@@ -27,7 +27,7 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
         }
         .aspectRatio(1.0, contentMode: .fit)
         .cornerRadius(16.0)
-        .animation(.easeInOut(duration: 0.2), value: opacity)
+        .animation(.easeInOut(duration: 0.3), value: opacity)
         .overlay(alignment: .bottom) {
             cardOverlay(for: viewModel)
         }
