@@ -71,7 +71,7 @@ private extension PokemonDetailView {
 
     func BottomSpacer() -> some View {
         Spacer()
-            .frame(height: 64)
+            .frame(height: 96)
     }
 }
 
@@ -120,11 +120,7 @@ private extension View {
 
             self
                 .font(.pixel14)
-                .foregroundColor(viewModel.isLight ? .black : .white)
                 .navigationTitle(viewModel.name)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(viewModel.color ?? .darkGrey, for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
                 .toolbar {
                     Text("#\(viewModel.id)")
                 }
