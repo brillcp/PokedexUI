@@ -10,7 +10,6 @@ struct ItemDetailRowView: View {
     var body: some View {
         HStack(alignment: .top) {
             sprite
-                .frame(width: 38)
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(item.name.pretty)
@@ -27,14 +26,18 @@ struct ItemDetailRowView: View {
 private extension ItemDetailRowView {
     @ViewBuilder
     var sprite: some View {
-        if let image {
-            image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        } else {
-            ProgressView()
-                .tint(.white)
+        Group {
+            if let image {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } else {
+                Color(.darkGray)
+                    .clipShape(RoundedRectangle(cornerRadius: 8.0))
+            }
         }
+        .aspectRatio(1, contentMode: .fit)
+        .frame(width: 38.0)
     }
 
     func loadImage() async -> Image {
