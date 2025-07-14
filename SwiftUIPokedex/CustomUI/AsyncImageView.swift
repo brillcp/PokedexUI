@@ -6,22 +6,20 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
     @State private var opacity: Double = 0.0
 
     var body: some View {
-        Group {
-            ZStack {
-                Color(.darkGray)
+        ZStack {
+            Color(.darkGray)
 
-                if let image = viewModel.image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .background(viewModel.color)
-                        .opacity(opacity)
-                        .onAppear {
-                            withAnimation {
-                                opacity = 1.0
-                            }
+            if let image = viewModel.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .background(viewModel.color)
+                    .opacity(opacity)
+                    .onAppear {
+                        withAnimation {
+                            opacity = 1.0
                         }
-                }
+                    }
             }
         }
         .aspectRatio(1.0, contentMode: .fit)
