@@ -1,11 +1,9 @@
 import SwiftUI
 
 struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
-    private let imageLoader: ImageLoader
     @ObservedObject var viewModel: ViewModel
 
-    init(viewModel: ViewModel, imageLoader: ImageLoader = .init()) {
-        self.imageLoader = imageLoader
+    init(viewModel: ViewModel) {
         self.viewModel = viewModel
     }
 

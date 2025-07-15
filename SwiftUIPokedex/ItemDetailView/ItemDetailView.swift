@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ItemDetailView<ViewModel: ItemdetailViewModelProtocol>: View {
+struct ItemDetailView<ViewModel: ItemDetailViewModelProtocol>: View {
     let viewModel: ViewModel
 
     var body: some View {

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Protocol describing a view model that provides item details and a title for display.
-protocol ItemdetailViewModelProtocol {
+protocol ItemDetailViewModelProtocol {
     /// The collection of item details to be displayed.
     var items: [ItemDetail] { get }
     /// The title representing this group of items.
@@ -22,7 +22,7 @@ final class ItemDetailViewModel {
 }
 
 // MARK: - ItemdetailViewModelProtocol
-extension ItemDetailViewModel: ItemdetailViewModelProtocol {
+extension ItemDetailViewModel: ItemDetailViewModelProtocol {
     /// The display title for this item, using a pretty format or "Unknown" if unavailable.
     var title: String {
         item.title?.pretty ?? "Unknown"
