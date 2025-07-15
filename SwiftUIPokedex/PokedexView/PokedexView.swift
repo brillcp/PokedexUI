@@ -54,7 +54,6 @@ private extension PokedexView {
                     .tint(.white)
             }
         }
-        .background(Color.darkGrey)
         .font(.pixel12)
     }
 
