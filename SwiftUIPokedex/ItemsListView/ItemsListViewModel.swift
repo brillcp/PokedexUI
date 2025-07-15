@@ -8,6 +8,9 @@ protocol ItemsListViewModelProtocol: ObservableObject {
     /// The current search query string.
     var query: String { get set }
 
+    /// A flag indicating whether data is currently being fetched.
+    var isLoading: Bool { get }
+
     /// Loads all items asynchronously from the data source.
     func loadItems() async
     
@@ -36,6 +39,9 @@ final class ItemsListViewModel {
     /// The current search query entered by the user.
     @Published var query: String = ""
 
+    /// Indicates whether a data request is in progress.
+    @Published var isLoading: Bool = false
+
     /// Initializes a new instance of `ItemsListViewModel` with an optional item service.
     /// - Parameter itemService: The service used to fetch items. Defaults to a new `ItemService`.
     init(itemService: ItemService = ItemService()) {
@@ -49,7 +55,9 @@ extension ItemsListViewModel: ItemsListViewModelProtocol {
     /// Does nothing if items have already been loaded.
     @MainActor
     func loadItems() async {
-        guard items.isEmpty else { return }
+        guard !isLoading, items.isEmpty else { return }
+        isLoading.toggle()
+        defer { isLoading.toggle() }
 
         do {
             let data = try await itemService.requestItems()

@@ -11,6 +11,12 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
         ScrollView(showsIndicators: false) {
             itemsList
         }
+        .overlay {
+            if viewModel.isLoading {
+                ProgressView()
+                    .tint(.white)
+            }
+        }
         .searchable(
             text: $viewModel.query,
             placement: .navigationBarDrawer,
