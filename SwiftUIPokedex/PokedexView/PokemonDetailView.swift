@@ -121,7 +121,7 @@ private extension View {
                     Text("#\(viewModel.id)")
                 }
         }
-        .ignoresSafeArea(edges: .bottom) // ensure bottom is covered too
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
