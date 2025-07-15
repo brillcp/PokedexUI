@@ -11,16 +11,18 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(height: 320)
 
-                ContentCard {
-                    VStack {
-                        BasicInfoSection(viewModel: viewModel)
-                        SectionDivider()
-                        StatsSection(viewModel: viewModel)
-                        SectionDivider()
-                        MovesSection(viewModel: viewModel)
-                        BottomSpacer()
-                    }
+                VStack {
+                    BasicInfoSection(viewModel: viewModel)
+                    SectionDivider()
+                    StatsSection(viewModel: viewModel)
+                    SectionDivider()
+                    MovesSection(viewModel: viewModel)
+                    BottomSpacer()
                 }
+                .padding()
+                .background(Color.darkGrey)
+                .clipShape(RoundedRectangle(cornerRadius: 32.0))
+                .foregroundStyle(.white)
             }
         }
         .applyDetailViewStyling(viewModel: viewModel)
@@ -55,14 +57,6 @@ private extension PokemonDetailView {
             Text(viewModel.moves)
         }
         .padding(.vertical)
-    }
-
-    func ContentCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        content()
-            .padding()
-            .background(Color.darkGrey)
-            .clipShape(RoundedRectangle(cornerRadius: 32.0))
-            .foregroundStyle(.white)
     }
 
     func SectionDivider() -> some View {
