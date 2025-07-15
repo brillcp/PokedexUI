@@ -111,8 +111,13 @@ private extension View {
         viewModel: ViewModel
     ) -> some View {
         ZStack {
-            viewModel.color
-                .ignoresSafeArea()
+            VStack(spacing: 0) {
+                viewModel.color
+                Spacer()
+                Color.darkGrey
+                    .frame(height: 300)
+            }
+            .ignoresSafeArea()
 
             self
                 .font(.pixel14)
