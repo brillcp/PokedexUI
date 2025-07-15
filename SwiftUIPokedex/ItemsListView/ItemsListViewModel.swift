@@ -25,7 +25,7 @@ protocol ItemsListViewModelProtocol: ObservableObject {
 /// View model that manages the retrieval, searching, and storage of items.
 final class ItemsListViewModel {
     /// Service responsible for fetching items.
-    private let itemService: ItemService
+    private let itemService: ItemServiceProtocol
     
     /// Complete list of all items fetched.
     private var allItems: [ItemData] = []
