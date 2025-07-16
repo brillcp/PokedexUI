@@ -82,13 +82,12 @@ private extension PokemonDetailView {
     }
 
     func DetailRowStat(title: String, value: Int, color: Color?) -> some View {
-        let hundred: Int = 100
-        let maxValue: Int = value > hundred ? value : hundred
-        let clampedValue = min(max(value, 0), maxValue)
+        let maxValue = max(value, 100)
+        let clampedValue = max(value, 0)
         return BaseRow(title: title.capitalized) {
             ProgressView(value: Double(clampedValue), total: Double(maxValue))
                 .frame(height: 20)
-                .tint(color)
+                .tint(color ?? .white)
             Text("\(clampedValue) / \(maxValue)")
         }
     }
