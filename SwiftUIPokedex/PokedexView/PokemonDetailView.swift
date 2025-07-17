@@ -3,13 +3,15 @@ import SwiftUI
 struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
     let viewModel: ViewModel
 
+    @State private var isFlipped = false
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
-                Image(uiImage: viewModel.image ?? UIImage())
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 320)
+                ZStack(alignment: .bottom) {
+                    Sprite()
+                    ImageOverlay()
+                }
 
                 VStack {
                     BasicInfoSection(viewModel: viewModel)
@@ -31,6 +33,50 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
 
 // MARK: - Content Sections
 private extension PokemonDetailView {
+    func Sprite() -> some View {
+        Image(uiImage: (isFlipped ? viewModel.backImage : viewModel.frontImage) ?? UIImage())
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(height: 320)
+            .modifier(Perspective3D(isFlipped: $isFlipped))
+            .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: isFlipped)
+    }
+
+    func ImageOverlay() -> some View {
+        HStack {
+            Spacer()
+            FlipButton()
+        }
+        .buttonStyle(.glass)
+        .tint(.white)
+        .padding()
+    }
+
+    func FlipButton() -> some View {
+        Button(action: {}) {
+            ImageIcon("arrow.trianglehead.2.clockwise")
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in
+                            guard !isFlipped else { return }
+                            isFlipped = true
+                        }
+                        .onEnded { _ in
+                            guard isFlipped else { return }
+                            isFlipped = false
+                        }
+                )
+        }
+    }
+
+    func ImageIcon(_ icon: String) -> some View {
+        Image(systemName: icon)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 24, height: 24)
+            .padding(8)
+    }
+
     func BasicInfoSection(viewModel: ViewModel) -> some View {
         VStack {
             DetailRow(title: "Types", subtitle: viewModel.types)

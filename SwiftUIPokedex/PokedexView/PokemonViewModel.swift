@@ -2,8 +2,10 @@ import SwiftUI
 
 /// Protocol for Pokémon view models providing display-ready Pokémon data.
 protocol PokemonViewModelProtocol: ObservableObject {
-    /// The Pokémon sprite image.
-    var image: UIImage? { get }
+    /// The Pokémon front sprite image.
+    var frontImage: UIImage? { get }
+    /// The Pokémon back sprite image.
+    var backImage: UIImage? { get }
     /// The dominant color extracted from the image.
     var color: Color? { get }
     /// Indicates if the color is light for UI adjustments.
@@ -22,8 +24,6 @@ protocol PokemonViewModelProtocol: ObservableObject {
     var height: String { get }
     /// Pokémon weight, formatted for display.
     var weight: String { get }
-    /// URL to the Pokémon's sprite image.
-    var url: String { get }
     /// Unique Pokémon identifier.
     var id: Int { get }
 
@@ -37,7 +37,8 @@ final class PokemonViewModel {
     private let imageLoader: ImageLoader
     private let pokemon: PokemonDetails
 
-    @Published var image: UIImage?
+    @Published var frontImage: UIImage?
+    @Published var backImage: UIImage?
     @Published var color: Color?
 
     /// Initializes the ViewModel with Pokémon details and an optional image loader.
@@ -58,7 +59,6 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var height: String { "\(Double(pokemon.height) / 10.0) m" }
     var weight: String { "\(Double(pokemon.weight) / 10.0) kg" }
     var isLight: Bool { color?.isLight ?? false }
-    var url: String { pokemon.sprite.url }
     var types: String { pokemon.types.map { $0.type.name.capitalized }.joined(separator: ", ") }
     var abilities: String { pokemon.abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n") }
     var stats: [Stat] { pokemon.stats }
@@ -71,8 +71,9 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 
     @MainActor
     func loadSprite() async {
-        image = await imageLoader.loadImage(from: url)
-        color = Color(uiColor: image?.dominantColor ?? .darkGray)
+        frontImage = await imageLoader.loadImage(from: pokemon.sprite.front)
+        backImage = await imageLoader.loadImage(from: pokemon.sprite.back)
+        color = Color(uiColor: frontImage?.dominantColor ?? .darkGray)
     }
 }
 

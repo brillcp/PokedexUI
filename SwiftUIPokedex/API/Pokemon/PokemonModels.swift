@@ -21,10 +21,12 @@ struct PokemonDetails: Decodable {
 
 // MARK: -
 struct Sprite: Decodable {
-    let url: String
+    let front: String
+    let back: String
 
     private enum CodingKeys: String, CodingKey {
-        case url = "front_default"
+        case front = "front_default"
+        case back = "back_default"
     }
 }
 
@@ -64,7 +66,9 @@ extension PokemonDetails {
             weight: 0,
             height: 0,
             baseExperience: 0,
-            sprite: Sprite(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"),
+            sprite: Sprite(
+                front: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
+                back: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png"),
             abilities: [.init(ability: .init(name: "Hp", url: ""))],
             moves: [.init(move: .init(name: "Move", url: ""))],
             types: [.init(type: .init(name: "gunther", url: ""))],

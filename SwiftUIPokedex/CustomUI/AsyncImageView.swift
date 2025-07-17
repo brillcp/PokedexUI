@@ -9,7 +9,7 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
         ZStack {
             Color(.darkGray)
 
-            if let image = viewModel.image {
+            if let image = viewModel.frontImage {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
