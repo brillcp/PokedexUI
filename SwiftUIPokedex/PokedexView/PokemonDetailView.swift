@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
+struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
     private let haptic: UIImpactFeedbackGenerator
     private let viewModel: ViewModel
 
@@ -51,6 +51,13 @@ private extension PokemonDetailView {
 
     func ActionButtons() -> some View {
         HStack {
+            if let cry = viewModel.latestCry {
+                Button {
+                    Task { await viewModel.playSound(cry) }
+                } label: {
+                    ImageIcon("speaker.wave.3.fill")
+                }
+            }
             Spacer()
             FlipButton()
         }
@@ -82,8 +89,8 @@ private extension PokemonDetailView {
         Image(systemName: icon)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 24, height: 24)
-            .padding(8)
+            .frame(width: 22, height: 22)
+            .padding(6)
     }
 
     func BasicInfoSection(viewModel: ViewModel) -> some View {

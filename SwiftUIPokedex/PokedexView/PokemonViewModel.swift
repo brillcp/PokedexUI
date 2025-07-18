@@ -26,14 +26,19 @@ protocol PokemonViewModelProtocol: ObservableObject {
     var weight: String { get }
     /// Unique Pokémon identifier.
     var id: Int { get }
+    /// The battle cry of the pokemon.
+    var latestCry: String? { get }
 
     /// Loads the sprite image asynchronously and updates color.
     func loadSprite() async
+    /// Play the battle cry of the pokemon.
+    func playSound(_ battleCry: String) async
 }
 
 // MARK: -
 /// ViewModel providing formatted and display-ready data for a single Pokémon.
 final class PokemonViewModel {
+    private let audioStreamer: AudioPlayer
     private let imageLoader: ImageLoader
     private let pokemon: PokemonDetails
 
@@ -44,8 +49,14 @@ final class PokemonViewModel {
     /// Initializes the ViewModel with Pokémon details and an optional image loader.
     /// - Parameters:
     ///   - pokemon: The detailed Pokémon model.
-    ///   - imageLoader: The loader for sprite images (default: `.init()`).
-    init(pokemon: PokemonDetails, imageLoader: ImageLoader = .init()) {
+    ///   - imageLoader: The loader for sprite images.
+    ///   - audioStreamer: The audio player to play the pokemon battle cry.
+    init(
+        pokemon: PokemonDetails,
+        imageLoader: ImageLoader = .init(),
+        audioStreamer: AudioPlayer = .init()
+    ) {
+        self.audioStreamer = audioStreamer
         self.imageLoader = imageLoader
         self.pokemon = pokemon
     }
@@ -62,6 +73,7 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var types: String { pokemon.types.map { $0.type.name.capitalized }.joined(separator: ", ") }
     var abilities: String { pokemon.abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n") }
     var stats: [Stat] { pokemon.stats }
+    var latestCry: String? { pokemon.cries.latest }
 
     var moves: String {
         let count = pokemon.moves.count
@@ -74,6 +86,11 @@ extension PokemonViewModel: PokemonViewModelProtocol {
         frontImage = await imageLoader.loadImage(from: pokemon.sprite.front)
         backImage = await imageLoader.loadImage(from: pokemon.sprite.back)
         color = Color(uiColor: frontImage?.dominantColor ?? .darkGray)
+    }
+
+    @MainActor
+    func playSound(_ battleCry: String) async {
+        await audioStreamer.play(from: battleCry)
     }
 }
 

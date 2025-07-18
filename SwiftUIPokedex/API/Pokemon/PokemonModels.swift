@@ -6,6 +6,7 @@ struct PokemonDetails: Decodable {
     let weight: Int
     let height: Int
     let baseExperience: Int
+    let cries: Cries
     let sprite: Sprite
     let abilities: [Ability]
     let moves: [Move]
@@ -13,10 +14,15 @@ struct PokemonDetails: Decodable {
     let stats: [Stat]
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, weight, height, abilities, moves, types, stats
+        case id, name, weight, height, abilities, moves, types, stats, cries
         case baseExperience = "base_experience"
         case sprite = "sprites"
     }
+}
+
+// MARK: -
+struct Cries: Decodable {
+    let latest: String?
 }
 
 // MARK: -
@@ -66,6 +72,7 @@ extension PokemonDetails {
             weight: 0,
             height: 0,
             baseExperience: 0,
+            cries: .init(latest: nil),
             sprite: Sprite(
                 front: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
                 back: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png"),
