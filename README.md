@@ -1,6 +1,6 @@
 ![icon](https://github.com/user-attachments/assets/5abf1763-b290-4f12-a661-986e58fbeaad)
 
-# SwiftUIPokedex
+# PokedexUI
 
 SwiftPokedex is a modern example app built with **SwiftUI** by [Viktor Gidlöf](https://viktorgidlof.com).
 It integrates with the [PokeAPI](https://pokeapi.co) to fetch and display Pokémon data using a clean, reactive architecture using `async / await` and `Swift Concurrency`.
