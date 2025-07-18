@@ -2,7 +2,7 @@
 
 # PokedexUI
 
-SwiftPokedex is a modern example app built with **SwiftUI** by [Viktor Gidlöf](https://viktorgidlof.com).
+PokedexUI is a modern example app built with **SwiftUI** by [Viktor Gidlöf](https://viktorgidlof.com).
 It integrates with the [PokeAPI](https://pokeapi.co) to fetch and display Pokémon data using a clean, reactive architecture using `async / await` and `Swift Concurrency`.
 
 This sample app demonstrates:
@@ -22,7 +22,7 @@ The app displays a scrollable grid of Pokémon, each with a dynamically extracte
 
 # Architecture 🏛
 
-SwiftPokedex is built using a **Model + View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
+PokedexUI is built using a **Model + View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
 
 ## View 📱
 
