@@ -3,20 +3,17 @@ import AVFoundation
 /// An actor responsible for managing audio playback using AVFoundation.
 actor AudioPlayer {
     // MARK: Private properties
-    
     /// The AVFoundation player instance used to control audio playback.
     private var player: AVPlayer?
 
     // MARK: - Public properties
-    
     /// A Boolean value indicating whether the audio player is currently playing.
     var isPlaying: Bool {
         guard let player else { return false }
         return player.timeControlStatus == .playing
     }
 
-    // MARK: init
-    
+    // MARK: - Init
     /// Initializes a new audio player and configures the audio session for playback.
     init() {
         let shared = AVAudioSession.sharedInstance()
