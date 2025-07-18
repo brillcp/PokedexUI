@@ -10,7 +10,7 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
             VStack(spacing: 0) {
                 ZStack(alignment: .bottom) {
                     Sprite()
-                    ImageOverlay()
+                    ActionButtons()
                 }
 
                 VStack {
@@ -42,7 +42,7 @@ private extension PokemonDetailView {
             .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: isFlipped)
     }
 
-    func ImageOverlay() -> some View {
+    func ActionButtons() -> some View {
         HStack {
             Spacer()
             FlipButton()
