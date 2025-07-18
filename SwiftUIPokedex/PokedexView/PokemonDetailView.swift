@@ -1,9 +1,16 @@
 import SwiftUI
 
 struct PokemonDetailView<ViewModel: PokemonViewModelProtocol>: View {
-    let viewModel: ViewModel
+    private let haptic: UIImpactFeedbackGenerator
+    private let viewModel: ViewModel
 
     @State private var isFlipped = false
+
+    init(viewModel: ViewModel, haptic: UIImpactFeedbackGenerator = .init(style: .light)) {
+        self.viewModel = viewModel
+        self.haptic = haptic
+        haptic.prepare()
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -60,10 +67,12 @@ private extension PokemonDetailView {
                         .onChanged { _ in
                             guard !isFlipped else { return }
                             isFlipped = true
+                            haptic.impactOccurred()
                         }
                         .onEnded { _ in
                             guard isFlipped else { return }
                             isFlipped = false
+                            haptic.impactOccurred()
                         }
                 )
         }
