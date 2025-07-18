@@ -3,8 +3,14 @@ import SwiftUI
 extension View {
     func applyPokedexStyling(title: String) -> some View {
         self
-            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(title)
+                        .font(.pixel17)
+                        .foregroundStyle(.white)
+                }
+            }
             .toolbarBackground(Color.pokedexRed, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .background(Color.darkGrey)

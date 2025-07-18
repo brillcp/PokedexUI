@@ -184,9 +184,15 @@ private extension View {
 
             self
                 .font(.pixel14)
-                .navigationTitle(viewModel.name)
                 .toolbar {
-                    Text("#\(viewModel.id)")
+                    ToolbarItem(placement: .principal) {
+                        Text(viewModel.name)
+                            .font(.pixel17)
+                            .foregroundStyle(viewModel.isLight ? .black : .white)
+                    }
+                    ToolbarItem {
+                        Text("#\(viewModel.id)")
+                    }
                 }
         }
         .ignoresSafeArea(edges: .bottom)
