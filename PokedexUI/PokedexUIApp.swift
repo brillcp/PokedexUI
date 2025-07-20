@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SwiftUIPokedexApp: App {
+struct PokedexUIApp: App {
     var body: some Scene {
         WindowGroup {
             PokedexView(viewModel: PokedexViewModel())

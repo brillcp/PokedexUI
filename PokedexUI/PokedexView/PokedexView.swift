@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
+    @ObservedObject private var viewModel: ViewModel
     @Namespace private var namespace
 
     private let gridLayout: [GridItem] = [
@@ -9,9 +10,6 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
         GridItem(.flexible(maximum: .infinity)),
         GridItem(.flexible(maximum: .infinity))
     ]
-
-    // MARK: - Public properties
-    @ObservedObject var viewModel: ViewModel
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {

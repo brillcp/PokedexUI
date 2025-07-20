@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9396D235273EBBED00AF0C94"
-               BuildableName = "SwiftUIPokedex.app"
-               BlueprintName = "SwiftUIPokedex"
-               ReferencedContainer = "container:SwiftUIPokedex.xcodeproj">
+               BuildableName = "PokedexUI.app"
+               BlueprintName = "PokedexUI"
+               ReferencedContainer = "container:PokedexUI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9396D235273EBBED00AF0C94"
-            BuildableName = "SwiftUIPokedex.app"
-            BlueprintName = "SwiftUIPokedex"
-            ReferencedContainer = "container:SwiftUIPokedex.xcodeproj">
+            BuildableName = "PokedexUI.app"
+            BlueprintName = "PokedexUI"
+            ReferencedContainer = "container:PokedexUI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9396D235273EBBED00AF0C94"
-            BuildableName = "SwiftUIPokedex.app"
-            BlueprintName = "SwiftUIPokedex"
-            ReferencedContainer = "container:SwiftUIPokedex.xcodeproj">
+            BuildableName = "PokedexUI.app"
+            BlueprintName = "PokedexUI"
+            ReferencedContainer = "container:PokedexUI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
