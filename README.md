@@ -89,7 +89,7 @@ actor APIService<Config: ServiceConfiguration> {
 Each Pokémon card’s background is tinted with its sprite’s dominant color. This color is computed by extending UIImage with a method that samples and ranks pixel data.
 
 # Dependencies 
-SwiftUIPokedex uses the HTTP framework [Networking](https://github.com/brillcp/Networking) for all the API calls to the PokeAPI. You can read more about that [here](https://github.com/brillcp/Networking#readme). It can be installed through Swift Package Manager:
+PokedexUI uses the HTTP framework [Networking](https://github.com/brillcp/Networking) for all the API calls to the PokeAPI. You can read more about that [here](https://github.com/brillcp/Networking#readme). It can be installed through Swift Package Manager:
 ```
 dependencies: [
     .package(url: "https://github.com/brillcp/Networking.git", .upToNextMajor(from: "0.9.3"))
