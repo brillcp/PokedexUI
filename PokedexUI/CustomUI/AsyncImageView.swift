@@ -29,14 +29,13 @@ private extension AsyncImageView {
             HStack {
                 Spacer()
                 Text("#\(pokemon.id)")
-                    .foregroundColor(pokemon.isLight ? .black : .white)
                     .padding(8)
             }
             Spacer()
             Text(pokemon.name)
-                .foregroundStyle(pokemon.isLight ? .black : .white)
         }
         .padding(.bottom, 10)
+        .foregroundStyle(pokemon.isLight ? .black : .white)
         .fadeIn(when: viewModel.frontImage)
     }
 }
