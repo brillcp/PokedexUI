@@ -24,7 +24,6 @@ struct ItemDetailRowView: View {
 
 // MARK: - Private properties
 private extension ItemDetailRowView {
-    @ViewBuilder
     var sprite: some View {
         Group {
             if let image {
