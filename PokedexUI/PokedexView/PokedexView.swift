@@ -82,7 +82,7 @@ private extension PokedexView {
     }
 
     func pokemonCard(for pokemon: PokemonViewModel) -> some View {
-        AsyncImageView(viewModel: .constant(pokemon))
+        AsyncImageView(viewModel: pokemon)
             .task {
                 if pokemon == viewModel.pokemon.last {
                     await viewModel.requestPokemon()

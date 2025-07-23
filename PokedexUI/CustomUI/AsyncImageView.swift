@@ -1,9 +1,7 @@
 import SwiftUI
 
 struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
-    @State private var opacity: Double = 0.0
-
-    @Binding var viewModel: ViewModel
+    @State var viewModel: ViewModel
 
     var body: some View {
         ZStack {
@@ -14,25 +12,19 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .background(viewModel.color)
-                    .opacity(opacity)
-                    .onAppear {
-                        withAnimation {
-                            opacity = 1.0
-                        }
-                    }
+                    .fadeIn(when: viewModel.frontImage)
             }
         }
         .aspectRatio(1.0, contentMode: .fit)
         .cornerRadius(16.0)
         .overlay(cardOverlay(for: viewModel))
-        .animation(.easeInOut(duration: 0.4), value: opacity)
         .task { await viewModel.loadSprite() }
     }
 }
 
 // MARK: - Private UI components
 private extension AsyncImageView {
-    func cardOverlay(for pokemon: any PokemonViewModelProtocol) -> some View {
+    func cardOverlay(for pokemon: PokemonViewModelProtocol) -> some View {
         VStack {
             HStack {
                 Spacer()
@@ -45,10 +37,10 @@ private extension AsyncImageView {
                 .foregroundStyle(pokemon.isLight ? .black : .white)
         }
         .padding(.bottom, 10)
-        .opacity(opacity)
+        .fadeIn(when: viewModel.frontImage)
     }
 }
 
 #Preview {
-    AsyncImageView(viewModel: .constant(PokemonViewModel(pokemon: .pikachu)))
+    AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu))
 }

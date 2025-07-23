@@ -15,8 +15,13 @@ extension View {
             .toolbarBackground(.visible, for: .navigationBar)
             .background(Color.darkGrey)
     }
+
+    func fadeIn<Value: Equatable>(when value: Value, duration: Double = 0.4) -> some View {
+        modifier(FadeInOnValueChangeModifier(value: value, duration: duration))
+    }
 }
 
+// MARK: - View Modifiers
 struct Perspective3D: ViewModifier {
     @Binding var isFlipped: Bool
 
@@ -29,5 +34,32 @@ struct Perspective3D: ViewModifier {
             .rotation3DEffect(
                 .degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0)
             )
+    }
+}
+
+struct FadeInOnValueChangeModifier<Value: Equatable>: ViewModifier {
+    let value: Value
+    let duration: Double
+
+    @State private var isVisible = false
+    @State private var lastValue: Value?
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .onAppear {
+                lastValue = value
+                withAnimation(.easeInOut(duration: duration)) {
+                    isVisible = true
+                }
+            }
+            .onChange(of: value) { _, newValue in
+                guard newValue != lastValue else { return }
+                lastValue = newValue
+                isVisible = false
+                withAnimation(.easeInOut(duration: duration)) {
+                    isVisible = true
+                }
+            }
     }
 }
