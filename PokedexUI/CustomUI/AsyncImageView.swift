@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
-    @ObservedObject var viewModel: ViewModel
-
     @State private var opacity: Double = 0.0
+
+    @Binding var viewModel: ViewModel
 
     var body: some View {
         ZStack {
@@ -50,5 +50,5 @@ private extension AsyncImageView {
 }
 
 #Preview {
-    AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu))
+    AsyncImageView(viewModel: .constant(PokemonViewModel(pokemon: .pikachu)))
 }

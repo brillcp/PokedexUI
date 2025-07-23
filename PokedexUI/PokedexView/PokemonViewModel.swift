@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Protocol for Pokémon view models providing display-ready Pokémon data.
-protocol PokemonViewModelProtocol: ObservableObject {
+protocol PokemonViewModelProtocol {
     /// The Pokémon front sprite image.
     var frontImage: UIImage? { get }
     /// The Pokémon back sprite image.
@@ -37,14 +37,17 @@ protocol PokemonViewModelProtocol: ObservableObject {
 
 // MARK: -
 /// ViewModel providing formatted and display-ready data for a single Pokémon.
+@Observable
 final class PokemonViewModel {
+    // MARK: Private properties
     private let audioStreamer: AudioPlayer
     private let imageLoader: ImageLoader
     private let pokemon: Pokemon
 
-    @Published var frontImage: UIImage?
-    @Published var backImage: UIImage?
-    @Published var color: Color?
+    // MARK: - Public properties
+    var frontImage: UIImage?
+    var backImage: UIImage?
+    var color: Color?
 
     /// Initializes the ViewModel with Pokémon details and an optional image loader.
     /// - Parameters:

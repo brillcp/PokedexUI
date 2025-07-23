@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
-    @ObservedObject private var viewModel: ViewModel
+    @Binding private var viewModel: ViewModel
     @Namespace private var namespace
 
     private let gridLayout: [GridItem] = [
@@ -13,7 +13,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
-        self.viewModel = viewModel
+        self._viewModel = .constant(viewModel)
     }
 
     // MARK: - Body
@@ -82,7 +82,7 @@ private extension PokedexView {
     }
 
     func pokemonCard(for pokemon: PokemonViewModel) -> some View {
-        AsyncImageView(viewModel: pokemon)
+        AsyncImageView(viewModel: .constant(pokemon))
             .task {
                 if pokemon == viewModel.pokemon.last {
                     await viewModel.requestPokemon()

@@ -4,7 +4,8 @@ import Foundation
 ///
 /// Conforming types provide an observable list of Pokémon and a loading state,
 /// along with an async method for requesting Pokémon data.
-protocol PokedexViewModelProtocol: ObservableObject {
+@MainActor
+protocol PokedexViewModelProtocol {
     /// The currently loaded Pokémon displayed in the grid.
     var pokemon: [PokemonViewModel] { get }
 
@@ -20,6 +21,7 @@ protocol PokedexViewModelProtocol: ObservableObject {
 ///
 /// `PokedexViewModel` is responsible for coordinating data loading from the `PokemonService`
 /// and exposing observable state to the SwiftUI view.
+@Observable
 final class PokedexViewModel {
     // MARK: Private Properties
     /// The service responsible for fetching paginated Pokémon data.
@@ -27,10 +29,10 @@ final class PokedexViewModel {
 
     // MARK: - Published State
     /// The current list of Pokémon, updated after each successful fetch.
-    @Published var pokemon: [PokemonViewModel] = []
+    var pokemon: [PokemonViewModel] = []
 
     /// Indicates whether a data request is in progress.
-    @Published var isLoading: Bool = false
+    var isLoading: Bool = false
 
     // MARK: - Initialization
     /// Creates a new `PokedexViewModel`.
@@ -47,7 +49,6 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     ///
     /// If a request is already in progress, this call is ignored.
     /// On success, the results are appended to the existing Pokémon list.
-    @MainActor
     func requestPokemon() async {
         guard !isLoading else { return }
         isLoading = true

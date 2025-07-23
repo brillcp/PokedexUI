@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
-    @ObservedObject var viewModel: ViewModel
+    // MARK: Private properties
+    @Binding private var viewModel: ViewModel
 
+    // MARK: - Initialization
     init(viewModel: ViewModel) {
-        self.viewModel = viewModel
+        self._viewModel = .constant(viewModel)
     }
 
+    // MARK: - Body
     var body: some View {
         ScrollView(showsIndicators: false) {
             itemsList
