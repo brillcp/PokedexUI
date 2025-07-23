@@ -40,7 +40,7 @@ protocol PokemonViewModelProtocol: ObservableObject {
 final class PokemonViewModel {
     private let audioStreamer: AudioPlayer
     private let imageLoader: ImageLoader
-    private let pokemon: PokemonDetails
+    private let pokemon: Pokemon
 
     @Published var frontImage: UIImage?
     @Published var backImage: UIImage?
@@ -52,7 +52,7 @@ final class PokemonViewModel {
     ///   - imageLoader: The loader for sprite images.
     ///   - audioStreamer: The audio player to play the pokemon battle cry.
     init(
-        pokemon: PokemonDetails,
+        pokemon: Pokemon,
         imageLoader: ImageLoader = .init(),
         audioStreamer: AudioPlayer = .init()
     ) {

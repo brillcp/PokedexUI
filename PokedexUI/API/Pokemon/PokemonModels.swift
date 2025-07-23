@@ -1,6 +1,6 @@
 import Foundation
 
-struct PokemonDetails: Decodable {
+struct Pokemon: Decodable {
     let id: Int
     let name: String
     let weight: Int
@@ -64,9 +64,9 @@ struct Stat: Decodable, Identifiable {
 }
 
 // MARK: - Mock pokemon
-extension PokemonDetails {
-    static var pikachu: PokemonDetails {
-        PokemonDetails(
+extension Pokemon {
+    static var pikachu: Pokemon {
+        Pokemon(
             id: 0,
             name: "Pika",
             weight: 0,

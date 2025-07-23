@@ -55,7 +55,7 @@ extension PokemonService: PokemonServiceProtocol {
 extension PokemonService {
     /// A configuration used by `APIService` to define Pokémon-specific requests and response transformation.
     struct Config: ServiceConfiguration {
-        typealias ResponseType = PokemonDetails
+        typealias ResponseType = Pokemon
         typealias OutputModel = PokemonViewModel
 
         /// Builds the request used to fetch a paginated list of Pokémon.
