@@ -5,17 +5,10 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
 
     var body: some View {
         ZStack {
-            Color(.darkGray)
-
-            if let image = viewModel.frontImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .background(viewModel.color)
-                    .fadeIn(when: viewModel.frontImage)
-            }
+            sprite
         }
         .aspectRatio(1.0, contentMode: .fit)
+        .background(Color(.darkGray))
         .cornerRadius(16.0)
         .overlay(cardOverlay(for: viewModel))
         .task { await viewModel.loadSprite() }
@@ -24,6 +17,17 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
 
 // MARK: - Private UI components
 private extension AsyncImageView {
+    @ViewBuilder
+    var sprite: some View {
+        if let image = viewModel.frontImage {
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .background(viewModel.color)
+                .fadeIn(when: image)
+        }
+    }
+
     func cardOverlay(for pokemon: PokemonViewModelProtocol) -> some View {
         VStack {
             HStack {
