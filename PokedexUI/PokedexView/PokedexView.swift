@@ -47,12 +47,10 @@ private extension PokedexView {
         .font(.pixel12)
         .toolbar {
             ToolbarItem {
-                Button {
-                    withAnimation {
+                Button("", systemImage: grid.otherIcon) {
+                    withAnimation(.bouncy) {
                         grid.toggle()
                     }
-                } label: {
-                    Image(systemName: grid.icon)
                 }
                 .tint(.white)
             }
