@@ -5,11 +5,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     @Binding private var viewModel: ViewModel
     @Namespace private var namespace
 
-    private let gridLayout: [GridItem] = [
-        GridItem(.flexible(maximum: .infinity)),
-        GridItem(.flexible(maximum: .infinity)),
-        GridItem(.flexible(maximum: .infinity))
-    ]
+    @State private var grid: GridLayout = .three
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
@@ -23,7 +19,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                 pokemonGridView
                     .applyPokedexStyling(title: "Pokedex")
             }
-            .tabItem { Label("Pokedex", systemImage: "square.grid.3x3.fill") }
+            .tabItem { Label("Pokedex", systemImage: grid.icon) }
 
             NavigationStack {
                 itemsListView
@@ -32,7 +28,6 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
             .tabItem { Label("Items", systemImage: "xmark.triangle.circle.square.fill") }
         }
         .tint(Color.pokedexRed)
-        .tabBarMinimizeBehavior(.onScrollDown)
         .colorScheme(.dark)
         .task { await viewModel.requestPokemon() }
     }
@@ -50,6 +45,18 @@ private extension PokedexView {
             }
         }
         .font(.pixel12)
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    withAnimation {
+                        grid.toggle()
+                    }
+                } label: {
+                    Image(systemName: grid.icon)
+                }
+                .tint(.white)
+            }
+        }
     }
 
     var itemsListView: some View {
@@ -60,7 +67,7 @@ private extension PokedexView {
 // MARK: - Grid Components
 private extension PokedexView {
     var pokemonGrid: some View {
-        LazyVGrid(columns: gridLayout) {
+        LazyVGrid(columns: grid.layout) {
             ForEach(viewModel.pokemon, id: \.id) { pokemon in
                 pokemonGridItem(for: pokemon)
                     .padding(8)
@@ -82,12 +89,15 @@ private extension PokedexView {
     }
 
     func pokemonCard(for pokemon: PokemonViewModel) -> some View {
-        AsyncImageView(viewModel: pokemon)
-            .task {
-                if pokemon == viewModel.pokemon.last {
-                    await viewModel.requestPokemon()
-                }
+        AsyncImageView(
+            viewModel: pokemon,
+            showOverlay: grid == .three
+        )
+        .task {
+            if pokemon == viewModel.pokemon.last {
+                await viewModel.requestPokemon()
             }
+        }
     }
 }
 

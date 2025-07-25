@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
     @State var viewModel: ViewModel
+    let showOverlay: Bool
 
     var body: some View {
         ZStack {
@@ -28,22 +29,25 @@ private extension AsyncImageView {
         }
     }
 
+    @ViewBuilder
     func cardOverlay(for pokemon: PokemonViewModelProtocol) -> some View {
-        VStack {
-            HStack {
+        if showOverlay {
+            VStack {
+                HStack {
+                    Spacer()
+                    Text("#\(pokemon.id)")
+                        .padding(8)
+                }
                 Spacer()
-                Text("#\(pokemon.id)")
-                    .padding(8)
+                Text(pokemon.name)
             }
-            Spacer()
-            Text(pokemon.name)
+            .padding(.bottom, 10)
+            .foregroundStyle(pokemon.isLight ? .black : .white)
+            .fadeIn(when: viewModel.frontImage)
         }
-        .padding(.bottom, 10)
-        .foregroundStyle(pokemon.isLight ? .black : .white)
-        .fadeIn(when: viewModel.frontImage)
     }
 }
 
 #Preview {
-    AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu))
+    AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu), showOverlay: false)
 }

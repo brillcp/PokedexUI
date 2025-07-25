@@ -12,10 +12,10 @@ enum Endpoint {
 extension Endpoint: EndpointType {
     var path: String {
         switch self {
-        case .itemDetails(let id): return "item/\(id)"
-        case .pokemonDetails(let id): return "pokemon/\(id)"
-        case .pokemon: return "pokemon"
-        case .items: return "item"
+            case .itemDetails(let id): return "item/\(id)"
+            case .pokemonDetails(let id): return "pokemon/\(id)"
+            case .pokemon: return "pokemon"
+            case .items: return "item"
         }
     }
 }
