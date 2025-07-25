@@ -5,10 +5,10 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
 
     var body: some View {
         ZStack {
+            Color(.darkGray)
             sprite
         }
         .aspectRatio(1.0, contentMode: .fit)
-        .background(Color(.darkGray))
         .cornerRadius(16.0)
         .overlay(cardOverlay(for: viewModel))
         .task { await viewModel.loadSprite() }
