@@ -1,22 +1,13 @@
 import SwiftUI
 
-enum GridLayout {
-    case three, four
+enum GridLayout: Int {
+    case three = 3, four
 }
 
 // MARK: -
 extension GridLayout {
     var layout: [GridItem] {
-        switch self {
-        case .three:
-            [
-                GridItem(.flexible(maximum: .infinity)),
-                GridItem(.flexible(maximum: .infinity)),
-                GridItem(.flexible(maximum: .infinity)),
-            ]
-        case .four:
-            GridLayout.three.layout + [GridItem(.flexible(maximum: .infinity))]
-        }
+        Array(repeating: GridItem(.flexible(maximum: .infinity)), count: rawValue)
     }
 
     var icon: String {
