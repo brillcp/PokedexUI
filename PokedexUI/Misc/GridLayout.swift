@@ -16,6 +16,13 @@ extension GridLayout {
             case .four: "square.grid.4x3.fill"
         }
     }
+
+    var otherIcon: String {
+        switch self {
+            case .three: "square.grid.4x3.fill"
+            case .four: "square.grid.3x3.fill"
+        }
+    }
 }
 
 // MARK: - Mutating function
