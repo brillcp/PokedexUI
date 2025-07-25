@@ -186,12 +186,9 @@ private extension View {
                 .font(.pixel14)
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        Text(viewModel.name)
+                        Text("\(viewModel.name) #\(viewModel.id)")
                             .font(.pixel17)
                             .foregroundStyle(viewModel.isLight ? .black : .white)
-                    }
-                    ToolbarItem {
-                        Text("#\(viewModel.id)")
                     }
                 }
         }
