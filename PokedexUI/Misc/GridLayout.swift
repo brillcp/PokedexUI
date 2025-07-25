@@ -4,7 +4,7 @@ enum GridLayout: Int {
     case three = 3, four
 }
 
-// MARK: -
+// MARK: - Computed properties
 extension GridLayout {
     var layout: [GridItem] {
         Array(repeating: GridItem(.flexible(maximum: .infinity)), count: rawValue)
@@ -16,7 +16,10 @@ extension GridLayout {
             case .four: "square.grid.4x3.fill"
         }
     }
+}
 
+// MARK: - Mutating function
+extension GridLayout {
     mutating func toggle() {
         switch self {
             case .three: self = .four
