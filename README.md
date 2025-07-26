@@ -1,5 +1,12 @@
 ![icon](https://github.com/user-attachments/assets/5abf1763-b290-4f12-a661-986e58fbeaad)
 
+![swift](https://img.shields.io/badge/Swift-6.0%2B-green)
+![release](https://img.shields.io/github/v/release/brillcp/pokedexui)
+![platforms](https://img.shields.io/badge/Platforms-iOS%20iPadOS%20macOS-blue)
+[![spm](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-green)](#swift-package-manager)
+[![license](https://img.shields.io/github/license/brillcp/pokedexui)](/LICENSE)
+![stars](https://img.shields.io/github/stars/brillcp/pokedexui?style=social)
+
 # PokedexUI
 
 PokedexUI is a modern example app built with **SwiftUI** by [Viktor Gidlöf](https://viktorgidlof.com).
