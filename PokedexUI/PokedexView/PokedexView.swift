@@ -2,10 +2,9 @@ import SwiftUI
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
+    @State private var grid: GridLayout = .three
     @Binding private var viewModel: ViewModel
     @Namespace private var namespace
-
-    @State private var grid: GridLayout = .three
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
