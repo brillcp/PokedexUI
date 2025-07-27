@@ -42,20 +42,17 @@ struct FadeInOnValueChangeModifier<Value: Equatable>: ViewModifier {
     let duration: Double
 
     @State private var isVisible = false
-    @State private var lastValue: Value?
 
     func body(content: Content) -> some View {
         content
             .opacity(isVisible ? 1 : 0)
             .onAppear {
-                lastValue = value
                 withAnimation(.easeInOut(duration: duration)) {
                     isVisible = true
                 }
             }
-            .onChange(of: value) { _, newValue in
-                guard newValue != lastValue else { return }
-                lastValue = newValue
+            .onChange(of: value) { oldValue, newValue in
+                guard newValue != oldValue else { return }
                 isVisible = false
                 withAnimation(.easeInOut(duration: duration)) {
                     isVisible = true

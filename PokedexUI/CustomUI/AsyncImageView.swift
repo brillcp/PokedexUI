@@ -1,8 +1,15 @@
 import SwiftUI
 
 struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
-    @State var viewModel: ViewModel
-    let showOverlay: Bool
+    @Binding private var viewModel: ViewModel
+    @State private var hasFadedIn = false
+    private let showOverlay: Bool
+
+    // MARK: - Init
+    init(viewModel: ViewModel, showOverlay: Bool) {
+        self._viewModel = .constant(viewModel)
+        self.showOverlay = showOverlay
+    }
 
     var body: some View {
         ZStack {
@@ -11,7 +18,6 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
         }
         .aspectRatio(1.0, contentMode: .fit)
         .cornerRadius(16.0)
-        .overlay(cardOverlay(for: viewModel))
         .task { await viewModel.loadSprite() }
     }
 }
@@ -25,7 +31,12 @@ private extension AsyncImageView {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .background(viewModel.color)
-                .fadeIn(when: image)
+                .overlay(cardOverlay(for: viewModel))
+                .if(!hasFadedIn) { $0.fadeIn(when: image) }
+                .onChange(of: viewModel.frontImage) { _, newImage in
+                    guard newImage != nil, !hasFadedIn else { return }
+                    hasFadedIn = true
+                }
         }
     }
 
@@ -43,7 +54,18 @@ private extension AsyncImageView {
             }
             .padding(.bottom, 10)
             .foregroundStyle(pokemon.isLight ? .black : .white)
-            .fadeIn(when: viewModel.frontImage)
+        }
+    }
+}
+
+// A simple View extension to apply a modifier conditionally
+private extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, modify: (Self) -> Content) -> some View {
+        if condition {
+            modify(self)
+        } else {
+            self
         }
     }
 }

@@ -14,17 +14,17 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: - Body
     var body: some View {
         TabView {
-            NavigationStack {
+            Tab("Pokedex", systemImage: grid.icon) {
                 pokemonGridView
-                    .applyPokedexStyling(title: "Pokedex")
             }
-            .tabItem { Label("Pokedex", systemImage: grid.icon) }
 
-            NavigationStack {
+            Tab("Items", systemImage: "xmark.triangle.circle.square.fill") {
                 itemsListView
-                    .applyPokedexStyling(title: "Items")
             }
-            .tabItem { Label("Items", systemImage: "xmark.triangle.circle.square.fill") }
+
+            Tab("Searcj", systemImage: "magnifyingglass", role: .search) {
+                searchView
+            }
         }
         .tint(Color.pokedexRed)
         .colorScheme(.dark)
@@ -35,29 +35,42 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 // MARK: - Tab Views
 private extension PokedexView {
     var pokemonGridView: some View {
-        ScrollView(showsIndicators: false) {
-            pokemonGrid
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                pokemonGrid
 
-            if viewModel.isLoading {
-                ProgressView()
-                    .tint(.white)
-            }
-        }
-        .font(.pixel12)
-        .toolbar {
-            ToolbarItem {
-                Button("", systemImage: grid.otherIcon) {
-                    withAnimation(.bouncy) {
-                        grid.toggle()
-                    }
+                if viewModel.isLoading {
+                    ProgressView()
+                        .tint(.white)
                 }
-                .tint(.white)
             }
+            .font(.pixel12)
+            .toolbar {
+                ToolbarItem {
+                    Button("", systemImage: grid.otherIcon) {
+                        withAnimation(.bouncy) {
+                            grid.toggle()
+                        }
+                    }
+                    .tint(.white)
+                }
+            }
+            .applyPokedexStyling(title: "Pokedex")
         }
     }
 
     var itemsListView: some View {
-        ItemsListView(viewModel: ItemsListViewModel())
+        NavigationStack {
+            ItemsListView(viewModel: ItemsListViewModel())
+                .applyPokedexStyling(title: "Items")
+        }
+    }
+
+    var searchView: some View {
+        NavigationStack {
+            SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon))
+                .applyPokedexStyling(title: "Search")
+        }
     }
 }
 

@@ -21,9 +21,11 @@ enum PokemonRequest: Requestable {
     var parameters: HTTP.Parameters {
         switch self {
             case .next(let offset, let limit):
-                ["offset": offset, "limit": limit]
+                [ParameterKey.offset.rawValue: offset,
+                 ParameterKey.limit.rawValue: limit]
             default:
-                HTTP.Parameters()
+                [ParameterKey.offset.rawValue: "0",
+                 ParameterKey.limit.rawValue: "650"]
         }
     }
 
