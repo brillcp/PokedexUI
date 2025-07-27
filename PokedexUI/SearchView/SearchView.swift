@@ -3,9 +3,7 @@ import SwiftUI
 struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     // MARK: Private properties
     @FocusState private var isSearchFocused: Bool
-    @State private var grid: GridLayout = .three
     @Binding private var viewModel: ViewModel
-    @Namespace private var namespace
 
     // MARK: - Init
     init(viewModel: ViewModel) {
@@ -14,27 +12,12 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: grid.layout) {
-                ForEach(viewModel.filteredPokemon, id: \.id) { pokemon in
-                    NavigationLink {
-                        PokemonDetailView(viewModel: pokemon)
-                            .navigationTransition(
-                                .zoom(sourceID: pokemon.id, in: namespace)
-                            )
-                    } label: {
-                        AsyncImageView(
-                            viewModel: pokemon,
-                            showOverlay: grid == .three
-                        )
-                        .matchedTransitionSource(id: pokemon.id, in: namespace)
-                        .font(.pixel12)
-                    }
-                    .padding(8)
-                }
-            }
-            .padding(8)
-        }
+        PokemonGridView(
+            pokemon: viewModel.filteredPokemon,
+            grid: .three,
+            isLoading: false,
+            asyncTask: {}
+        )
         .focused($isSearchFocused)
         .searchable(text: $viewModel.query)
         .onAppear { isSearchFocused = true }

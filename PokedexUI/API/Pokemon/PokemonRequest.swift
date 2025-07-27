@@ -25,7 +25,7 @@ enum PokemonRequest: Requestable {
                  ParameterKey.limit.rawValue: limit]
             default:
                 [ParameterKey.offset.rawValue: "0",
-                 ParameterKey.limit.rawValue: "650"]
+                 ParameterKey.limit.rawValue: "656"]
         }
     }
 

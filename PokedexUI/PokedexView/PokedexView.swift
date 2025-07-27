@@ -4,7 +4,6 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
     @State private var grid: GridLayout = .three
     @Binding private var viewModel: ViewModel
-    @Namespace private var namespace
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
@@ -36,14 +35,14 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 private extension PokedexView {
     var pokemonGridView: some View {
         NavigationStack {
-            ScrollView(showsIndicators: false) {
-                pokemonGrid
-
-                if viewModel.isLoading {
-                    ProgressView()
-                        .tint(.white)
+            PokemonGridView(
+                pokemon: viewModel.pokemon,
+                grid: grid,
+                isLoading: viewModel.isLoading,
+                asyncTask: {
+                    await viewModel.requestPokemon()
                 }
-            }
+            )
             .toolbar {
                 ToolbarItem {
                     Button("", systemImage: grid.otherIcon) {
@@ -69,40 +68,6 @@ private extension PokedexView {
         NavigationStack {
             SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon))
                 .applyPokedexStyling(title: "Search")
-        }
-    }
-}
-
-// MARK: - Grid Components
-private extension PokedexView {
-    var pokemonGrid: some View {
-        LazyVGrid(columns: grid.layout) {
-            ForEach(viewModel.pokemon, id: \.id) { pokemon in
-                pokemonGridItem(for: pokemon)
-                    .padding(8)
-            }
-        }
-        .padding(8)
-    }
-
-    func pokemonGridItem(for pokemon: PokemonViewModel) -> some View {
-        NavigationLink {
-            PokemonDetailView(viewModel: pokemon)
-                .navigationTransition(
-                    .zoom(sourceID: pokemon.id, in: namespace)
-                )
-        } label: {
-            AsyncImageView(
-                viewModel: pokemon,
-                showOverlay: grid == .three
-            )
-            .font(.pixel12)
-            .task {
-                if pokemon == viewModel.pokemon.last {
-                    await viewModel.requestPokemon()
-                }
-            }
-            .matchedTransitionSource(id: pokemon.id, in: namespace)
         }
     }
 }

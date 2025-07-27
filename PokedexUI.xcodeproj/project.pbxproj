@@ -17,6 +17,7 @@
 		9396D23E273EBBEE00AF0C94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9396D23D273EBBEE00AF0C94 /* Assets.xcassets */; };
 		9396D241273EBBEE00AF0C94 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9396D240273EBBEE00AF0C94 /* Preview Assets.xcassets */; };
 		93F7F578274009B2002CEBB5 /* PokemonDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F7F577274009B2002CEBB5 /* PokemonDetailView.swift */; };
+		D5011AA82E36C13E00A2F8EE /* PokemonGridViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5011AA72E36C13E00A2F8EE /* PokemonGridViews.swift */; };
 		D5164F712E226DFE00E3EC8D /* View.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5164F702E226DFE00E3EC8D /* View.swift */; };
 		D5164F732E22702000E3EC8D /* ItemDetailRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5164F722E22702000E3EC8D /* ItemDetailRowView.swift */; };
 		D5164F752E22707700E3EC8D /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5164F742E22707700E3EC8D /* String.swift */; };
@@ -56,6 +57,7 @@
 		9396D23D273EBBEE00AF0C94 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9396D240273EBBEE00AF0C94 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		93F7F577274009B2002CEBB5 /* PokemonDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonDetailView.swift; sourceTree = "<group>"; };
+		D5011AA72E36C13E00A2F8EE /* PokemonGridViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonGridViews.swift; sourceTree = "<group>"; };
 		D5164F702E226DFE00E3EC8D /* View.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = View.swift; sourceTree = "<group>"; };
 		D5164F722E22702000E3EC8D /* ItemDetailRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailRowView.swift; sourceTree = "<group>"; };
 		D5164F742E22707700E3EC8D /* String.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = String.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 				D54F5AF12E1DA61400411759 /* PokedexViewModel.swift */,
 				D54F5AA12E1D9FF800411759 /* PokemonViewModel.swift */,
 				93F7F577274009B2002CEBB5 /* PokemonDetailView.swift */,
+				D5011AA72E36C13E00A2F8EE /* PokemonGridViews.swift */,
 			);
 			path = PokedexView;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 			files = (
 				D5164F712E226DFE00E3EC8D /* View.swift in Sources */,
 				D57366192E2116B200FE4ED0 /* APIModels.swift in Sources */,
+				D5011AA82E36C13E00A2F8EE /* PokemonGridViews.swift in Sources */,
 				9332C0EA273F51E1003AF377 /* AsyncImageView.swift in Sources */,
 				9396D23C273EBBED00AF0C94 /* PokedexView.swift in Sources */,
 				D58F9B032E1FC82800BB2D36 /* ItemsListView.swift in Sources */,
@@ -405,7 +409,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -463,7 +467,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
