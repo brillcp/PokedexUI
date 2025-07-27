@@ -92,21 +92,17 @@ private extension PokedexView {
                     .zoom(sourceID: pokemon.id, in: namespace)
                 )
         } label: {
-            pokemonCard(for: pokemon)
-                .matchedTransitionSource(id: pokemon.id, in: namespace)
-        }
-    }
-
-    func pokemonCard(for pokemon: PokemonViewModel) -> some View {
-        AsyncImageView(
-            viewModel: pokemon,
-            showOverlay: grid == .three
-        )
-        .font(.pixel12)
-        .task {
-            if pokemon == viewModel.pokemon.last {
-                await viewModel.requestPokemon()
+            AsyncImageView(
+                viewModel: pokemon,
+                showOverlay: grid == .three
+            )
+            .font(.pixel12)
+            .task {
+                if pokemon == viewModel.pokemon.last {
+                    await viewModel.requestPokemon()
+                }
             }
+            .matchedTransitionSource(id: pokemon.id, in: namespace)
         }
     }
 }
