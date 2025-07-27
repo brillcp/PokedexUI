@@ -4,7 +4,6 @@ struct PokedexGridView<ViewModel: PokemonViewModel>: View {
     let pokemon: [ViewModel]
     let grid: GridLayout
     let isLoading: Bool
-    let asyncTask: @Sendable () async -> Void
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -15,11 +14,6 @@ struct PokedexGridView<ViewModel: PokemonViewModel>: View {
                         grid: grid
                     )
                     .padding(8)
-                    .task {
-                        if vm == pokemon.last {
-                            await asyncTask()
-                        }
-                    }
                 }
             }
             .padding(8)

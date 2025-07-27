@@ -38,10 +38,7 @@ private extension PokedexView {
             PokedexGridView(
                 pokemon: viewModel.pokemon,
                 grid: grid,
-                isLoading: viewModel.isLoading,
-                asyncTask: {
-                    await viewModel.requestPokemon()
-                }
+                isLoading: viewModel.isLoading
             )
             .toolbar {
                 ToolbarItem {

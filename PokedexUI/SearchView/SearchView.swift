@@ -15,8 +15,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
         PokedexGridView(
             pokemon: viewModel.filteredPokemon,
             grid: .three,
-            isLoading: false,
-            asyncTask: {}
+            isLoading: false
         )
         .focused($isSearchFocused)
         .searchable(text: $viewModel.query)
