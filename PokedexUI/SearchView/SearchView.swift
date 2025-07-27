@@ -12,7 +12,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        PokemonGridView(
+        PokedexGridView(
             pokemon: viewModel.filteredPokemon,
             grid: .three,
             isLoading: false,

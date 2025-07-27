@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PokemonGridView<ViewModel: PokemonViewModel>: View {
+struct PokedexGridView<ViewModel: PokemonViewModel>: View {
     let pokemon: [ViewModel]
     let grid: GridLayout
     let isLoading: Bool
@@ -10,7 +10,7 @@ struct PokemonGridView<ViewModel: PokemonViewModel>: View {
         ScrollView(showsIndicators: false) {
             LazyVGrid(columns: grid.layout) {
                 ForEach(pokemon, id: \.id) { vm in
-                    PokemonGridItem(
+                    PokedexGridItem(
                         pokemon: vm,
                         grid: grid
                     )
@@ -32,7 +32,7 @@ struct PokemonGridView<ViewModel: PokemonViewModel>: View {
     }
 }
 
-private struct PokemonGridItem<ViewModel: PokemonViewModel>: View {
+private struct PokedexGridItem<ViewModel: PokemonViewModel>: View {
     @Namespace private var namespace
 
     let pokemon: ViewModel

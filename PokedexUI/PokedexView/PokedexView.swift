@@ -35,7 +35,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 private extension PokedexView {
     var pokemonGridView: some View {
         NavigationStack {
-            PokemonGridView(
+            PokedexGridView(
                 pokemon: viewModel.pokemon,
                 grid: grid,
                 isLoading: viewModel.isLoading,
