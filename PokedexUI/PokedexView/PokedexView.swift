@@ -44,7 +44,6 @@ private extension PokedexView {
                         .tint(.white)
                 }
             }
-            .font(.pixel12)
             .toolbar {
                 ToolbarItem {
                     Button("", systemImage: grid.otherIcon) {
@@ -103,6 +102,7 @@ private extension PokedexView {
             viewModel: pokemon,
             showOverlay: grid == .three
         )
+        .font(.pixel12)
         .task {
             if pokemon == viewModel.pokemon.last {
                 await viewModel.requestPokemon()
