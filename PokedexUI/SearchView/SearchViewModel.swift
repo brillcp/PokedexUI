@@ -24,7 +24,7 @@ final class SearchViewModel {
     }
 }
 
-// MARK: - Search
+// MARK: - SearchViewModelProtocol
 extension SearchViewModel: SearchViewModelProtocol {
     func filterData() {
         let normalize: (String) -> String = {
