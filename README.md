@@ -105,7 +105,6 @@ A high-performance, animated search feature that allows users to quickly find Po
 - Type-aware: Search by Pokemon types as well as names
 - Smooth Animations: Animated transitions between search results
 - Diacritic Insensitive: Handles accented characters automatically
-- Auto-focus: Search field focuses automatically when tab is selected
 
 ```swift
 func updateFilteredPokemon() {
