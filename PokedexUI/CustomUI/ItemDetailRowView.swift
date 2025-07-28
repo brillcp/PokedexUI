@@ -13,7 +13,7 @@ struct ItemDetailRowView: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(item.name.pretty)
-                Text(item.effect.first?.description ?? "")
+                Text(item.effect.first?.description.pretty ?? "")
                     .foregroundStyle(.secondary)
             }
         }
