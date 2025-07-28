@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct PokedexGridView<ViewModel: PokemonViewModel>: View {
-    let pokemon: [ViewModel]
+struct PokedexGridView<Pokemon: PokemonViewModel>: View {
+    let pokemon: [Pokemon]
     let grid: GridLayout
     let isLoading: Bool
 
