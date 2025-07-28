@@ -47,7 +47,7 @@ Benefits:
 
 # Architecture 🏛
 
-PokedexUI is built using a **Model + View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor.
+PokedexUI is built using a **Model + View + ViewModel (MVVM)** architecture. It cleanly separates UI logic, presentation state, and domain models. Networking and decoding are handled by a generic API service actor. It uses Swifts reactivity macro `@Observable` that automatically tracks property changes and updates views when data changes.
 
 ## View 📱
 
@@ -72,18 +72,19 @@ TabView(selection: $viewModel.selectedTab) {
 
 ## View Model 🧾
 
-The view model manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and appends new Pokémon to the list:
+The view model manages asynchronous Pokémon fetching using an injected PokemonService. It tracks the loading state and downloads all Pokémon data:
 ```swift
-final class PokedexViewModel: ObservableObject {
-    @Published var pokemon: [PokemonViewModel] = []
-    @Published var isLoading: Bool = false
+@Observable
+final class PokedexViewModel {
+    var pokemon: [PokemonViewModel] = []
+    var isLoading: Bool = false
 
     func requestPokemon() async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
 
-        pokemon += try await pokemonService.requestPokemon()
+        pokemon = try await pokemonService.requestPokemon()
     }
 }
 ```
