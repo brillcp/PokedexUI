@@ -71,10 +71,9 @@ extension ItemService {
         typealias ResponseType = ItemDetail
         typealias OutputModel = ItemData
 
-        /// Builds the request used to fetch the next page of item summaries.
+        /// Builds the request used to fetch the complete list of item summaries.
         ///
-        /// - Parameter lastResponse: The previous paginated API response.
-        /// - Returns: A `Requestable` representing the next page or an initial request.
+        /// - Returns: A `Requestable` representing the item list request.
         func createRequest() -> Requestable {
             ItemRequest.items(limit: 860)
         }
@@ -87,7 +86,7 @@ extension ItemService {
             ItemRequest.details(urlComponent)
         }
 
-        /// Transforms a flat array of item details into grouped and sorted `ItemData` models.
+        /// Transforms an array of item details into grouped and sorted `ItemData` models.
         ///
         /// - Parameter response: The array of detailed item objects.
         /// - Returns: An array of `ItemData`, grouped by category and sorted alphabetically.
@@ -103,4 +102,3 @@ extension ItemService {
         }
     }
 }
-

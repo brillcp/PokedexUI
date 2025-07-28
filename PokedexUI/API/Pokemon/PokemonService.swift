@@ -43,10 +43,9 @@ extension PokemonService {
         typealias ResponseType = Pokemon
         typealias OutputModel = PokemonViewModel
 
-        /// Builds the request used to fetch a paginated list of Pokémon.
+        /// Builds the request used to fetch a complete list of Pokémon.
         ///
-        /// - Parameter lastResponse: The previous paginated API response.
-        /// - Returns: A `Requestable` representing the next page or an initial Pokémon request.
+        /// - Returns: A `Requestable` representing the Pokémon list request.
         func createRequest() -> Requestable {
             PokemonRequest.pokemon
         }
@@ -59,10 +58,10 @@ extension PokemonService {
             PokemonRequest.details(urlComponent)
         }
 
-        /// Transforms a flat array of Pokémon detail objects into sorted `PokemonViewModel` instances.
+        /// Transforms an array of detailed Pokémon data into sorted `PokemonViewModel` instances.
         ///
         /// - Parameter response: The array of detailed Pokémon data.
-        /// - Returns: An array of `PokemonViewModel`, sorted by ID.
+        /// - Returns: A sorted array of `PokemonViewModel` by Pokémon ID.
         func transformResponse(_ response: [ResponseType]) -> [OutputModel] {
             response
                 .sorted(by: { $0.id < $1.id })

@@ -24,7 +24,7 @@ protocol PokedexViewModelProtocol {
 @Observable
 final class PokedexViewModel {
     // MARK: Private Properties
-    /// The service responsible for fetching paginated Pokémon data.
+    /// The service responsible for fetching Pokémon data.
     private let pokemonService: PokemonServiceProtocol
 
     // MARK: - Published State

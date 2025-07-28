@@ -1,7 +1,7 @@
 import Networking
 
 // MARK: - Service Configuration Protocol
-/// A protocol that defines a configuration blueprint for a generic API service.
+/// A protocol that defines the configuration blueprint for a generic API service.
 /// Used to create requests and transform API responses into app-specific models.
 protocol ServiceConfiguration {
     /// The type returned from each detail API call.
@@ -10,8 +10,7 @@ protocol ServiceConfiguration {
     /// The transformed output model returned to the view layer.
     associatedtype OutputModel
 
-    /// Returns the request used to fetch a paginated list of results.
-    /// - Parameter lastResponse: The previous response, used for pagination.
+    /// Returns the request used to fetch a list of results.
     func createRequest() -> Requestable
 
     /// Returns the request to fetch detailed data from a specific item URL component.
@@ -24,9 +23,8 @@ protocol ServiceConfiguration {
 }
 
 // MARK: - Generic API Service Actor
-/// A generic actor responsible for performing paginated API requests,
-/// downloading detailed records concurrently, and transforming them into
-/// view-ready output models.
+/// A generic actor responsible for performing API requests, downloading
+/// detailed records concurrently, and transforming them into view-ready models.
 actor APIService<Config: ServiceConfiguration & Sendable> {
     // MARK: - Private properties
 
@@ -49,7 +47,7 @@ actor APIService<Config: ServiceConfiguration & Sendable> {
 
 // MARK: - Public functions
 extension APIService {
-    /// Requests the next page of data, then downloads and decodes all corresponding detail objects in parallel.
+    /// Requests a list of results, then downloads and decodes all corresponding detail objects in parallel.
     ///
     /// - Returns: An array of transformed output models defined by the configuration.
     /// - Throws: Any error thrown by the network service or decoding pipeline.
