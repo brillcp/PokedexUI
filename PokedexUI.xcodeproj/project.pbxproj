@@ -191,7 +191,6 @@
 				D54F5AF12E1DA61400411759 /* PokedexViewModel.swift */,
 				D54F5AA12E1D9FF800411759 /* PokemonViewModel.swift */,
 				93F7F577274009B2002CEBB5 /* PokemonDetailView.swift */,
-				D5011AA72E36C13E00A2F8EE /* PokedexGridView.swift */,
 			);
 			path = PokedexView;
 			sourceTree = "<group>";
@@ -209,6 +208,7 @@
 			isa = PBXGroup;
 			children = (
 				9332C0E9273F51E1003AF377 /* AsyncImageView.swift */,
+				D5011AA72E36C13E00A2F8EE /* PokedexGridView.swift */,
 				D5164F722E22702000E3EC8D /* ItemDetailRowView.swift */,
 				D5F41B752E256D5A000341D3 /* ItemRowView.swift */,
 			);
