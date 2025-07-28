@@ -10,4 +10,9 @@ extension String {
             .replacingOccurrences(of: "    ", with: "")
             .capitalized
     }
+
+    var normalize: String {
+        folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+          .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }

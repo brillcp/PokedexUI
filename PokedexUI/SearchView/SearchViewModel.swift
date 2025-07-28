@@ -6,35 +6,29 @@ protocol SearchViewModelProtocol {
     /// The filtered list of Pokémon based on the current query.
     var filteredPokemon: [PokemonViewModel] { get }
 
+    /// The shared environment Pokémon data source
+    var pokemonSource: [PokemonViewModel] { get set }
+
     /// The user's search input query.
     var query: String { get set }
 
     /// Filters the Pokémon list based on the query and updates `filteredPokemon`.
-    func filterData()
+    func updateFilteredPokemon()
 }
 
 // MARK: - SearchViewModel
 /// A ViewModel responsible for managing and filtering a list of Pokémon based on search queries.
 @Observable
 final class SearchViewModel {
-    // MARK: Private Properties
-    /// The full list of Pokémon to be searched.
-    private let pokemon: [PokemonViewModel]
-
     // MARK: - Public Properties
-    /// The filtered Pokémon results based on the current query.
+    /// The full list of Pokémon to be searched.
+    var pokemonSource: [PokemonViewModel] = []
+
+    /// The filtered Pokémon data.
     var filteredPokemon: [PokemonViewModel] = []
 
     /// The current search query entered by the user.
     var query: String = ""
-
-    // MARK: - Initialization
-    /// Creates a new `SearchViewModel` instance.
-    ///
-    /// - Parameter pokemon: The full list of Pokémon to search through.
-    init(pokemon: [PokemonViewModel]) {
-        self.pokemon = pokemon
-    }
 }
 
 // MARK: - SearchViewModelProtocol
@@ -43,15 +37,10 @@ extension SearchViewModel: SearchViewModelProtocol {
     ///
     /// This method splits the query into normalized search terms (case- and diacritic-insensitive)
     /// and filters Pokémon whose name or types match all terms.
-    func filterData() {
-        let normalize: (String) -> String = {
-            $0.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-              .trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-
+    func updateFilteredPokemon() {
         let queryTerms = query
             .split(whereSeparator: { $0.isWhitespace })
-            .map { normalize(String($0)) }
+            .map { String($0).normalize }
             .filter { !$0.isEmpty }
 
         guard !queryTerms.isEmpty else {
@@ -59,9 +48,9 @@ extension SearchViewModel: SearchViewModelProtocol {
             return
         }
 
-        filteredPokemon = pokemon.filter { pokemonVM in
-            let name = normalize(pokemonVM.name)
-            let types = pokemonVM.types.components(separatedBy: ",").map(normalize)
+        filteredPokemon = pokemonSource.filter { pokemonVM in
+            let name = pokemonVM.name.normalize
+            let types = pokemonVM.types.components(separatedBy: ",").map { $0.normalize }
             return queryTerms.allSatisfy { term in
                 name.contains(term) || types.contains(where: { $0.contains(term) })
             }

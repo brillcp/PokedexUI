@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     // MARK: Private properties
+    @Environment(\.pokemonData) private var pokemonData
     @FocusState private var isSearchFocused: Bool
 
     // MARK: - Public properties
@@ -20,11 +21,10 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
         .onAppear { isSearchFocused = true }
         .overlay(resultText)
         .onChange(of: viewModel.query) { _, _ in
-            withAnimation {
-                viewModel.filterData()
-            }
+            withAnimation { viewModel.updateFilteredPokemon() }
         }
         .onChange(of: isSearchFocused, dismissSearch)
+        .task(id: pokemonData) { viewModel.pokemonSource = pokemonData }
     }
 }
 
@@ -53,5 +53,5 @@ private extension SearchView {
 }
 
 #Preview {
-    SearchView(viewModel: SearchViewModel(pokemon: []), selectedTab: .constant(.pokedex))
+    SearchView(viewModel: SearchViewModel(), selectedTab: .constant(.pokedex))
 }

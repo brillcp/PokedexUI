@@ -4,8 +4,11 @@ enum Tabs: Int {
     case pokedex, items, search
 }
 
-struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
+struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: ItemsListViewModelProtocol, SearchViewModel: SearchViewModelProtocol>: View {
     @State var viewModel: ViewModel
+
+    let itemsListViewModel: ItemsListViewModel
+    let searchViewModel: SearchViewModel
 
     // MARK: - Body
     var body: some View {
@@ -22,6 +25,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                 searchView
             }
         }
+        .environment(\.pokemonData, viewModel.pokemon)
         .tint(Color.pokedexRed)
         .colorScheme(.dark)
         .task { await viewModel.requestPokemon() }
@@ -53,7 +57,7 @@ private extension PokedexView {
 
     var itemsListView: some View {
         NavigationStack {
-            ItemsListView(viewModel: ItemsListViewModel())
+            ItemsListView(viewModel: itemsListViewModel)
                 .applyPokedexStyling(title: "Items")
         }
     }
@@ -61,7 +65,7 @@ private extension PokedexView {
     var searchView: some View {
         NavigationStack {
             SearchView(
-                viewModel: SearchViewModel(pokemon: viewModel.pokemon),
+                viewModel: searchViewModel,
                 selectedTab: $viewModel.selectedTab
             )
             .applyPokedexStyling(title: "Search")
@@ -70,5 +74,9 @@ private extension PokedexView {
 }
 
 #Preview {
-    PokedexView(viewModel: PokedexViewModel())
+    PokedexView(
+        viewModel: PokedexViewModel(),
+        itemsListViewModel: ItemsListViewModel(),
+        searchViewModel: SearchViewModel()
+    )
 }

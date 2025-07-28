@@ -4,7 +4,11 @@ import SwiftUI
 struct PokedexUIApp: App {
     var body: some Scene {
         WindowGroup {
-            PokedexView(viewModel: PokedexViewModel())
+            PokedexView(
+                viewModel: PokedexViewModel(),
+                itemsListViewModel: ItemsListViewModel(),
+                searchViewModel: SearchViewModel()
+            )
         }
     }
 }
