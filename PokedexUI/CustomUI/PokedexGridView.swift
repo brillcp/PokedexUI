@@ -26,6 +26,7 @@ struct PokedexGridView<ViewModel: PokemonViewModel>: View {
     }
 }
 
+// MARK: - Grid item
 private struct PokedexGridItem<ViewModel: PokemonViewModel>: View {
     @Namespace private var namespace
 
