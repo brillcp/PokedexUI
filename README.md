@@ -1,6 +1,6 @@
 ![icon](https://github.com/user-attachments/assets/5abf1763-b290-4f12-a661-986e58fbeaad)
 
-![swift](https://img.shields.io/badge/Swift-6.0%2B-green)
+![swift](https://img.shields.io/badge/Swift-5.0%2B-green)
 ![release](https://img.shields.io/github/v/release/brillcp/pokedexui)
 ![platforms](https://img.shields.io/badge/Platforms-iOS%20iPadOS%20macOS-blue)
 [![spm](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-green)](#swift-package-manager)
@@ -18,14 +18,15 @@ This sample app demonstrates:
 - Async image loading and dominant color extraction
 - Modern network abstraction using `async/await` with the [Networking](https://github.com/brillcp/Networking) framework
 - Custom transitions and matched geometry effects
-- View composition with protocol-oriented VM
-- Infinite scrolling and pagination
-- Item search and filtering
+- View composition with protocol-oriented view models
+- Pokémon search and filtering
+- Infinite scrolling
 
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
-<img width="280" alt="pd1" src="https://github.com/user-attachments/assets/f94dde85-0e02-4a88-93f9-8215079590cf" />
-<img width="280" alt="pd2" src="https://github.com/user-attachments/assets/93265ce2-163f-42de-9d5d-48ff8e4e03ea" />
+<img width="280" alt="pd1" src="https://github.com/user-attachments/assets/afdc4435-301c-436a-b48c-13381151e659" />
+<img width="280" alt="pd2" src="https://github.com/user-attachments/assets/6182a448-ce8b-4179-9822-7d96f44d474e" />
+
 
 # Architecture 🏛
 
@@ -36,12 +37,18 @@ PokedexUI is built using a **Model + View + ViewModel (MVVM)** architecture. It 
 The SwiftUI `PokedexView` is the root view and hosts a `TabView` with two sections: "Pokedex" and "Items". The Pokémon grid uses a `LazyVGrid` and triggers sprite loading and pagination automatically:
 
 ```swift
-TabView {
-    NavigationStack { pokemonGridView }
-        .tabItem { Label("Pokedex", systemImage: "square.grid.3x3.fill") }
+TabView(selection: $viewModel.selectedTab) {
+    Tab("Pokedex", systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
+        pokedexGridView
+    }
 
-    NavigationStack { itemsListView }
-        .tabItem { Label("Items", systemImage: "xmark.triangle.circle.square.fill") }
+    Tab("Items", systemImage: "xmark.triangle.circle.square.fill", value: Tabs.items) {
+        itemsListView
+    }
+
+    Tab("Search", systemImage: "magnifyingglass", value: Tabs.search, role: .search) {
+        searchView
+    }
 }
 .task { await viewModel.requestPokemon() }
 ```
@@ -72,7 +79,38 @@ func loadSprite() async {
     color = Color(uiColor: image?.dominantColor ?? .darkGray)
 }
 ```
+## Searching 🔍
+A high-performance, animated search feature that allows users to quickly find Pokemon by name or type with real-time filtering.
 
+### Features
+- Real-time Search: Instant results as you type
+- Multi-term Support: Search for multiple keywords (e.g., "fire dragon")
+- Type-aware: Search by Pokemon types as well as names
+- Smooth Animations: Animated transitions between search results
+- Diacritic Insensitive: Handles accented characters automatically
+- Auto-focus: Search field focuses automatically when tab is selected
+
+```swift
+func updateFilteredPokemon() {
+    let queryTerms = query
+        .split(whereSeparator: { $0.isWhitespace })
+        .map { String($0).normalize }
+        .filter { !$0.isEmpty }
+
+    guard !queryTerms.isEmpty else {
+        filteredPokemon = []
+        return
+    }
+
+    filteredPokemon = pokemonSource.filter { pokemonVM in
+        let name = pokemonVM.name.normalize
+        let types = pokemonVM.types.components(separatedBy: ",").map { $0.normalize }
+        return queryTerms.allSatisfy { term in
+            name.contains(term) || types.contains(where: { $0.contains(term) })
+        }
+    }
+}
+```
 
 ## Model 📦
 
@@ -80,7 +118,7 @@ Raw models like PokemonDetails, ItemData, and Stat are decoded from the PokeAPI 
 
 ## API Layer 🌐
 
-Networking is abstracted via a generic APIService actor, which handles pagination and detail resolution in parallel:
+Networking is abstracted via a generic APIService actor, which handles detail resolution in parallel:
 ```swift
 actor APIService<Config: ServiceConfiguration> {
     func requestData() async throws -> [Config.OutputModel] {
@@ -104,7 +142,7 @@ dependencies: [
 ```
 
 # Requirements ❗️
-- Xcode 16+
+- Xcode 26+
 - iOS 26+
-- Swift 6+
+- Swift 5+
 
