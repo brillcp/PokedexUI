@@ -27,6 +27,23 @@ The app displays a scrollable grid of Pokémon, each with a dynamically extracte
 <img width="280" alt="pd1" src="https://github.com/user-attachments/assets/afdc4435-301c-436a-b48c-13381151e659" />
 <img width="280" alt="pd2" src="https://github.com/user-attachments/assets/6182a448-ce8b-4179-9822-7d96f44d474e" />
 
+# Environment-Driven Data Flow 📊
+Implements single source of truth pattern using SwiftUI Environment:
+```swift
+// Parent provides data through environment
+.environment(\.pokemonData, viewModel.pokemon)
+
+// Children consume reactively
+@Environment(\.pokemonData) private var pokemonData
+.task(id: pokemonData) { viewModel.pokemonSource = pokemonData }
+```
+
+Benefits:
+- ✅ No data duplication - Pokemon data lives in one place
+- ✅ Automatic propagation - Changes flow down to all child views
+- ✅ Loose coupling - Views don't depend on specific parent implementations
+- ✅ Reactive updates - UI automatically updates when data changes
+
 
 # Architecture 🏛
 
