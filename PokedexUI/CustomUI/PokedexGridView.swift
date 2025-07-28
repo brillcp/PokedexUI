@@ -17,7 +17,8 @@ struct PokedexGridView<ViewModel: PokemonViewModel>: View {
                 }
             }
             .padding(8)
-
+        }
+        .overlay {
             if isLoading {
                 ProgressView()
                     .tint(.white)
