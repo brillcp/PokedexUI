@@ -17,6 +17,9 @@ protocol PokedexViewModelProtocol {
 
     /// The current grid layout.
     var grid: GridLayout { get set }
+
+    /// Asynchronously requests Pokémon from the backend service.
+    func requestPokemon() async
 }
 
 // MARK: -
@@ -25,7 +28,7 @@ protocol PokedexViewModelProtocol {
 /// `PokedexViewModel` is responsible for coordinating data loading from the `PokemonService`
 /// and exposing observable state to the SwiftUI view.
 @Observable
-final class PokedexViewModel: PokedexViewModelProtocol {
+final class PokedexViewModel {
     // MARK: Private Properties
     /// The service responsible for fetching Pokémon data.
     private let pokemonService: PokemonServiceProtocol
@@ -49,12 +52,11 @@ final class PokedexViewModel: PokedexViewModelProtocol {
     /// - Parameter pokemonService: A `PokemonService` instance. Defaults to the shared implementation.
     init(pokemonService: PokemonService = PokemonService()) {
         self.pokemonService = pokemonService
-        Task { await requestPokemon() }
     }
 }
 
 // MARK: - PokedexViewModelProtocol
-private extension PokedexViewModel {
+extension PokedexViewModel: PokedexViewModelProtocol {
     /// Requests a new batch of Pokémon from the PokeAPI using the `PokemonService`.
     ///
     /// If a request is already in progress, this call is ignored.

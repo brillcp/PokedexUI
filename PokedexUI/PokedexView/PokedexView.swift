@@ -28,6 +28,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: Item
         .environment(\.pokemonData, viewModel.pokemon)
         .tint(Color.pokedexRed)
         .colorScheme(.dark)
+        .task { await viewModel.requestPokemon() }
     }
 }
 

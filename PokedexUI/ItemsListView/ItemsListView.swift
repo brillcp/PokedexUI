@@ -14,6 +14,7 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
                     .tint(.white)
             }
         }
+        .task { await viewModel.loadItems() }
     }
 }
 
