@@ -21,7 +21,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
                 itemsListView
             }
 
-            Tab("Searcj", systemImage: "magnifyingglass", role: .search) {
+            Tab("Search", systemImage: "magnifyingglass", role: .search) {
                 searchView
             }
         }
