@@ -20,6 +20,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
         .searchFocused($isSearchFocused)
         .onAppear { isSearchFocused = true }
         .overlay(resultText)
+        .scrollDismissesKeyboard(.immediately)
         .onChange(of: viewModel.query) { _, _ in
             withAnimation { viewModel.updateFilteredPokemon() }
         }
@@ -31,7 +32,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
 // MARK: - Private functions
 private extension SearchView {
     func dismissSearch(_ oldValue: Bool, _ newValue: Bool) {
-        guard oldValue == true, newValue == false, viewModel.query.isEmpty else { return }
+        guard oldValue, !newValue, viewModel.query.isEmpty else { return }
         selectedTab = .pokedex
     }
 }
@@ -43,7 +44,7 @@ private extension SearchView {
             if !viewModel.query.isEmpty && viewModel.filteredPokemon.isEmpty {
                 Text("No result…")
             } else if viewModel.filteredPokemon.isEmpty {
-                Text("Search pokemon and types")
+                Text("Search Pokemon and types")
             } else {
                 EmptyView()
             }
