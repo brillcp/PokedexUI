@@ -1,9 +1,14 @@
 import SwiftUI
 
+enum Tabs: Int {
+    case pokedex, items, search
+}
+
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
     // MARK: Private properties
     @State private var grid: GridLayout = .three
     @Binding private var viewModel: ViewModel
+    @State private var selectedTab: Tabs = .pokedex
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
@@ -12,16 +17,16 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        TabView {
-            Tab("Pokedex", systemImage: grid.icon) {
-                pokemonGridView
+        TabView(selection: $selectedTab) {
+            Tab("Pokedex", systemImage: grid.icon, value: Tabs.pokedex) {
+                pokedexGridView
             }
 
-            Tab("Items", systemImage: "xmark.triangle.circle.square.fill") {
+            Tab("Items", systemImage: "xmark.triangle.circle.square.fill", value: Tabs.items) {
                 itemsListView
             }
 
-            Tab("Search", systemImage: "magnifyingglass", role: .search) {
+            Tab("Search", systemImage: "magnifyingglass", value: Tabs.search, role: .search) {
                 searchView
             }
         }
@@ -33,7 +38,7 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
 
 // MARK: - Tab Views
 private extension PokedexView {
-    var pokemonGridView: some View {
+    var pokedexGridView: some View {
         NavigationStack {
             PokedexGridView(
                 pokemon: viewModel.pokemon,
@@ -63,7 +68,7 @@ private extension PokedexView {
 
     var searchView: some View {
         NavigationStack {
-            SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon))
+            SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon), selectedTab: $selectedTab)
                 .applyPokedexStyling(title: "Search")
         }
     }

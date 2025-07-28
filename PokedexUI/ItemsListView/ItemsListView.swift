@@ -20,13 +20,6 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
                     .tint(.white)
             }
         }
-        .searchable(
-            text: $viewModel.query,
-            placement: .navigationBarDrawer,
-            prompt: Text("Search items…")
-        )
-        .onChange(of: viewModel.query, viewModel.clearSearch)
-        .onSubmit(of: .search, performSearch)
         .task { await viewModel.loadItems() }
     }
 }
