@@ -1,13 +1,7 @@
 import SwiftUI
 
 struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
-    // MARK: Private properties
-    @Binding private var viewModel: ViewModel
-
-    // MARK: - Initialization
-    init(viewModel: ViewModel) {
-        self._viewModel = .constant(viewModel)
-    }
+    @State var viewModel: ViewModel
 
     // MARK: - Body
     var body: some View {
@@ -43,13 +37,6 @@ private extension ItemsListView {
         } label: {
             ItemRowView(item: item)
         }
-    }
-}
-
-// MARK: - Actions
-private extension ItemsListView {
-    func performSearch() {
-        Task { await viewModel.search() }
     }
 }
 

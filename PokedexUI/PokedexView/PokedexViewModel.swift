@@ -12,6 +12,12 @@ protocol PokedexViewModelProtocol {
     /// A flag indicating whether data is currently being fetched.
     var isLoading: Bool { get }
 
+    /// The current selected tab for the tab view.
+    var selectedTab: Tabs { get set }
+
+    /// The current grid layout.
+    var grid: GridLayout { get set }
+
     /// Asynchronously requests Pokémon from the backend service.
     func requestPokemon() async
 }
@@ -33,6 +39,12 @@ final class PokedexViewModel {
 
     /// Indicates whether a data request is in progress.
     var isLoading: Bool = false
+
+    /// Selected tab for the tab view.
+    var selectedTab: Tabs = .pokedex
+
+    /// The pokedex grid layout.
+    var grid: GridLayout = .three
 
     // MARK: - Initialization
     /// Creates a new `PokedexViewModel`.

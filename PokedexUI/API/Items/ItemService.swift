@@ -10,23 +10,11 @@ protocol ItemServiceProtocol {
     /// - Returns: An array of `ItemData` grouped by category.
     /// - Throws: An error if the request or decoding fails.
     func requestItems() async throws -> [ItemData]
-
-    /// Returns a filtered list of items that match the given query string.
-    ///
-    /// The search is case- and diacritic-insensitive, and considers both
-    /// the item's name and description. Items whose names start with the
-    /// query are prioritized in the result.
-    ///
-    /// - Parameter query: The search term used to filter items.
-    /// - Returns: An array of `ItemData` instances matching the query.
-    func searchItems(matching query: String) -> [ItemData]
 }
 
 // MARK: - ItemService implementation
 /// A concrete implementation of `ItemServiceProtocol` for interacting with the item-related endpoints of the PokeAPI.
 final class ItemService {
-    private var allItems: [ItemData] = []
-
     /// The underlying generic API service responsible for data fetching.
     let service: APIService<Config>
 
@@ -48,19 +36,7 @@ extension ItemService: ItemServiceProtocol {
     /// - Returns: An array of `ItemData` containing all categorized items fetched from the API.
     /// - Throws: Any error encountered during the network request or data decoding process.
     func requestItems() async throws -> [ItemData] {
-        allItems = try await service.requestData()
-        return allItems
-    }
-
-    /// Filters the locally stored items using a query string.
-    ///
-    /// The search is case- and diacritic-insensitive, comparing the query against both the item's name and description.
-    /// Items whose names start with the query are prioritized in the results. Only items already loaded via `requestItems()` are considered.
-    ///
-    /// - Parameter query: The search string to use when filtering items.
-    /// - Returns: An array of `ItemData` whose contained items match the query.
-    func searchItems(matching query: String) -> [ItemData] {
-        allItems.filter { $0.items.contains { $0.matches(query: query) } }
+        try await service.requestData()
     }
 }
 

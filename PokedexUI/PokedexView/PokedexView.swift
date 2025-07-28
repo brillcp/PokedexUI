@@ -5,20 +5,12 @@ enum Tabs: Int {
 }
 
 struct PokedexView<ViewModel: PokedexViewModelProtocol>: View {
-    // MARK: Private properties
-    @State private var grid: GridLayout = .three
-    @Binding private var viewModel: ViewModel
-    @State private var selectedTab: Tabs = .pokedex
-
-    // MARK: - Initialization
-    init(viewModel: ViewModel) {
-        self._viewModel = .constant(viewModel)
-    }
+    @State var viewModel: ViewModel
 
     // MARK: - Body
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Tab("Pokedex", systemImage: grid.icon, value: Tabs.pokedex) {
+        TabView(selection: $viewModel.selectedTab) {
+            Tab("Pokedex", systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
                 pokedexGridView
             }
 
@@ -42,14 +34,14 @@ private extension PokedexView {
         NavigationStack {
             PokedexGridView(
                 pokemon: viewModel.pokemon,
-                grid: grid,
+                grid: viewModel.grid,
                 isLoading: viewModel.isLoading
             )
             .toolbar {
                 ToolbarItem {
-                    Button("", systemImage: grid.otherIcon) {
+                    Button("", systemImage: viewModel.grid.otherIcon) {
                         withAnimation(.bouncy) {
-                            grid.toggle()
+                            viewModel.grid.toggle()
                         }
                     }
                     .tint(.white)
@@ -68,7 +60,7 @@ private extension PokedexView {
 
     var searchView: some View {
         NavigationStack {
-            SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon), selectedTab: $selectedTab)
+            SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon), selectedTab: $viewModel.selectedTab)
                 .applyPokedexStyling(title: "Search")
         }
     }

@@ -3,14 +3,10 @@ import SwiftUI
 struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     // MARK: Private properties
     @FocusState private var isSearchFocused: Bool
-    @Binding private var viewModel: ViewModel
-    @Binding var selectedTab: Tabs
 
-    // MARK: - Init
-    init(viewModel: ViewModel, selectedTab: Binding<Tabs>) {
-        self._viewModel = .constant(viewModel)
-        self._selectedTab = selectedTab
-    }
+    // MARK: - Public properties
+    @State var viewModel: ViewModel
+    @Binding var selectedTab: Tabs
 
     // MARK: - Body
     var body: some View {
@@ -35,9 +31,8 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
 // MARK: - Private functions
 private extension SearchView {
     func dismissSearch(_ oldValue: Bool, _ newValue: Bool) {
-        if oldValue == true, newValue == false, viewModel.query.isEmpty {
-            selectedTab = .pokedex
-        }
+        guard oldValue == true, newValue == false, viewModel.query.isEmpty else { return }
+        selectedTab = .pokedex
     }
 }
 
