@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ItemsListView<ViewModel: ItemsListViewModelProtocol & Sendable>: View {
+struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
     @State var viewModel: ViewModel
 
     // MARK: - Body
