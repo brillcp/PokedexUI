@@ -60,8 +60,11 @@ private extension PokedexView {
 
     var searchView: some View {
         NavigationStack {
-            SearchView(viewModel: SearchViewModel(pokemon: viewModel.pokemon), selectedTab: $viewModel.selectedTab)
-                .applyPokedexStyling(title: "Search")
+            SearchView(
+                viewModel: SearchViewModel(pokemon: viewModel.pokemon),
+                selectedTab: $viewModel.selectedTab
+            )
+            .applyPokedexStyling(title: "Search")
         }
     }
 }

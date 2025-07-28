@@ -33,7 +33,7 @@ final class PokedexViewModel {
     /// The service responsible for fetching Pokémon data.
     private let pokemonService: PokemonServiceProtocol
 
-    // MARK: - Published State
+    // MARK: - Public properties
     /// The current list of Pokémon, updated after each successful fetch.
     var pokemon: [PokemonViewModel] = []
 
