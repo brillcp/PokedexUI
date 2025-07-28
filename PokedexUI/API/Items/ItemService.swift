@@ -75,17 +75,8 @@ extension ItemService {
         ///
         /// - Parameter lastResponse: The previous paginated API response.
         /// - Returns: A `Requestable` representing the next page or an initial request.
-        func createRequest(lastResponse: APIResponse?) -> Requestable {
-            guard let lastResponse,
-                  let parameters = try? lastResponse.next.asURL().queryParameters()
-            else {
-                return ItemRequest.items(limit: 420)
-            }
-
-            let parameterKey = ItemRequest.ParameterKey.self
-            let offset = parameters[parameterKey.offset.rawValue] ?? ""
-            let limit = parameters[parameterKey.limit.rawValue] ?? "420"
-            return ItemRequest.next(offset: offset, limit: limit)
+        func createRequest() -> Requestable {
+            ItemRequest.items(limit: 860)
         }
 
         /// Builds a request for fetching detailed information about a single item.

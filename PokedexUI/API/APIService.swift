@@ -12,7 +12,7 @@ protocol ServiceConfiguration {
 
     /// Returns the request used to fetch a paginated list of results.
     /// - Parameter lastResponse: The previous response, used for pagination.
-    func createRequest(lastResponse: APIResponse?) -> Requestable
+    func createRequest() -> Requestable
 
     /// Returns the request to fetch detailed data from a specific item URL component.
     /// - Parameter urlComponent: The last path component of a resource URL.
@@ -36,11 +36,7 @@ actor APIService<Config: ServiceConfiguration & Sendable> {
     /// The configuration that defines how to build requests and transform responses.
     private let config: Config
 
-    /// The last paginated response received, used to determine pagination state.
-    private var lastResponse: APIResponse?
-
     // MARK: - Initialization
-
     /// Creates a new API service with a given configuration and optional custom network service.
     /// - Parameters:
     ///   - networkService: The networking backend used to perform requests. Defaults to `.default`.
@@ -58,9 +54,8 @@ extension APIService {
     /// - Returns: An array of transformed output models defined by the configuration.
     /// - Throws: Any error thrown by the network service or decoding pipeline.
     func requestData() async throws -> [Config.OutputModel] {
-        let request = config.createRequest(lastResponse: lastResponse)
+        let request = config.createRequest()
         let response: APIResponse = try await networkService.request(request, logResponse: false)
-        lastResponse = response
 
         let details = try await withThrowingTaskGroup(of: Config.ResponseType.self) { group in
             for result in response.results {
@@ -78,20 +73,12 @@ extension APIService {
         }
         return config.transformResponse(details)
     }
-
-    /// Indicates whether more paginated data is available.
-    ///
-    /// - Returns: `true` if the `lastResponse` has a non-nil `next` URL; otherwise, `false`.
-    func hasMore() -> Bool {
-        lastResponse?.next != nil
-    }
 }
 
-// MARK: - Error Handling
-/// An error representing common API failure cases.
-enum APIError: Error {
-    /// Indicates there is no more paginated data available to request.
-    case noMoreData
+// MARK: - Parameter keys
+enum ParameterKey: String {
+    case offset
+    case limit
 }
 
 // MARK: - Default network service for the PokeAPI

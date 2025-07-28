@@ -10,12 +10,6 @@ protocol PokemonServiceProtocol {
     /// - Returns: An array of `PokemonViewModel` objects.
     /// - Throws: An error if the request or decoding fails.
     func requestPokemon() async throws -> [PokemonViewModel]
-
-    /// Requests the next page of Pokémon if available.
-    ///
-    /// - Returns: An array of `PokemonViewModel` objects.
-    /// - Throws: `APIError.noMoreData` if no further pages are available, or a networking error otherwise.
-    func requestNextPokemon() async throws -> [PokemonViewModel]
 }
 // MARK: - PokemonService implementation
 /// A concrete implementation of `PokemonServiceProtocol` for interacting with Pokémon-related endpoints of the PokeAPI.
@@ -40,15 +34,6 @@ extension PokemonService: PokemonServiceProtocol {
     func requestPokemon() async throws -> [PokemonViewModel] {
         try await service.requestData()
     }
-
-    /// Requests the next page of Pokémon if available.
-    ///
-    /// - Returns: An array of `PokemonViewModel` representing the next page of Pokémon.
-    /// - Throws: `APIError.noMoreData` if there are no more pages, or another error if the network request or decoding fails.
-    func requestNextPokemon() async throws -> [PokemonViewModel] {
-        guard await service.hasMore() else { throw APIError.noMoreData }
-        return try await service.requestData()
-    }
 }
 
 // MARK: - PokemonService configuration
@@ -62,17 +47,8 @@ extension PokemonService {
         ///
         /// - Parameter lastResponse: The previous paginated API response.
         /// - Returns: A `Requestable` representing the next page or an initial Pokémon request.
-        func createRequest(lastResponse: APIResponse?) -> Requestable {
-            guard let lastResponse,
-                  let parameters = try? lastResponse.next.asURL().queryParameters()
-            else {
-                return PokemonRequest.pokemon
-            }
-
-            let parameterKey = PokemonRequest.ParameterKey.self
-            let offset = parameters[parameterKey.offset.rawValue] ?? ""
-            let limit = parameters[parameterKey.limit.rawValue] ?? ""
-            return PokemonRequest.next(offset: offset, limit: limit)
+        func createRequest() -> Requestable {
+            PokemonRequest.pokemon
         }
 
         /// Builds a request for fetching detailed information about a single Pokémon.

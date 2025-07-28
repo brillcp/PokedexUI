@@ -3,7 +3,6 @@ import Networking
 /// An enum for requesting items
 enum ItemRequest: Requestable {
     case items(limit: Int)
-    case next(offset: String, limit: String)
     case details(String)
 
     var encoding: Request.Encoding { .query }
@@ -22,15 +21,8 @@ enum ItemRequest: Requestable {
         switch self {
             case .items(let limit):
                 ["limit": limit]
-            case .next(let offset, let limit):
-                ["offset": offset, "limit": limit]
             default:
                 HTTP.Parameters()
         }
-    }
-
-    enum ParameterKey: String {
-        case offset
-        case limit
     }
 }
