@@ -28,7 +28,6 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: Item
         .environment(\.pokemonData, viewModel.pokemon)
         .tint(Color.pokedexRed)
         .colorScheme(.dark)
-        .task { await viewModel.requestPokemon() }
     }
 }
 
@@ -41,6 +40,7 @@ private extension PokedexView {
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading
             )
+            .applyPokedexStyling(title: "Pokedex")
             .toolbar {
                 ToolbarItem {
                     Button("", systemImage: viewModel.grid.otherIcon) {
@@ -51,7 +51,6 @@ private extension PokedexView {
                     .tint(.white)
                 }
             }
-            .applyPokedexStyling(title: "Pokedex")
         }
     }
 

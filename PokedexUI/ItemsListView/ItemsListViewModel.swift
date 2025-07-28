@@ -8,15 +8,12 @@ protocol ItemsListViewModelProtocol {
 
     /// A flag indicating whether data is currently being fetched.
     var isLoading: Bool { get }
-
-    /// Loads all items asynchronously from the data source.
-    func loadItems() async
 }
 
 // MARK: -
 /// View model that manages the retrieval, searching, and storage of items.
 @Observable
-final class ItemsListViewModel {
+final class ItemsListViewModel: ItemsListViewModelProtocol {
     /// Service responsible for fetching items.
     private let itemService: ItemServiceProtocol
 
@@ -30,11 +27,12 @@ final class ItemsListViewModel {
     /// - Parameter itemService: The service used to fetch items. Defaults to a new `ItemService`.
     init(itemService: ItemService = ItemService()) {
         self.itemService = itemService
+        Task { await loadItems() }
     }
 }
 
 // MARK: - ItemsListViewModelProtocol
-extension ItemsListViewModel: ItemsListViewModelProtocol {
+private extension ItemsListViewModel {
     /// Loads all items from the item service asynchronously.
     /// Does nothing if items have already been loaded.
     @MainActor
