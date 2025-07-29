@@ -52,7 +52,7 @@ private extension PokemonDetailView {
         HStack {
             if let cry = viewModel.latestCry {
                 Button {
-                    Task { await viewModel.playSound(cry) }
+                    Task { await viewModel.playBattleCry(cry) }
                 } label: {
                     imageIcon("speaker.wave.3.fill")
                 }

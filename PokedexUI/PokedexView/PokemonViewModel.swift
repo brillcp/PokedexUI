@@ -32,7 +32,7 @@ protocol PokemonViewModelProtocol {
     /// Loads the sprite image asynchronously and updates color.
     func loadSprite() async
     /// Play the battle cry of the pokemon.
-    func playSound(_ battleCry: String) async
+    func playBattleCry(_ urlString: String) async
 }
 
 // MARK: -
@@ -92,8 +92,8 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     }
 
     @MainActor
-    func playSound(_ battleCry: String) async {
-        await audioStreamer.play(from: battleCry)
+    func playBattleCry(_ urlString: String) async {
+        await audioStreamer.play(from: urlString)
     }
 }
 
