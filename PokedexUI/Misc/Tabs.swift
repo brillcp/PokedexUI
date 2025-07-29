@@ -4,6 +4,7 @@ enum Tabs: Int {
     case pokedex, items, search
 }
 
+// MARK: - Calculated properties
 extension Tabs {
     var title: String {
         switch self {
