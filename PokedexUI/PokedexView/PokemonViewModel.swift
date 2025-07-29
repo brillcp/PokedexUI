@@ -65,8 +65,7 @@ final class PokemonViewModel {
     }
 }
 
-// MARK: - PokemonViewModelProtocol
-/// Implementation of protocol requirements for PokemonViewModel.
+// MARK: - Calculated PokemonViewModelProtocol properties
 extension PokemonViewModel: PokemonViewModelProtocol {
     var id: Int { pokemon.id }
     var name: String { pokemon.capitalizedName }
@@ -78,7 +77,10 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var stats: [Stat] { pokemon.stats }
     var latestCry: String? { pokemon.cries.latest }
     var moves: String { pokemon.moveList }
+}
 
+// MARK: - Public PokemonViewModelProtocol functions
+extension PokemonViewModel {
     @MainActor
     func loadSprite() async {
         frontImage = await imageLoader.loadImage(from: pokemon.sprite.front)
