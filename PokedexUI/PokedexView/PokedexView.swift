@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: ItemsListViewModelProtocol, SearchViewModel: SearchViewModelProtocol>: View {
-    @State var viewModel: ViewModel
+struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemsListViewModel: ItemsListViewModelProtocol, SearchViewModel: SearchViewModelProtocol>: View {
+    @State var viewModel: PokedexViewModel
 
     let itemsListViewModel: ItemsListViewModel
     let searchViewModel: SearchViewModel
@@ -22,9 +22,9 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: Item
             }
         }
         .environment(\.pokemonData, viewModel.pokemon)
+        .task { await viewModel.requestPokemon() }
         .tint(Color.pokedexRed)
         .colorScheme(.dark)
-        .task { await viewModel.requestPokemon() }
     }
 }
 
