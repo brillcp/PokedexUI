@@ -19,6 +19,12 @@ struct ItemData {
     var items: [ItemDetail] = []
 }
 
+extension ItemData {
+    var icon: String? {
+        items.first?.sprites.default
+    }
+}
+
 // MARK: -
 struct ItemSprite: Decodable {
     let `default`: String
