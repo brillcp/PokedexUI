@@ -1,9 +1,5 @@
 import SwiftUI
 
-enum Tabs: Int {
-    case pokedex, items, search
-}
-
 struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: ItemsListViewModelProtocol, SearchViewModel: SearchViewModelProtocol>: View {
     @State var viewModel: ViewModel
 
@@ -13,15 +9,15 @@ struct PokedexView<ViewModel: PokedexViewModelProtocol, ItemsListViewModel: Item
     // MARK: - Body
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
-            Tab("Pokedex", systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
+            Tab(Tabs.pokedex.title, systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
                 pokedexGridView
             }
 
-            Tab("Items", systemImage: "xmark.triangle.circle.square.fill", value: Tabs.items) {
+            Tab(Tabs.items.title, systemImage: Tabs.items.icon, value: Tabs.items) {
                 itemsListView
             }
 
-            Tab("Search", systemImage: "magnifyingglass", value: Tabs.search, role: .search) {
+            Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
                 searchView
             }
         }
