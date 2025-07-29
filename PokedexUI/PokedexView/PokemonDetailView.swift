@@ -16,17 +16,17 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 ZStack(alignment: .bottom) {
-                    Sprite()
-                    ActionButtons()
+                    sprite()
+                    actionButtons()
                 }
 
                 VStack {
-                    BasicInfoSection(viewModel: viewModel)
-                    SectionDivider()
-                    StatsSection(viewModel: viewModel)
-                    SectionDivider()
-                    MovesSection(viewModel: viewModel)
-                    BottomSpacer()
+                    basicInfoSection(viewModel: viewModel)
+                    sectionDivider()
+                    statsSection(viewModel: viewModel)
+                    sectionDivider()
+                    movesSection(viewModel: viewModel)
+                    bottomSpacer()
                 }
                 .padding()
                 .background(Color.darkGrey)
@@ -39,7 +39,7 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
 
 // MARK: - Content Sections
 private extension PokemonDetailView {
-    func Sprite() -> some View {
+    func sprite() -> some View {
         Image(uiImage: (isFlipped ? viewModel.backImage : viewModel.frontImage) ?? UIImage())
             .resizable()
             .aspectRatio(contentMode: .fit)
@@ -48,26 +48,26 @@ private extension PokemonDetailView {
             .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: isFlipped)
     }
 
-    func ActionButtons() -> some View {
+    func actionButtons() -> some View {
         HStack {
             if let cry = viewModel.latestCry {
                 Button {
                     Task { await viewModel.playSound(cry) }
                 } label: {
-                    ImageIcon("speaker.wave.3.fill")
+                    imageIcon("speaker.wave.3.fill")
                 }
             }
             Spacer()
-            FlipButton()
+            flipButton()
         }
         .buttonStyle(.glass)
         .tint(.white)
         .padding()
     }
 
-    func FlipButton() -> some View {
+    func flipButton() -> some View {
         Button(action: {}) {
-            ImageIcon("arrow.trianglehead.2.clockwise")
+            imageIcon("arrow.trianglehead.2.clockwise")
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { _ in
@@ -84,7 +84,7 @@ private extension PokemonDetailView {
         }
     }
 
-    func ImageIcon(_ icon: String) -> some View {
+    func imageIcon(_ icon: String) -> some View {
         Image(systemName: icon)
             .resizable()
             .aspectRatio(contentMode: .fit)
@@ -92,18 +92,18 @@ private extension PokemonDetailView {
             .padding(6)
     }
 
-    func BasicInfoSection(viewModel: ViewModel) -> some View {
+    func basicInfoSection(viewModel: ViewModel) -> some View {
         VStack {
-            DetailRow(title: "Types", subtitle: viewModel.types)
-            DetailRow(title: "Height", subtitle: viewModel.height)
-            DetailRow(title: "Weight", subtitle: viewModel.weight)
-            DetailRow(title: "Abilities", subtitle: viewModel.abilities)
+            detailRow(title: "Types", subtitle: viewModel.types)
+            detailRow(title: "Height", subtitle: viewModel.height)
+            detailRow(title: "Weight", subtitle: viewModel.weight)
+            detailRow(title: "Abilities", subtitle: viewModel.abilities)
         }
     }
 
-    func StatsSection(viewModel: ViewModel) -> some View {
+    func statsSection(viewModel: ViewModel) -> some View {
         ForEach(viewModel.stats) { stat in
-            DetailRowStat(
+            detailRowStat(
                 title: stat.stat.name,
                 value: stat.baseStat,
                 color: viewModel.color
@@ -111,7 +111,7 @@ private extension PokemonDetailView {
         }
     }
 
-    func MovesSection(viewModel: ViewModel) -> some View {
+    func movesSection(viewModel: ViewModel) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Moves")
                 .foregroundStyle(.secondary)
@@ -120,13 +120,13 @@ private extension PokemonDetailView {
         .padding(.vertical)
     }
 
-    func SectionDivider() -> some View {
+    func sectionDivider() -> some View {
         Divider()
             .background(.secondary)
             .padding(.vertical)
     }
 
-    func BottomSpacer() -> some View {
+    func bottomSpacer() -> some View {
         Spacer()
             .frame(height: 96)
     }
@@ -134,18 +134,18 @@ private extension PokemonDetailView {
 
 // MARK: - Reusable Row Components
 private extension PokemonDetailView {
-    func DetailRow(title: String, subtitle: String) -> some View {
-        BaseRow(title: title) {
+    func detailRow(title: String, subtitle: String) -> some View {
+        baseRow(title: title) {
             Text(subtitle)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
-    func DetailRowStat(title: String, value: Int, color: Color?) -> some View {
+    func detailRowStat(title: String, value: Int, color: Color?) -> some View {
         let maxValue = max(value, 100)
         let clampedValue = max(value, 0)
-        return BaseRow(title: title.capitalized) {
+        return baseRow(title: title.capitalized) {
             ProgressView(value: Double(clampedValue), total: Double(maxValue))
                 .frame(height: 20)
                 .tint(color ?? .white)
@@ -153,7 +153,7 @@ private extension PokemonDetailView {
         }
     }
 
-    func BaseRow<Content: View>(
+    func baseRow<Content: View>(
         title: String,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
