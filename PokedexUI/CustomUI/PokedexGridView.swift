@@ -40,7 +40,7 @@ private struct PokedexGridItem<ViewModel: PokemonViewModel>: View {
                     .zoom(sourceID: pokemon.id, in: namespace)
                 )
         } label: {
-            AsyncImageView(
+            AsyncSpriteView(
                 viewModel: pokemon,
                 showOverlay: grid == .three
             )

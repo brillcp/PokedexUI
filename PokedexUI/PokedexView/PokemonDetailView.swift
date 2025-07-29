@@ -40,7 +40,7 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
 // MARK: - Content Sections
 private extension PokemonDetailView {
     func sprite() -> some View {
-        Image(uiImage: (isFlipped ? viewModel.backImage : viewModel.frontImage) ?? UIImage())
+        Image(uiImage: (isFlipped ? viewModel.backSprite : viewModel.frontSprite) ?? UIImage())
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(height: 320)

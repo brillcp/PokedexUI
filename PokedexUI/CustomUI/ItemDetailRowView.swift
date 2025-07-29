@@ -5,7 +5,7 @@ struct ItemDetailRowView: View {
 
     var body: some View {
         HStack(alignment: .top) {
-            ItemImageView(viewModel: ItemImageViewModel(imageURL: item.sprites.default))
+            ItemSpriteView(viewModel: ItemSpriteViewModel(spriteURL: item.sprites.default))
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(item.name.pretty)

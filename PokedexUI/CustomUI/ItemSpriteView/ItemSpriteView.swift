@@ -1,19 +1,19 @@
 import SwiftUI
 
-struct ItemImageView: View {
-    let viewModel: ItemImageViewModel
+struct ItemSpriteView: View {
+    let viewModel: ItemSpriteViewModel
 
     var body: some View {
         Group {
-            if let image = viewModel.image {
-                image
+            if let sprite = viewModel.sprite {
+                sprite
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } else {
                 Color(.darkGray)
             }
         }
-        .task { await viewModel.loadImage() }
+        .task { await viewModel.loadSprite() }
         .aspectRatio(1, contentMode: .fit)
         .frame(width: 38.0)
     }

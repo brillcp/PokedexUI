@@ -1,20 +1,19 @@
 import UIKit
 
-/// An actor responsible for asynchronously loading and caching images from remote URLs.
+/// An actor responsible for asynchronously loading and caching sprite images from remote URLs.
 ///
 /// This loader uses `URLSession` for networking and `URLCache` for in-memory/disk caching.
 /// Requests are deduplicated through the actor model, and cache hits return instantly.
-actor ImageLoader {
+actor SpriteLoader {
     // MARK: - Private properties
-
-    /// The URL session used for downloading image data.
+    /// The URL session used for downloading sprite image data.
     private let session: URLSession
 
-    /// The cache used to store image responses.
+    /// The cache used to store sprite image responses.
     private let cache: URLCache
 
     // MARK: - Initialization
-    /// Creates a new image loader with optional custom session and cache.
+    /// Creates a new sprite loader with optional custom session and cache.
     ///
     /// - Parameters:
     ///   - session: The `URLSession` instance to use. Defaults to `.shared`.
@@ -26,23 +25,23 @@ actor ImageLoader {
 }
 
 // MARK: - Public functions
-extension ImageLoader {
-    /// Loads an image from a remote URL string.
+extension SpriteLoader {
+    /// Loads a sprite from a remote URL string.
     ///
     /// This method checks the cache before making a network request.
-    /// If a cached response is found, it returns the image immediately.
+    /// If a cached response is found, it returns the sprite immediately.
     ///
-    /// - Parameter urlString: The remote image URL as a string.
-    /// - Returns: A `UIImage` if the image was successfully loaded or cached, otherwise `nil`.
-    func loadImage(from urlString: String) async -> UIImage? {
+    /// - Parameter urlString: The remote sprite URL as a string.
+    /// - Returns: A `UIImage` if the sprite was successfully loaded or cached, otherwise `nil`.
+    func loadSprite(from urlString: String) async -> UIImage? {
         guard let url = URL(string: urlString) else { return nil }
 
         let request = URLRequest(url: url)
 
         // Return cached image if available
         if let cachedResponse = cache.cachedResponse(for: request),
-           let image = UIImage(data: cachedResponse.data) {
-            return image
+           let sprite = UIImage(data: cachedResponse.data) {
+            return sprite
         }
 
         do {
@@ -61,7 +60,7 @@ private extension URLCache {
     ///
     /// - Parameters:
     ///   - response: The `URLResponse` returned by the server.
-    ///   - data: The image data to cache.
+    ///   - data: The sprite data to cache.
     ///   - request: The associated `URLRequest` key.
     func cache(response: URLResponse, withData data: Data, for request: URLRequest) {
         guard let httpResponse = response as? HTTPURLResponse,

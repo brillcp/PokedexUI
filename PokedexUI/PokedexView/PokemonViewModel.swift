@@ -3,10 +3,10 @@ import SwiftUI
 /// Protocol for Pokémon view models providing display-ready Pokémon data.
 protocol PokemonViewModelProtocol {
     /// The Pokémon front sprite image.
-    var frontImage: UIImage? { get }
+    var frontSprite: UIImage? { get }
     /// The Pokémon back sprite image.
-    var backImage: UIImage? { get }
-    /// The dominant color extracted from the image.
+    var backSprite: UIImage? { get }
+    /// The dominant color extracted from the sprite.
     var color: Color? { get }
     /// Indicates if the color is light for UI adjustments.
     var isLight: Bool { get }
@@ -40,27 +40,27 @@ protocol PokemonViewModelProtocol {
 @Observable
 final class PokemonViewModel {
     // MARK: Private properties
-    private let audioStreamer: AudioPlayer
-    private let imageLoader: ImageLoader
+    private let spriteLoader: SpriteLoader
+    private let audioPlayer: AudioPlayer
     private let pokemon: Pokemon
 
     // MARK: - Public properties
-    var frontImage: UIImage?
-    var backImage: UIImage?
+    var frontSprite: UIImage?
+    var backSprite: UIImage?
     var color: Color?
 
-    /// Initializes the ViewModel with Pokémon details and an optional image loader.
+    /// Initializes the ViewModel with Pokémon details, a sprite loader and a audio player.
     /// - Parameters:
     ///   - pokemon: The detailed Pokémon model.
-    ///   - imageLoader: The loader for sprite images.
-    ///   - audioStreamer: The audio player to play the pokemon battle cry.
+    ///   - spriteLoader: The loader for sprite images.
+    ///   - audioPlayer: The audio player to play the pokemon battle cry.
     init(
         pokemon: Pokemon,
-        imageLoader: ImageLoader = .init(),
-        audioStreamer: AudioPlayer = .init()
+        spriteLoader: SpriteLoader = .init(),
+        audioPlayer: AudioPlayer = .init()
     ) {
-        self.audioStreamer = audioStreamer
-        self.imageLoader = imageLoader
+        self.audioPlayer = audioPlayer
+        self.spriteLoader = spriteLoader
         self.pokemon = pokemon
     }
 }
@@ -83,14 +83,14 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 extension PokemonViewModel {
     @MainActor
     func loadSprite() async {
-        frontImage = await imageLoader.loadImage(from: pokemon.sprite.front)
-        color = Color(uiColor: frontImage?.dominantColor ?? .darkGray)
-        backImage = await imageLoader.loadImage(from: pokemon.sprite.back)
+        frontSprite = await spriteLoader.loadSprite(from: pokemon.sprite.front)
+        color = Color(uiColor: frontSprite?.dominantColor ?? .darkGray)
+        backSprite = await spriteLoader.loadSprite(from: pokemon.sprite.back)
     }
 
     @MainActor
     func playBattleCry(_ urlString: String) async {
-        await audioStreamer.play(from: urlString)
+        await audioPlayer.play(from: urlString)
     }
 }
 

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
+struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
     @State private var hasFadedIn = false
 
     @State var viewModel: ViewModel
@@ -17,18 +17,18 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
 }
 
 // MARK: - Private UI components
-private extension AsyncImageView {
+private extension AsyncSpriteView {
     @ViewBuilder
     var sprite: some View {
-        if let image = viewModel.frontImage {
-            Image(uiImage: image)
+        if let sprite = viewModel.frontSprite {
+            Image(uiImage: sprite)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .background(viewModel.color)
                 .overlay(cardOverlay(for: viewModel))
-                .if(!hasFadedIn) { $0.fadeIn(when: image) }
-                .onChange(of: viewModel.frontImage) { _, newImage in
-                    guard newImage != nil, !hasFadedIn else { return }
+                .if(!hasFadedIn) { $0.fadeIn(when: sprite) }
+                .onChange(of: viewModel.frontSprite) { _, newSprite in
+                    guard newSprite != nil, !hasFadedIn else { return }
                     hasFadedIn = true
                 }
         }
@@ -53,5 +53,5 @@ private extension AsyncImageView {
 }
 
 #Preview {
-    AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu), showOverlay: false)
+    AsyncSpriteView(viewModel: PokemonViewModel(pokemon: .pikachu), showOverlay: false)
 }
