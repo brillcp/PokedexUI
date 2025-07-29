@@ -7,7 +7,7 @@ enum GridLayout: Int {
 // MARK: - Computed properties
 extension GridLayout {
     var layout: [GridItem] {
-        Array(repeating: GridItem(.flexible(maximum: .infinity)), count: rawValue)
+        Array(repeating: GridItem(.flexible(maximum: .infinity), spacing: 2.0), count: rawValue)
     }
 
     var icon: String {

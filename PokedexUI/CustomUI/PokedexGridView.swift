@@ -7,16 +7,15 @@ struct PokedexGridView<Pokemon: PokemonViewModel>: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: grid.layout) {
+            LazyVGrid(columns: grid.layout, spacing: 2.0) {
                 ForEach(pokemon, id: \.id) { vm in
                     PokedexGridItem(
                         pokemon: vm,
                         grid: grid
                     )
-                    .padding(8)
                 }
             }
-            .padding(8)
+            .padding(.vertical, 2.0)
         }
         .overlay {
             if isLoading {

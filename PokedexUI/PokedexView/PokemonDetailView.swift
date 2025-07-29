@@ -30,7 +30,6 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
                 }
                 .padding()
                 .background(Color.darkGrey)
-                .clipShape(RoundedRectangle(cornerRadius: 32.0))
                 .foregroundStyle(.white)
             }
         }

@@ -1,15 +1,10 @@
 import SwiftUI
 
 struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
-    @Binding private var viewModel: ViewModel
     @State private var hasFadedIn = false
-    private let showOverlay: Bool
 
-    // MARK: - Init
-    init(viewModel: ViewModel, showOverlay: Bool) {
-        self._viewModel = .constant(viewModel)
-        self.showOverlay = showOverlay
-    }
+    @State var viewModel: ViewModel
+    let showOverlay: Bool
 
     var body: some View {
         ZStack {
@@ -17,7 +12,6 @@ struct AsyncImageView<ViewModel: PokemonViewModelProtocol>: View {
             sprite
         }
         .aspectRatio(1.0, contentMode: .fit)
-        .cornerRadius(16.0)
         .task { await viewModel.loadSprite() }
     }
 }
