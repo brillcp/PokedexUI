@@ -24,8 +24,10 @@ This sample app demonstrates:
 
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
-<img width="280" alt="pd1" src="https://github.com/user-attachments/assets/afdc4435-301c-436a-b48c-13381151e659" />
-<img width="280" alt="pd2" src="https://github.com/user-attachments/assets/6182a448-ce8b-4179-9822-7d96f44d474e" />
+<img width="360" alt="pd1" src="https://github.com/user-attachments/assets/b987d5fb-f805-42dc-ba90-128845e9e508" />
+<img width="360" alt="pd2" src="https://github.com/user-attachments/assets/08c40394-8310-4a07-9917-cd620984fa16" />
+
+
 
 # Environment-Driven Data Flow 📊
 Implements single source of truth pattern using SwiftUI Environment:
