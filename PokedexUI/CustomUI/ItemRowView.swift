@@ -5,7 +5,7 @@ struct ItemRowView: View {
 
     var body: some View {
         HStack {
-            ItemSpriteView(viewModel: ItemSpriteViewModel(imageURL: item.items.first?.sprites.default ?? ""))
+            ItemSpriteView(viewModel: ItemSpriteViewModel(spriteURL: item.items.first?.sprites.default ?? ""))
             Text(item.title?.pretty ?? "none")
             Spacer()
             Text(">")
