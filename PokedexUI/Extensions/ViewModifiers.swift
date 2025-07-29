@@ -16,7 +16,7 @@ struct Perspective3D: ViewModifier {
 }
 
 // MARK: - Fade in modifier
-struct FadeInOnValueChangeModifier<Value: Equatable>: ViewModifier {
+struct FadeInViewModifier<Value: Equatable>: ViewModifier {
     let value: Value
     let duration: Double
 

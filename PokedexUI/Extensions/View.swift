@@ -17,7 +17,7 @@ extension View {
     }
 
     func fadeIn<Value: Equatable>(when value: Value, duration: Double = 0.4) -> some View {
-        modifier(FadeInOnValueChangeModifier(value: value, duration: duration))
+        modifier(FadeInViewModifier(value: value, duration: duration))
     }
 
     @ViewBuilder
