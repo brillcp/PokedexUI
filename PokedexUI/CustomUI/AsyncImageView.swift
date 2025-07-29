@@ -52,18 +52,6 @@ private extension AsyncImageView {
     }
 }
 
-// A simple View extension to apply a modifier conditionally
-private extension View {
-    @ViewBuilder
-    func `if`<Content: View>(_ condition: Bool, modify: (Self) -> Content) -> some View {
-        if condition {
-            modify(self)
-        } else {
-            self
-        }
-    }
-}
-
 #Preview {
     AsyncImageView(viewModel: PokemonViewModel(pokemon: .pikachu), showOverlay: false)
 }
