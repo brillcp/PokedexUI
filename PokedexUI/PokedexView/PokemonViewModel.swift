@@ -42,7 +42,9 @@ final class PokemonViewModel {
     // MARK: Private properties
     private let spriteLoader: SpriteLoader
     private let audioPlayer: AudioPlayer
-    private let pokemon: Pokemon
+
+    @ObservationIgnored
+    private(set) var pokemon: Pokemon
 
     // MARK: - Public properties
     var frontSprite: UIImage?

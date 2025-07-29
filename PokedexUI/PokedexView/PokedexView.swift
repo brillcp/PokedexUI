@@ -39,15 +39,10 @@ private extension PokedexView {
             )
             .applyPokedexStyling(title: "Pokedex")
             .toolbar {
-                ToolbarItem {
-                    Button("", systemImage: viewModel.grid.otherIcon) {
-                        withAnimation(.bouncy) {
-                            viewModel.grid.toggle()
-                        }
-                    }
-                    .tint(.white)
-                }
+                ToolbarItem { gridLayoutButton }
+                ToolbarItem { sortMenu }
             }
+            .tint(.white)
         }
     }
 
@@ -65,6 +60,26 @@ private extension PokedexView {
                 selectedTab: $viewModel.selectedTab
             )
             .applyPokedexStyling(title: "Search")
+        }
+    }
+
+    var gridLayoutButton: some View {
+        Button("", systemImage: viewModel.grid.otherIcon) {
+            withAnimation(.bouncy) { viewModel.grid.toggle() }
+        }
+    }
+
+    var sortMenu: some View {
+        Menu {
+            ForEach(SortType.allCases, id: \.self) { type in
+                Button {
+                    withAnimation(.bouncy) { viewModel.sort(by: type) }
+                } label: {
+                    Label(type.title, systemImage: type.systemImage)
+                }
+            }
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease")
         }
     }
 }

@@ -1,9 +1,8 @@
 import Foundation
 
-/// A protocol that defines the interface for the Pokedex view model.
+/// Protocol defining the observable view model for the Pokedex screen.
 ///
-/// Conforming types provide an observable list of Pokémon and a loading state,
-/// along with an async method for requesting Pokémon data.
+/// Provides access to the list of Pokémon, loading state, tab selection, grid layout, and methods to fetch and sort Pokémon data.
 @MainActor
 protocol PokedexViewModelProtocol {
     /// The currently loaded Pokémon displayed in the grid.
@@ -12,25 +11,26 @@ protocol PokedexViewModelProtocol {
     /// A flag indicating whether data is currently being fetched.
     var isLoading: Bool { get }
 
-    /// The current selected tab for the tab view.
+    /// The currently selected tab in the Pokedex interface.
     var selectedTab: Tabs { get set }
 
-    /// The current grid layout.
+    /// The current grid layout used for displaying Pokémon.
     var grid: GridLayout { get set }
 
     /// Asynchronously requests Pokémon from the backend service.
     func requestPokemon() async
+
+    /// Sorts the current Pokémon list using a specific sorting type.
+    /// - Parameter type: The sorting strategy to use.
+    func sort(by type: SortType)
 }
 
 // MARK: -
-/// The default implementation of `PokedexViewModelProtocol`.
-///
-/// `PokedexViewModel` is responsible for coordinating data loading from the `PokemonService`
-/// and exposing observable state to the SwiftUI view.
+/// Default implementation of the Pokedex view model, responsible for loading and exposing Pokémon data and UI state for the Pokedex view.
 @Observable
 final class PokedexViewModel {
     // MARK: Private Properties
-    /// The service responsible for fetching Pokémon data.
+    /// Service used to fetch Pokémon data from an external source.
     private let pokemonService: PokemonServiceProtocol
 
     // MARK: - Public properties
@@ -71,5 +71,11 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         } catch {
             print(error.localizedDescription)
         }
+    }
+
+    /// Sorts the Pokémon list using the provided sorting type.
+    /// - Parameter type: The sorting strategy to use.
+    func sort(by type: SortType) {
+        pokemon.sort(by: type.comparator)
     }
 }
