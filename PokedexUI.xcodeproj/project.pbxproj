@@ -46,6 +46,8 @@
 		D5D5030B2E39344500AC4BC5 /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */; };
 		D5D6250D2E2194230030867D /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D6250C2E2194230030867D /* ItemDetailView.swift */; };
 		D5F41B762E256D5A000341D3 /* ItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F41B752E256D5A000341D3 /* ItemRowView.swift */; };
+		D5F6494B2E30F9D8004FBD18 /* ItemImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F6494A2E30F9D8004FBD18 /* ItemImageViewModel.swift */; };
+		D5F6494D2E30FA82004FBD18 /* ItemImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F6494C2E30FA82004FBD18 /* ItemImageView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +91,8 @@
 		D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
 		D5D6250C2E2194230030867D /* ItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailView.swift; sourceTree = "<group>"; };
 		D5F41B752E256D5A000341D3 /* ItemRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRowView.swift; sourceTree = "<group>"; };
+		D5F6494A2E30F9D8004FBD18 /* ItemImageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemImageViewModel.swift; sourceTree = "<group>"; };
+		D5F6494C2E30FA82004FBD18 /* ItemImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemImageView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -220,6 +224,8 @@
 				D5011AA72E36C13E00A2F8EE /* PokedexGridView.swift */,
 				D5164F722E22702000E3EC8D /* ItemDetailRowView.swift */,
 				D5F41B752E256D5A000341D3 /* ItemRowView.swift */,
+				D5F6494A2E30F9D8004FBD18 /* ItemImageViewModel.swift */,
+				D5F6494C2E30FA82004FBD18 /* ItemImageView.swift */,
 			);
 			path = CustomUI;
 			sourceTree = "<group>";
@@ -336,6 +342,7 @@
 				D5751CF22E363A1E0090FB5F /* SearchViewModel.swift in Sources */,
 				D57366072E2114E400FE4ED0 /* ItemRequest.swift in Sources */,
 				D57366132E21160900FE4ED0 /* PokemonModels.swift in Sources */,
+				D5F6494D2E30FA82004FBD18 /* ItemImageView.swift in Sources */,
 				D57366162E21160900FE4ED0 /* PokemonRequest.swift in Sources */,
 				D5751CF62E3641EF0090FB5F /* SearchView.swift in Sources */,
 				D57366092E2114E400FE4ED0 /* ItemModels.swift in Sources */,
@@ -351,6 +358,7 @@
 				D533F2F82E37F458002A8F6A /* PokemonDataKey.swift in Sources */,
 				D545C2F42E242F5E007F1BBA /* ItemDetailViewModel.swift in Sources */,
 				D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */,
+				D5F6494B2E30F9D8004FBD18 /* ItemImageViewModel.swift in Sources */,
 				D573660C2E2115FA00FE4ED0 /* Endpoints.swift in Sources */,
 				9332C0F2273F5454003AF377 /* UIImage.swift in Sources */,
 				D51DA2572E3409E900028782 /* GridLayout.swift in Sources */,
