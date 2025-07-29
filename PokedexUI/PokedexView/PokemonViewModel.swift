@@ -87,8 +87,8 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     @MainActor
     func loadSprite() async {
         frontImage = await imageLoader.loadImage(from: pokemon.sprite.front)
-        backImage = await imageLoader.loadImage(from: pokemon.sprite.back)
         color = Color(uiColor: frontImage?.dominantColor ?? .darkGray)
+        backImage = await imageLoader.loadImage(from: pokemon.sprite.back)
     }
 
     @MainActor
