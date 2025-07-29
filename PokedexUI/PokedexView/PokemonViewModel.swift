@@ -69,20 +69,15 @@ final class PokemonViewModel {
 /// Implementation of protocol requirements for PokemonViewModel.
 extension PokemonViewModel: PokemonViewModelProtocol {
     var id: Int { pokemon.id }
-    var name: String { pokemon.name.capitalized }
-    var height: String { "\(Double(pokemon.height) / 10.0) m" }
-    var weight: String { "\(Double(pokemon.weight) / 10.0) kg" }
+    var name: String { pokemon.capitalizedName }
+    var height: String { pokemon.formattedHeight }
+    var weight: String { pokemon.formattedWeight }
     var isLight: Bool { color?.isLight ?? false }
-    var types: String { pokemon.types.map { $0.type.name.capitalized }.joined(separator: ", ") }
-    var abilities: String { pokemon.abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n") }
+    var types: String { pokemon.typeList }
+    var abilities: String { pokemon.abilityList }
     var stats: [Stat] { pokemon.stats }
     var latestCry: String? { pokemon.cries.latest }
-
-    var moves: String {
-        let count = pokemon.moves.count
-        let end = min(count, 20)
-        return pokemon.moves[0 ..< end].map { $0.move.name.capitalized }.joined(separator: ", ")
-    }
+    var moves: String { pokemon.moveList }
 
     @MainActor
     func loadSprite() async {

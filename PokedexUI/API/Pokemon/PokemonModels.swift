@@ -63,6 +63,34 @@ struct Stat: Decodable, Identifiable {
     }
 }
 
+// MARK: - Formatted properties
+extension Pokemon {
+    var capitalizedName: String {
+        name.capitalized
+    }
+
+    var formattedHeight: String {
+        "\(Double(height) / 10.0) m"
+    }
+
+    var formattedWeight: String {
+        "\(Double(weight) / 10.0) kg"
+    }
+
+    var typeList: String {
+        types.map { $0.type.name.capitalized }.joined(separator: ", ")
+    }
+
+    var abilityList: String {
+        abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n")
+    }
+
+    var moveList: String {
+        let end = min(moves.count, 20)
+        return moves.prefix(end).map { $0.move.name.capitalized }.joined(separator: ", ")
+    }
+}
+
 // MARK: - Mock pokemon
 extension Pokemon {
     static var pikachu: Pokemon {
