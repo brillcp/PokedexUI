@@ -6,8 +6,7 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
     @Environment(\.modelContext) private var modelContext
     @Query(
         filter: #Predicate<Pokemon> { $0.isBookmarked },
-        sort: \.id,
-        order: .forward
+        sort: \.id
     )
     private var bookmarks: [Pokemon]
 

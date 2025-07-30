@@ -4,8 +4,7 @@ import SwiftData
 struct BookmarksView: View {
     @Query(
         filter: #Predicate<Pokemon> { $0.isBookmarked },
-        sort: \.id,
-        order: .forward
+        sort: \.id
     )
     private var bookmarks: [Pokemon]
 
