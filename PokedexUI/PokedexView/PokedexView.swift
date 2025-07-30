@@ -1,41 +1,68 @@
 import SwiftUI
 import SwiftData
 
-struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemsListViewModel: ItemsListViewModelProtocol, SearchViewModel: SearchViewModelProtocol>: View {
+// MARK: - Main View
+struct PokedexView<
+    PokedexViewModel: PokedexViewModelProtocol,
+    ItemListViewModel: ItemListViewModelProtocol,
+    SearchViewModel: SearchViewModelProtocol
+>: View {
     @State var viewModel: PokedexViewModel
-
-    let itemsListViewModel: ItemsListViewModel
+    let itemListViewModel: ItemListViewModel
     let searchViewModel: SearchViewModel
 
-    // MARK: - Body
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
             Tab(Tabs.pokedex.title, systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
-                pokedexGridView
+                pokedexTab
             }
-
             Tab(Tabs.items.title, systemImage: Tabs.items.icon, value: Tabs.items) {
-                itemsListView
+                itemsTab
             }
-
-            Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
-                searchView
-            }
-
             Tab(Tabs.favourites.title, systemImage: Tabs.favourites.icon, value: Tabs.favourites) {
-                favouriteView
+                favouritesTab
+            }
+            Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
+                searchTab
             }
         }
-        .environment(\.pokemonData, viewModel.pokemon)
-        .task { await viewModel.requestPokemon() }
-        .tint(Color.pokedexRed)
-        .colorScheme(.dark)
+        .applyPokedexConfiguration(viewModel: viewModel)
     }
 }
 
-// MARK: - Tab Views
+// MARK: - Tabs
 private extension PokedexView {
-    var pokedexGridView: some View {
+    var pokedexTab: some View {
+        PokedexContent(viewModel: $viewModel)
+    }
+
+    var itemsTab: some View {
+        NavigationStack {
+            ItemListView(viewModel: itemListViewModel)
+                .applyPokedexStyling(title: Tabs.items.title)
+        }
+    }
+
+    var searchTab: some View {
+        NavigationStack {
+            SearchView(viewModel: searchViewModel, selectedTab: $viewModel.selectedTab)
+                .applyPokedexStyling(title: Tabs.search.title)
+        }
+    }
+
+    var favouritesTab: some View {
+        NavigationStack {
+            BookmarksView()
+                .applyPokedexStyling(title: Tabs.favourites.title)
+        }
+    }
+}
+
+// MARK: - Content Views
+private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
+    @Binding var viewModel: ViewModel
+
+    var body: some View {
         NavigationStack {
             PokedexGridView(
                 pokemon: viewModel.pokemon,
@@ -43,45 +70,28 @@ private extension PokedexView {
                 isLoading: viewModel.isLoading
             )
             .applyPokedexStyling(title: Tabs.pokedex.title)
-            .toolbar {
-                ToolbarItem { gridLayoutButton }
-                ToolbarItem { sortMenu }
-            }
+            .toolbar { PokedexToolbar(viewModel: $viewModel) }
             .tint(.white)
         }
     }
+}
 
-    var itemsListView: some View {
-        NavigationStack {
-            ItemsListView(viewModel: itemsListViewModel)
-                .applyPokedexStyling(title: Tabs.items.title)
-        }
+// MARK: - Toolbar
+private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol>: ToolbarContent {
+    @Binding var viewModel: ViewModel
+
+    var body: some ToolbarContent {
+        ToolbarItem { gridLayoutButton }
+        ToolbarItem { sortMenu }
     }
 
-    var searchView: some View {
-        NavigationStack {
-            SearchView(
-                viewModel: searchViewModel,
-                selectedTab: $viewModel.selectedTab
-            )
-            .applyPokedexStyling(title: Tabs.search.title)
-        }
-    }
-
-    var favouriteView: some View {
-        NavigationStack {
-            BookmarksView()
-                .applyPokedexStyling(title: Tabs.favourites.title)
-        }
-    }
-
-    var gridLayoutButton: some View {
+    private var gridLayoutButton: some View {
         Button("", systemImage: viewModel.grid.otherIcon) {
             withAnimation(.bouncy) { viewModel.grid.toggle() }
         }
     }
 
-    var sortMenu: some View {
+    private var sortMenu: some View {
         Menu {
             ForEach(SortType.allCases, id: \.self) { type in
                 Button {
@@ -96,12 +106,26 @@ private extension PokedexView {
     }
 }
 
+// MARK: - Configuration Extension
+private extension TabView {
+    @MainActor
+    func applyPokedexConfiguration<ViewModel: PokedexViewModelProtocol>(
+        viewModel: ViewModel
+    ) -> some View {
+        self
+            .environment(\.pokemonData, viewModel.pokemon)
+            .task { await viewModel.requestPokemon() }
+            .tint(Color.pokedexRed)
+            .colorScheme(.dark)
+    }
+}
+
 #Preview {
     @Previewable
     @Environment(\.modelContext) var modelContext
     PokedexView(
         viewModel: PokedexViewModel(modelContext: modelContext),
-        itemsListViewModel: ItemsListViewModel(),
+        itemListViewModel: ItemListViewModel(),
         searchViewModel: SearchViewModel()
     )
 }

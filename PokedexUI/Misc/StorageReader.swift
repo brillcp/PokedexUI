@@ -1,4 +1,5 @@
 import SwiftData
+import Foundation
 
 /// An actor responsible for reading and writing `Pokemon` models to SwiftData storage.
 ///

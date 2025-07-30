@@ -11,13 +11,14 @@ struct PokedexUIApp: App {
     }
 }
 
+// MARK: - Root view
 private struct RootView: View {
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         PokedexView(
             viewModel: PokedexViewModel(modelContext: modelContext),
-            itemsListViewModel: ItemsListViewModel(),
+            itemListViewModel: ItemListViewModel(),
             searchViewModel: SearchViewModel()
         )
     }

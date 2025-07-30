@@ -2,7 +2,7 @@ import Foundation
 
 /// Protocol defining an observable view model that manages a list of items and supports searching.
 @MainActor
-protocol ItemsListViewModelProtocol {
+protocol ItemListViewModelProtocol {
     /// The current list of items being displayed.
     var items: [ItemData] { get }
 
@@ -16,7 +16,7 @@ protocol ItemsListViewModelProtocol {
 // MARK: -
 /// View model that manages the retrieval, searching, and storage of items.
 @Observable
-final class ItemsListViewModel {
+final class ItemListViewModel {
     /// Service responsible for fetching items.
     private let itemService: ItemServiceProtocol
 
@@ -34,7 +34,7 @@ final class ItemsListViewModel {
 }
 
 // MARK: - ItemsListViewModelProtocol
-extension ItemsListViewModel: ItemsListViewModelProtocol {
+extension ItemListViewModel: ItemListViewModelProtocol {
     /// Loads all items from the item service asynchronously.
     /// Does nothing if items have already been loaded.
     @MainActor

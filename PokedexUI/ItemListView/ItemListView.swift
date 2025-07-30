@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
+struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
     @State var viewModel: ViewModel
 
     // MARK: - Body
     var body: some View {
         ScrollView(showsIndicators: false) {
-            itemsList
+            itemList
         }
         .overlay {
             if viewModel.isLoading {
@@ -19,8 +19,8 @@ struct ItemsListView<ViewModel: ItemsListViewModelProtocol>: View {
 }
 
 // MARK: - View Components
-private extension ItemsListView {
-    var itemsList: some View {
+private extension ItemListView {
+    var itemList: some View {
         LazyVStack(alignment: .leading) {
             ForEach(viewModel.items, id: \.title) { item in
                 itemRow(for: item)
@@ -41,5 +41,5 @@ private extension ItemsListView {
 }
 
 #Preview {
-    ItemsListView(viewModel: ItemsListViewModel())
+    ItemListView(viewModel: ItemListViewModel())
 }
