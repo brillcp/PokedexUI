@@ -7,7 +7,7 @@ struct PokedexUIApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [Pokemon.self])
+        .modelContainer(for: [BookmarkedPokemon.self, Pokemon.self])
     }
 }
 
