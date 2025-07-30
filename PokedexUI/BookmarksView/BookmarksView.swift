@@ -2,13 +2,14 @@ import SwiftUI
 import SwiftData
 
 struct BookmarksView: View {
-    @Environment(\.pokemonData) private var allPokemon: [PokemonViewModel]
-    @Query private var bookmarks: [BookmarkedPokemon]
+    @Query(
+        filter: #Predicate<Pokemon> { $0.isBookmarked },
+        sort: \.id,
+        order: .forward
+    )
+    private var bookmarks: [Pokemon]
 
     var body: some View {
-        let favouriteVMs = allPokemon.filter { vm in
-            bookmarks.contains(where: { $0.id == vm.id })
-        }
         NavigationStack {
             if favouriteVMs.isEmpty {
                 Text("No favourites yet…")
@@ -19,9 +20,15 @@ struct BookmarksView: View {
                     pokemon: favouriteVMs,
                     grid: .three
                 )
-                .navigationTitle("Favourites")
             }
         }
+    }
+}
+
+// MARK: - Private calculated properties
+private extension BookmarksView {
+    var favouriteVMs: [PokemonViewModel] {
+        bookmarks.map { PokemonViewModel(pokemon: $0) }
     }
 }
 

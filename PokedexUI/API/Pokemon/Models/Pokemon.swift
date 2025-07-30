@@ -6,6 +6,7 @@ final class Pokemon: Decodable {
     @Attribute var name: String
     @Attribute var weight: Int
     @Attribute var height: Int
+    @Attribute var isBookmarked: Bool = false
     @Relationship var cries: Cries
     @Relationship var sprite: Sprite
     @Relationship var abilities: [Ability]

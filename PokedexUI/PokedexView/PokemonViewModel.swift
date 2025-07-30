@@ -28,6 +28,8 @@ protocol PokemonViewModelProtocol {
     var id: Int { get }
     /// The battle cry of the pokemon.
     var latestCry: String? { get }
+    /// A boolean value that determine if the Pokémon is bookmarked.
+    var isBookmarked: Bool { get set }
 
     /// Loads the sprite image asynchronously and updates color.
     func loadSprite() async
@@ -47,6 +49,7 @@ final class PokemonViewModel {
     private(set) var pokemon: Pokemon
 
     // MARK: - Public properties
+    var isBookmarked: Bool = false
     var frontSprite: UIImage?
     var backSprite: UIImage?
     var color: Color?
@@ -82,8 +85,8 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 }
 
 // MARK: - Public PokemonViewModelProtocol functions
+@MainActor
 extension PokemonViewModel {
-    @MainActor
     func loadSprite() async {
         frontSprite = await spriteLoader.loadSprite(from: pokemon.sprite.front)
         color = Color(uiColor: frontSprite?.dominantColor ?? .darkGray)
@@ -93,7 +96,6 @@ extension PokemonViewModel {
         }
     }
 
-    @MainActor
     func playBattleCry(_ urlString: String) async {
         await audioPlayer.play(from: urlString)
     }

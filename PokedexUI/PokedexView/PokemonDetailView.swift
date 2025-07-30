@@ -4,12 +4,15 @@ import SwiftData
 struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
     // MARK: Private properties
     @Environment(\.modelContext) private var modelContext
-    @Query private var bookmarks: [BookmarkedPokemon]
+    @Query(
+        filter: #Predicate<Pokemon> { $0.isBookmarked },
+        sort: \.id,
+        order: .forward
+    )
+    private var bookmarks: [Pokemon]
 
     private let haptic: UIImpactFeedbackGenerator
-    private let viewModel: ViewModel
-
-    @State private var isBookmarked = false
+    @State private var viewModel: ViewModel
     @State private var isFlipped = false
 
     // MARK: - Init
@@ -42,7 +45,7 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
             }
         }
         .onAppear {
-            isBookmarked = bookmarks.contains(where: { $0.id == viewModel.id })
+            viewModel.isBookmarked = bookmarks.contains(where: { $0.id == viewModel.id })
         }
         .applyDetailViewStyling(viewModel: viewModel)
     }
@@ -72,7 +75,7 @@ private extension PokemonDetailView {
             Button {
                 toggleBookmark()
             } label: {
-                imageIcon(isBookmarked ? "bookmark.fill" : "bookmark")
+                imageIcon(viewModel.isBookmarked ? "bookmark.fill" : "bookmark")
             }
             if viewModel.backSprite != nil {
                 flipButton()
@@ -153,16 +156,17 @@ private extension PokemonDetailView {
 // MARK: - Bookmark Toggle
 private extension PokemonDetailView {
     func toggleBookmark() {
-        if isBookmarked {
-            if let bookmark = bookmarks.first(where: { $0.id == viewModel.id }) {
-                modelContext.delete(bookmark)
+        let id = viewModel.id
+        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
+
+        do {
+            if let pokemon = try modelContext.fetch(descriptor).first {
+                pokemon.isBookmarked.toggle()
+                viewModel.isBookmarked = pokemon.isBookmarked
+                try modelContext.save()
             }
-            isBookmarked = false
-        } else {
-            let pok = BookmarkedPokemon(id: viewModel.id)
-            modelContext.insert(pok)
-            try? modelContext.save()
-            isBookmarked = true
+        } catch {
+            print("Failed to toggle bookmark: \(error)")
         }
     }
 }
