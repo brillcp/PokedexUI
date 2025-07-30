@@ -24,9 +24,8 @@ This sample app demonstrates:
 
 The app displays a scrollable grid of Pokémon, each with a dynamically extracted dominant color based on its sprite. It also lists in-game items with searchable navigation.
 
-<img width="360" alt="pd1" src="https://github.com/user-attachments/assets/b987d5fb-f805-42dc-ba90-128845e9e508" />
-<img width="360" alt="pd2" src="https://github.com/user-attachments/assets/08c40394-8310-4a07-9917-cd620984fa16" />
-
+<img width="360" alt="pd1" src="https://github.com/user-attachments/assets/13c2362d-4519-4457-8e8f-94c0b97ad1f9" />
+<img width="360" alt="pd2" src="https://github.com/user-attachments/assets/facfadbd-da67-4de8-9e7d-ac6c4207fbee" />
 
 
 # Environment-Driven Data Flow 📊
