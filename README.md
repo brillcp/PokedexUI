@@ -56,19 +56,20 @@ The SwiftUI `PokedexView` is the root view and hosts a `TabView` with two sectio
 
 ```swift
 TabView(selection: $viewModel.selectedTab) {
-    Tab("Pokedex", systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
-        pokedexGridView
+    Tab(Tabs.pokedex.title, systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
+        pokedexTab
     }
-
-    Tab("Items", systemImage: "xmark.triangle.circle.square.fill", value: Tabs.items) {
-        itemsListView
+    Tab(Tabs.items.title, systemImage: Tabs.items.icon, value: Tabs.items) {
+        itemsTab
     }
-
-    Tab("Search", systemImage: "magnifyingglass", value: Tabs.search, role: .search) {
-        searchView
+    Tab(Tabs.favourites.title, systemImage: Tabs.favourites.icon, value: Tabs.favourites) {
+        favouritesTab
+    }
+    Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
+        searchTab
     }
 }
-.task { await viewModel.requestPokemon() }
+.applyPokedexConfiguration(viewModel: viewModel)
 ```
 
 ## View Model 🧾
