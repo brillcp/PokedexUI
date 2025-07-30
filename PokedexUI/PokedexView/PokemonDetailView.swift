@@ -74,7 +74,9 @@ private extension PokemonDetailView {
             } label: {
                 imageIcon(isBookmarked ? "bookmark.fill" : "bookmark")
             }
-            flipButton()
+            if viewModel.backSprite != nil {
+                flipButton()
+            }
         }
         .buttonStyle(.glass)
         .tint(.white)

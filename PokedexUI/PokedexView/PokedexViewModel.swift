@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 /// Protocol defining the observable view model for the Pokedex screen.
 ///
@@ -32,6 +33,7 @@ final class PokedexViewModel {
     // MARK: Private Properties
     /// Service used to fetch Pokémon data from an external source.
     private let pokemonService: PokemonServiceProtocol
+    private let storageReader: PokemonStorageReader
 
     // MARK: - Public properties
     /// The current list of Pokémon, updated after each successful fetch.
@@ -49,8 +51,11 @@ final class PokedexViewModel {
     // MARK: - Initialization
     /// Creates a new `PokedexViewModel`.
     ///
-    /// - Parameter pokemonService: A `PokemonService` instance. Defaults to the shared implementation.
-    init(pokemonService: PokemonService = PokemonService()) {
+    /// - Parameters:
+    ///   - modelContext: The SwiftData model context to use for persistence.
+    ///   - pokemonService: A `PokemonService` instance. Defaults to the shared implementation.
+    init(modelContext: ModelContext, pokemonService: PokemonService = PokemonService()) {
+        self.storageReader = PokemonStorageReader(modelContainer: modelContext.container)
         self.pokemonService = pokemonService
     }
 }
@@ -63,13 +68,9 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     /// On success, the results are appended to the existing Pokémon list.
     func requestPokemon() async {
         guard !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
 
-        do {
-            pokemon = try await pokemonService.requestPokemon()
-        } catch {
-            print(error.localizedDescription)
+        await withLoadingState {
+            pokemon = await fetchPokemonFromStorageOrAPI()
         }
     }
 
@@ -77,5 +78,54 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     /// - Parameter type: The sorting strategy to use.
     func sort(by type: SortType) {
         pokemon.sort(by: type.comparator)
+    }
+}
+
+// MARK: - Private fetch helper functions
+private extension PokedexViewModel {
+    /// Attempts to retrieve Pokémon from local storage first; if unavailable or empty, fetches from the API instead.
+    /// - Returns: An array of `PokemonViewModel` either from local storage or the API.
+    /// - Note: This method prioritizes stored data for performance.
+    func fetchPokemonFromStorageOrAPI() async -> [PokemonViewModel] {
+        guard let localPokemon = await fetchStoredPokemon(), !localPokemon.isEmpty else {
+            return await fetchPokemonFromAPI()
+        }
+        return localPokemon
+    }
+
+    /// Fetches all stored Pokémon from persistent storage.
+    /// - Returns: An array of `PokemonViewModel` if retrieval is successful; otherwise, `nil`.
+    /// - Throws: Logs and returns nil on failure to fetch from storage.
+    func fetchStoredPokemon() async -> [PokemonViewModel]? {
+        do {
+            return try await storageReader.fetchAll()
+        } catch {
+            print("Failed to fetch stored Pokémon: \(error)")
+            return nil
+        }
+    }
+
+    /// Requests Pokémon from the external API and stores the result locally.
+    /// - Returns: The fetched array of `PokemonViewModel` on success; empty array if the API call fails.
+    /// - Throws: Errors are caught and logged; function returns an empty array on failure.
+    func fetchPokemonFromAPI() async -> [PokemonViewModel] {
+        do {
+            let apiPokemon = try await pokemonService.requestPokemon()
+            try await storageReader.store(apiPokemon)
+            return apiPokemon
+        } catch {
+            print("API request failed: \(error)")
+            return []
+        }
+    }
+
+    /// Executes the given asynchronous operation while updating the `isLoading` state.
+    /// - Parameter operation: An async closure to perform while loading.
+    /// - Returns: The result of the operation.
+    /// - Note: Ensures `isLoading` is set to `true` during the operation and reset to `false` afterwards, even on error.
+    func withLoadingState<T>(_ operation: () async throws -> T) async rethrows -> T {
+        isLoading = true
+        defer { isLoading = false }
+        return try await operation()
     }
 }

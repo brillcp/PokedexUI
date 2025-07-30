@@ -97,8 +97,10 @@ private extension PokedexView {
 }
 
 #Preview {
+    @Previewable
+    @Environment(\.modelContext) var modelContext
     PokedexView(
-        viewModel: PokedexViewModel(),
+        viewModel: PokedexViewModel(modelContext: modelContext),
         itemsListViewModel: ItemsListViewModel(),
         searchViewModel: SearchViewModel()
     )

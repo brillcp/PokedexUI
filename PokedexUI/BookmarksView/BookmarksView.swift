@@ -3,11 +3,11 @@ import SwiftData
 
 struct BookmarksView: View {
     @Environment(\.pokemonData) private var allPokemon: [PokemonViewModel]
-    @Query private var favourites: [BookmarkedPokemon]
+    @Query private var bookmarks: [BookmarkedPokemon]
 
     var body: some View {
         let favouriteVMs = allPokemon.filter { vm in
-            favourites.contains(where: { $0.id == vm.id })
+            bookmarks.contains(where: { $0.id == vm.id })
         }
         NavigationStack {
             if favouriteVMs.isEmpty {

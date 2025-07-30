@@ -87,7 +87,10 @@ extension PokemonViewModel {
     func loadSprite() async {
         frontSprite = await spriteLoader.loadSprite(from: pokemon.sprite.front)
         color = Color(uiColor: frontSprite?.dominantColor ?? .darkGray)
-        backSprite = await spriteLoader.loadSprite(from: pokemon.sprite.back)
+
+        if let back = pokemon.sprite.back {
+            backSprite = await spriteLoader.loadSprite(from: back)
+        }
     }
 
     @MainActor

@@ -5,12 +5,20 @@ import SwiftData
 struct PokedexUIApp: App {
     var body: some Scene {
         WindowGroup {
-            PokedexView(
-                viewModel: PokedexViewModel(),
-                itemsListViewModel: ItemsListViewModel(),
-                searchViewModel: SearchViewModel()
-            )
+            RootView()
         }
-        .modelContainer(for: [BookmarkedPokemon.self])
+        .modelContainer(for: [Pokemon.self])
+    }
+}
+
+private struct RootView: View {
+    @Environment(\.modelContext) private var modelContext
+
+    var body: some View {
+        PokedexView(
+            viewModel: PokedexViewModel(modelContext: modelContext),
+            itemsListViewModel: ItemsListViewModel(),
+            searchViewModel: SearchViewModel()
+        )
     }
 }

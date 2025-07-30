@@ -10,14 +10,15 @@ enum PokemonRequest: Requestable {
 
     var endpoint: EndpointType {
         switch self {
-            case .details(let id):
-                Endpoint.pokemonDetails(id)
-            default:
-                Endpoint.pokemon
+            case .details(let id): Endpoint.pokemonDetails(id)
+            default: Endpoint.pokemon
         }
     }
 
     var parameters: HTTP.Parameters {
-         [ParameterKey.limit.rawValue: "656"]
+        switch self {
+            case .pokemon: [ParameterKey.limit.rawValue: "1150"]
+            default: HTTP.Parameters()
+        }
     }
 }
