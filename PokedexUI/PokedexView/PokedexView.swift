@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemsListViewModel: ItemsListViewModelProtocol, SearchViewModel: SearchViewModelProtocol>: View {
     @State var viewModel: PokedexViewModel
@@ -20,6 +21,10 @@ struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemsListViewMode
             Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
                 searchView
             }
+
+            Tab(Tabs.favourites.title, systemImage: Tabs.favourites.icon, value: Tabs.favourites) {
+                favouriteView
+            }
         }
         .environment(\.pokemonData, viewModel.pokemon)
         .task { await viewModel.requestPokemon() }
@@ -37,7 +42,7 @@ private extension PokedexView {
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading
             )
-            .applyPokedexStyling(title: "Pokedex")
+            .applyPokedexStyling(title: Tabs.pokedex.title)
             .toolbar {
                 ToolbarItem { gridLayoutButton }
                 ToolbarItem { sortMenu }
@@ -49,7 +54,7 @@ private extension PokedexView {
     var itemsListView: some View {
         NavigationStack {
             ItemsListView(viewModel: itemsListViewModel)
-                .applyPokedexStyling(title: "Items")
+                .applyPokedexStyling(title: Tabs.items.title)
         }
     }
 
@@ -59,7 +64,14 @@ private extension PokedexView {
                 viewModel: searchViewModel,
                 selectedTab: $viewModel.selectedTab
             )
-            .applyPokedexStyling(title: "Search")
+            .applyPokedexStyling(title: Tabs.search.title)
+        }
+    }
+
+    var favouriteView: some View {
+        NavigationStack {
+            BookmarksView()
+                .applyPokedexStyling(title: Tabs.favourites.title)
         }
     }
 

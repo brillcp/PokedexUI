@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct PokedexUIApp: App {
@@ -10,5 +11,6 @@ struct PokedexUIApp: App {
                 searchViewModel: SearchViewModel()
             )
         }
+        .modelContainer(for: [BookmarkedPokemon.self])
     }
 }

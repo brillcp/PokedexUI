@@ -13,8 +13,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     var body: some View {
         PokedexGridView(
             pokemon: viewModel.filteredPokemon,
-            grid: .three,
-            isLoading: false
+            grid: .three
         )
         .searchable(text: $viewModel.query)
         .searchFocused($isSearchFocused)
@@ -33,7 +32,9 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
 private extension SearchView {
     func dismissSearch(_ oldValue: Bool, _ newValue: Bool) {
         guard oldValue, !newValue, viewModel.query.isEmpty else { return }
-        selectedTab = .pokedex
+        withTransaction(.init(animation: .default)) {
+            selectedTab = .pokedex
+        }
     }
 }
 

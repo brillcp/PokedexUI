@@ -1,17 +1,25 @@
 import SwiftUI
+import SwiftData
 
 struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
+    // MARK: Private properties
+    @Environment(\.modelContext) private var modelContext
+    @Query private var bookmarks: [BookmarkedPokemon]
+
     private let haptic: UIImpactFeedbackGenerator
     private let viewModel: ViewModel
 
+    @State private var isBookmarked = false
     @State private var isFlipped = false
 
+    // MARK: - Init
     init(viewModel: ViewModel, haptic: UIImpactFeedbackGenerator = .init(style: .light)) {
         self.viewModel = viewModel
         self.haptic = haptic
         haptic.prepare()
     }
 
+    // MARK: - Body
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
@@ -32,6 +40,9 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
                 .background(Color.darkGrey)
                 .foregroundStyle(.white)
             }
+        }
+        .onAppear {
+            isBookmarked = bookmarks.contains(where: { $0.id == viewModel.id })
         }
         .applyDetailViewStyling(viewModel: viewModel)
     }
@@ -58,6 +69,11 @@ private extension PokemonDetailView {
                 }
             }
             Spacer()
+            Button {
+                toggleBookmark()
+            } label: {
+                imageIcon(isBookmarked ? "bookmark.fill" : "bookmark")
+            }
             flipButton()
         }
         .buttonStyle(.glass)
@@ -129,6 +145,23 @@ private extension PokemonDetailView {
     func bottomSpacer() -> some View {
         Spacer()
             .frame(height: 96)
+    }
+}
+
+// MARK: - Bookmark Toggle
+private extension PokemonDetailView {
+    func toggleBookmark() {
+        if isBookmarked {
+            if let bookmark = bookmarks.first(where: { $0.id == viewModel.id }) {
+                modelContext.delete(bookmark)
+            }
+            isBookmarked = false
+        } else {
+            let pok = BookmarkedPokemon(id: viewModel.id)
+            modelContext.insert(pok)
+            try? modelContext.save()
+            isBookmarked = true
+        }
     }
 }
 

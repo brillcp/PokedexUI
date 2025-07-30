@@ -1,7 +1,7 @@
 import Foundation
 
 enum Tabs: Int {
-    case pokedex, items, search
+    case pokedex, items, favourites, search
 }
 
 // MARK: - Calculated properties
@@ -10,6 +10,7 @@ extension Tabs {
         switch self {
             case .pokedex: "Pokedex"
             case .items: "Items"
+            case .favourites: "Favourites"
             case .search: "Search"
         }
     }
@@ -18,6 +19,7 @@ extension Tabs {
         switch self {
             case .pokedex: GridLayout.three.icon
             case .items: "xmark.triangle.circle.square.fill"
+            case .favourites: "bookmark.fill"
             case .search: "magnifyingglass"
         }
     }
