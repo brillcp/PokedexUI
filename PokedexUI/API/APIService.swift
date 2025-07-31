@@ -6,17 +6,14 @@ import Networking
 protocol ServiceConfiguration {
     /// The type returned from each detail API call.
     associatedtype ResponseType: Decodable & Sendable
-
     /// The transformed output model returned to the view layer.
     associatedtype OutputModel
 
     /// Returns the request used to fetch a list of results.
     func createRequest() -> Requestable
-
     /// Returns the request to fetch detailed data from a specific item URL component.
     /// - Parameter urlComponent: The last path component of a resource URL.
     func createDetailRequest(from urlComponent: String) -> Requestable
-
     /// Transforms a list of decoded response objects into output models.
     /// - Parameter response: The raw decoded response items.
     func transformResponse(_ response: [ResponseType]) -> [OutputModel]
