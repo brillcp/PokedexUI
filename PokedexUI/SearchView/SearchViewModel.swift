@@ -24,7 +24,7 @@ protocol SearchViewModelProtocol {
 @Observable
 final class SearchViewModel {
     // MARK: Private Properties
-    private let storageReader: PokemonStorageReader
+    private let storageReader: DataStorageReader
 
     // MARK: - Public Properties
     /// The full list of Pokémon to be searched.
@@ -37,7 +37,7 @@ final class SearchViewModel {
     var query: String = ""
 
     init(modelContext: ModelContext) {
-        self.storageReader = PokemonStorageReader(modelContainer: modelContext.container)
+        self.storageReader = DataStorageReader(modelContainer: modelContext.container)
     }
 }
 

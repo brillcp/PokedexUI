@@ -33,7 +33,7 @@ final class PokedexViewModel {
     // MARK: Private Properties
     /// Service used to fetch Pokémon data from an external source.
     private let pokemonService: PokemonServiceProtocol
-    private let storageReader: PokemonStorageReader
+    private let storageReader: DataStorageReader
 
     // MARK: - Public properties
     /// The current list of Pokémon, updated after each successful fetch.
@@ -55,7 +55,7 @@ final class PokedexViewModel {
     ///   - modelContext: The SwiftData model context to use for persistence.
     ///   - pokemonService: A `PokemonService` instance. Defaults to the shared implementation.
     init(modelContext: ModelContext, pokemonService: PokemonService = PokemonService()) {
-        self.storageReader = PokemonStorageReader(modelContainer: modelContext.container)
+        self.storageReader = DataStorageReader(modelContainer: modelContext.container)
         self.pokemonService = pokemonService
     }
 }

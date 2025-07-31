@@ -20,7 +20,7 @@ protocol ItemListViewModelProtocol {
 final class ItemListViewModel {
     /// Service responsible for fetching items.
     private let itemService: ItemServiceProtocol
-    private let storage: PokemonStorageReader
+    private let storage: DataStorageReader
 
     /// The list of items currently displayed to the user.
     var items: [ItemData] = []
@@ -32,7 +32,7 @@ final class ItemListViewModel {
     /// - Parameter itemService: The service used to fetch items. Defaults to a new `ItemService`.
     init(modelContext: ModelContext, itemService: ItemService = ItemService()) {
         self.itemService = itemService
-        self.storage = PokemonStorageReader(modelContainer: modelContext.container)
+        self.storage = DataStorageReader(modelContainer: modelContext.container)
     }
 }
 

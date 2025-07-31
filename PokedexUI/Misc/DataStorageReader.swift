@@ -9,7 +9,7 @@ import Foundation
 /// - Note: This actor is generic and can operate on any model conforming to `PersistentModel`, not just `Pokemon`.
 /// - Important: All operations are performed on the actor's internal `modelContext`, providing automatic protection from data races.
 @ModelActor
-actor PokemonStorageReader {
+actor DataStorageReader {
     /// Stores an array of provided `PersistentModel` instances into the actor's SwiftData model context and persists them.
     ///
     /// This method inserts each model into the context and attempts to save the changes. It is generic and supports any type conforming to
