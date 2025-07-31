@@ -134,11 +134,10 @@ actor DataStorageReader {
     }
     
     func fetch<M: PersistentModel>(
-        sortBy: SortDescriptor<M>, 
-        _ transform: @escaping (M) -> M
+        sortBy: SortDescriptor<M>
     ) throws -> [M] {
         let descriptor = FetchDescriptor<M>(sortBy: [sortBy])
-        return try modelContext.fetch(descriptor).map(transform)
+        return try modelContext.fetch(descriptor)
     }
 }
 ```
