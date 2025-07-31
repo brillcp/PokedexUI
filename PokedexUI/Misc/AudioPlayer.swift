@@ -47,4 +47,3 @@ extension AudioPlayer {
         player?.seek(to: .zero)
     }
 }
-
