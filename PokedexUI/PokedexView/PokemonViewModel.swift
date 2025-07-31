@@ -46,6 +46,7 @@ final class PokemonViewModel {
     private let audioPlayer: AudioPlayer
 
     @ObservationIgnored
+    private(set) var statLookup: [String: Int]
     private(set) var pokemon: Pokemon
 
     // MARK: - Public properties
@@ -67,6 +68,7 @@ final class PokemonViewModel {
         self.audioPlayer = audioPlayer
         self.spriteLoader = spriteLoader
         self.pokemon = pokemon
+        self.statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
     }
 }
 

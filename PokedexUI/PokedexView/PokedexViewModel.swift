@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 /// Protocol defining the observable view model for the Pokedex screen.
 ///
@@ -19,7 +20,7 @@ protocol PokedexViewModelProtocol {
     func requestPokemon() async
     /// Sorts the current Pokémon list using a specific sorting type.
     /// - Parameter type: The sorting strategy to use.
-    func sort(by type: SortType)
+    func sort(by type: SortType) async
 }
 
 // MARK: -
@@ -72,8 +73,12 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
     /// Sorts the Pokémon list using the provided sorting type.
     /// - Parameter type: The sorting strategy to use.
-    func sort(by type: SortType) {
-        pokemon.sort(by: type.comparator)
+    func sort(by type: SortType) async {
+        let sorted = await Task(priority: .userInitiated) {
+            pokemon.sorted(by: type.comparator)
+        }.value
+
+        withAnimation(.bouncy) { pokemon = sorted }
     }
 }
 

@@ -60,6 +60,6 @@ extension SortType {
 // MARK: - PokemonViewModel base stat extension
 private extension PokemonViewModel {
     func baseStat(for stat: Stats) -> Int {
-        pokemon.stats.first { $0.stat.name == stat.rawValue }?.baseStat ?? 0
+        statLookup[stat.rawValue] ?? 0
     }
 }

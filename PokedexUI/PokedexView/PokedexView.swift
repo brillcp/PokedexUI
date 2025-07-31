@@ -77,7 +77,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
 }
 
 // MARK: - Toolbar
-private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol>: ToolbarContent {
+private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: ToolbarContent {
     @Binding var viewModel: ViewModel
 
     var body: some ToolbarContent {
@@ -95,7 +95,7 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol>: ToolbarConte
         Menu {
             ForEach(SortType.allCases, id: \.self) { type in
                 Button {
-                    withAnimation(.bouncy) { viewModel.sort(by: type) }
+                    Task { await viewModel.sort(by: type) }
                 } label: {
                     Label(type.title, systemImage: type.systemImage)
                 }
