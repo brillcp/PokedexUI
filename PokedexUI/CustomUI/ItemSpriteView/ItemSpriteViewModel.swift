@@ -28,7 +28,7 @@ extension ItemSpriteViewModel {
     /// Loads an image from a given URL string asynchronously, updating the image and loading state.
     func loadSprite() async {
         isLoading = true
-        let uiImage = await spriteLoader.loadSprite(from: spriteURL)
+        let uiImage = await spriteLoader.spriteImage(from: spriteURL)
         sprite = Image(uiImage: uiImage ?? UIImage())
         isLoading = false
     }

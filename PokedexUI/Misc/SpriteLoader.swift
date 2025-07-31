@@ -33,7 +33,7 @@ extension SpriteLoader {
     ///
     /// - Parameter urlString: The remote sprite URL as a string.
     /// - Returns: A `UIImage` if the sprite was successfully loaded or cached, otherwise `nil`.
-    func loadSprite(from urlString: String) async -> UIImage? {
+    func spriteImage(from urlString: String) async -> UIImage? {
         guard let url = URL(string: urlString) else { return nil }
 
         let request = URLRequest(url: url)
