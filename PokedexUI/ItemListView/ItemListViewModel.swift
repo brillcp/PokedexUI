@@ -6,7 +6,6 @@ import SwiftData
 protocol ItemListViewModelProtocol {
     /// The current list of items being displayed.
     var items: [ItemData] { get }
-
     /// A flag indicating whether data is currently being fetched.
     var isLoading: Bool { get }
 

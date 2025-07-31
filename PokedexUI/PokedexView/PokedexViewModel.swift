@@ -8,19 +8,15 @@ import SwiftData
 protocol PokedexViewModelProtocol {
     /// The currently loaded Pokémon displayed in the grid.
     var pokemon: [PokemonViewModel] { get }
-
     /// A flag indicating whether data is currently being fetched.
     var isLoading: Bool { get }
-
     /// The currently selected tab in the Pokedex interface.
     var selectedTab: Tabs { get set }
-
     /// The current grid layout used for displaying Pokémon.
     var grid: GridLayout { get set }
 
     /// Asynchronously requests Pokémon from the backend service.
     func requestPokemon() async
-
     /// Sorts the current Pokémon list using a specific sorting type.
     /// - Parameter type: The sorting strategy to use.
     func sort(by type: SortType)

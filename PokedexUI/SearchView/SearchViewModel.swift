@@ -6,10 +6,8 @@ import SwiftData
 protocol SearchViewModelProtocol {
     /// The filtered list of Pokémon based on the current query.
     var filtered: [PokemonViewModel] { get }
-
     /// The shared environment Pokémon data source
     var pokemon: [PokemonViewModel] { get set }
-
     /// The user's search input query.
     var query: String { get set }
 
