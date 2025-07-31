@@ -68,7 +68,10 @@ extension ItemListViewModel: DataFetcher {
     }
 
     func transformToViewModel(_ data: StoredData) -> ViewModel {
-        ViewModel(title: data.title, items: data.items)
+        ViewModel(
+            title: data.title,
+            items: data.items.sorted(by: { $0.name < $1.name })
+        )
     }
 
     func transformForStorage(_ data: ViewModel) -> StoredData {
