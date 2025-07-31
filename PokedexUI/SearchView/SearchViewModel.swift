@@ -82,7 +82,7 @@ extension SearchViewModel: DataFetcher {
     typealias ViewModel = PokemonViewModel
 
     func fetchStoredData() async throws -> [StoredData] {
-        try await storageReader.fetch(sortBy: .init(\.id)) { $0 }
+        try await storageReader.fetch(sortBy: .init(\.id))
     }
 
     func fetchAPIData() async throws -> [ViewModel] {

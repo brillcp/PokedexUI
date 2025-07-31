@@ -90,7 +90,7 @@ extension PokedexViewModel: DataFetcher {
     typealias ViewModel = PokemonViewModel
 
     func fetchStoredData() async throws -> [StoredData] {
-        try await storageReader.fetch(sortBy: SortDescriptor(\.id)) { $0 }
+        try await storageReader.fetch(sortBy: SortDescriptor(\.id))
     }
 
     func fetchAPIData() async throws -> [APIData] {

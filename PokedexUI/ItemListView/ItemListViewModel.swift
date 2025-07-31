@@ -56,7 +56,7 @@ extension ItemListViewModel: DataFetcher {
     typealias ViewModel = ItemData
 
     func fetchStoredData() async throws -> [StoredData] {
-        try await storage.fetch(sortBy: SortDescriptor(\.title)) { $0 }
+        try await storage.fetch(sortBy: SortDescriptor(\.title))
     }
 
     func fetchAPIData() async throws -> [APIData] {
