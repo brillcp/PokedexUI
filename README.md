@@ -191,10 +191,10 @@ func updateFilteredPokemon() {
 - ✅ **Type-aware Search**: Find by type (e.g., "water", "electric") or name
 - ✅ **Diacritic Insensitive**: Handles accented characters automatically
 - ✅ **Storage Integration**: Searches local SwiftData with API fallback
-- ✅ **Protocol-Based**: Fully testable and mockable architecture
 
 The search algorithm ensures **all terms must match** for precise results while supporting partial name matching and type combinations.
-### Sprite Loading & Caching
+
+## Sprite Loading & Caching 🎨
 Asynchronous image loading with intelligent caching:
 ```swift
 actor SpriteLoader {
