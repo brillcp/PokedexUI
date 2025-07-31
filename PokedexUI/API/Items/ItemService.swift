@@ -44,7 +44,7 @@ extension ItemService: ItemServiceProtocol {
 extension ItemService {
     /// A configuration used by `APIService` to define item-specific requests and response transformation.
     struct Config: ServiceConfiguration {
-        typealias ResponseType = ItemDetail
+        typealias ResponseType = ItemDetail & Sendable
         typealias OutputModel = ItemData
 
         /// Builds the request used to fetch the complete list of item summaries.

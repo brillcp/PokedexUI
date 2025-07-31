@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     // MARK: Private properties
-    @Environment(\.pokemonData) private var pokemonData
     @FocusState private var isSearchFocused: Bool
 
     // MARK: - Public properties
@@ -12,7 +11,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     // MARK: - Body
     var body: some View {
         PokedexGridView(
-            pokemon: viewModel.filteredPokemon,
+            pokemon: viewModel.filtered,
             grid: .three
         )
         .searchable(text: $viewModel.query)
@@ -21,10 +20,10 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
         .overlay(resultText)
         .scrollDismissesKeyboard(.immediately)
         .onChange(of: viewModel.query) { _, _ in
-            withAnimation { viewModel.updateFilteredPokemon() }
+            withAnimation(.default.delay(0.3)) { viewModel.updateFilteredPokemon() }
         }
         .onChange(of: isSearchFocused, dismissSearch)
-        .onAppear { viewModel.pokemonSource = pokemonData }
+        .task { await viewModel.loadData() }
     }
 }
 
@@ -42,9 +41,9 @@ private extension SearchView {
 private extension SearchView {
     var resultText: some View {
         Group {
-            if !viewModel.query.isEmpty && viewModel.filteredPokemon.isEmpty {
+            if !viewModel.query.isEmpty && viewModel.filtered.isEmpty {
                 Text("No result…")
-            } else if viewModel.filteredPokemon.isEmpty {
+            } else if viewModel.filtered.isEmpty {
                 Text("Search Pokemon and types")
             } else {
                 EmptyView()
@@ -55,5 +54,7 @@ private extension SearchView {
 }
 
 #Preview {
-    SearchView(viewModel: SearchViewModel(), selectedTab: .constant(.pokedex))
+    @Previewable
+    @Environment(\.modelContext) var modelContext
+    SearchView(viewModel: SearchViewModel(modelContext: modelContext), selectedTab: .constant(.pokedex))
 }

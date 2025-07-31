@@ -27,7 +27,6 @@ protocol ServiceConfiguration {
 /// detailed records concurrently, and transforming them into view-ready models.
 actor APIService<Config: ServiceConfiguration & Sendable> {
     // MARK: - Private properties
-
     /// The network layer used to perform HTTP requests.
     private let networkService: Network.Service
 

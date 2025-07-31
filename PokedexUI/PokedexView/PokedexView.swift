@@ -113,7 +113,6 @@ private extension TabView {
         viewModel: ViewModel
     ) -> some View {
         self
-            .environment(\.pokemonData, viewModel.pokemon)
             .task { await viewModel.requestPokemon() }
             .tint(Color.pokedexRed)
             .colorScheme(.dark)
@@ -126,6 +125,6 @@ private extension TabView {
     PokedexView(
         viewModel: PokedexViewModel(modelContext: modelContext),
         itemListViewModel: ItemListViewModel(),
-        searchViewModel: SearchViewModel()
+        searchViewModel: SearchViewModel(modelContext: modelContext)
     )
 }

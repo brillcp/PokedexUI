@@ -19,7 +19,7 @@ private struct RootView: View {
         PokedexView(
             viewModel: PokedexViewModel(modelContext: modelContext),
             itemListViewModel: ItemListViewModel(),
-            searchViewModel: SearchViewModel()
+            searchViewModel: SearchViewModel(modelContext: modelContext)
         )
     }
 }
