@@ -74,8 +74,9 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     /// Sorts the Pokémon list using the provided sorting type.
     /// - Parameter type: The sorting strategy to use.
     func sort(by type: SortType) async {
-        let sorted = await Task(priority: .userInitiated) {
-            pokemon.sorted(by: type.comparator)
+        let sorted: [PokemonViewModel] = await Task(priority: .userInitiated) { [weak self] in
+            guard let self else { return [] }
+            return self.pokemon.sorted(by: type.comparator)
         }.value
 
         withAnimation(.bouncy) { pokemon = sorted }

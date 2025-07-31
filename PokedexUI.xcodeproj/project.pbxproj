@@ -132,7 +132,6 @@
 			children = (
 				D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */,
 				9332C0F1273F5454003AF377 /* UIImage.swift */,
-				D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */,
 				D5164F742E22707700E3EC8D /* String.swift */,
 				9332C0DF273F2A36003AF377 /* Color.swift */,
 				D5164F702E226DFE00E3EC8D /* View.swift */,
@@ -156,6 +155,7 @@
 		9332C0F3273F6834003AF377 /* Misc */ = {
 			isa = PBXGroup;
 			children = (
+				D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */,
 				D58C0E012E3A26D0003098EC /* DataStorageReader.swift */,
 				D57F261C2E3AF8F30099ADAE /* DataFetcher.swift */,
 				9332C0E7273F3219003AF377 /* SpriteLoader.swift */,

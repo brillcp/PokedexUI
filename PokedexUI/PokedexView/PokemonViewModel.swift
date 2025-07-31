@@ -93,6 +93,8 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 @MainActor
 extension PokemonViewModel {
     func loadSprite() async {
+        guard frontSprite == nil else { return }
+
         frontSprite = await spriteLoader.spriteImage(from: pokemon.sprite.front)
 
         if let frontSprite, let image = await imageColorAnalyzer.dominantColor(for: id, image: frontSprite) {
