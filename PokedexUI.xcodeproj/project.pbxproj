@@ -327,8 +327,8 @@
 		D5D5030C2E393B8A00AC4BC5 /* ItemSpriteView */ = {
 			isa = PBXGroup;
 			children = (
-				D5F6494A2E30F9D8004FBD18 /* ItemSpriteViewModel.swift */,
 				D5F6494C2E30FA82004FBD18 /* ItemSpriteView.swift */,
+				D5F6494A2E30F9D8004FBD18 /* ItemSpriteViewModel.swift */,
 			);
 			path = ItemSpriteView;
 			sourceTree = "<group>";
