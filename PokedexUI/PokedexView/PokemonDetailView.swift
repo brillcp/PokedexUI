@@ -3,22 +3,22 @@ import SwiftData
 
 struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
     // MARK: Private properties
+    @Environment(\.hapticFeedback) private var haptic: UIImpactFeedbackGenerator
+    @Environment(\.audioPlayer) private var audioPlayer: AudioPlayer
     @Environment(\.modelContext) private var modelContext
+
     @Query(
         filter: #Predicate<Pokemon> { $0.isBookmarked },
         sort: \.id
     )
     private var bookmarks: [Pokemon]
 
-    private let haptic: UIImpactFeedbackGenerator
     @State private var viewModel: ViewModel
     @State private var isFlipped = false
 
     // MARK: - Init
-    init(viewModel: ViewModel, haptic: UIImpactFeedbackGenerator = .init(style: .light)) {
+    init(viewModel: ViewModel) {
         self.viewModel = viewModel
-        self.haptic = haptic
-        haptic.prepare()
     }
 
     // MARK: - Body
@@ -63,9 +63,9 @@ private extension PokemonDetailView {
 
     func actionButtons() -> some View {
         HStack {
-            if let cry = viewModel.latestCry {
+            if let cryURL = viewModel.latestCry {
                 Button {
-                    Task { await viewModel.playBattleCry(cry) }
+                    Task { await viewModel.playBattleCry(cryURL, audioPlayer: audioPlayer) }
                 } label: {
                     imageIcon("speaker.wave.3.fill")
                 }

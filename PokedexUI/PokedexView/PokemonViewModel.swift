@@ -32,20 +32,19 @@ protocol PokemonViewModelProtocol {
     var isBookmarked: Bool { get set }
 
     /// Loads the sprite image asynchronously and updates color.
-    func loadSprite() async
+    /// - Parameters:
+    ///   - spriteLoader: The sprite loader to load sprite images.
+    ///   - imageColorAnalyzer: The image color analyzer to extract dominant colors.
+    func loadSprite(spriteLoader: SpriteLoader, imageColorAnalyzer: ImageColorAnalyzer) async
     /// Play the battle cry of the pokemon.
-    func playBattleCry(_ urlString: String) async
+    /// - Parameter audioPlayer: The audio player to play the pokemon battle cry injected from environment.
+    func playBattleCry(_ urlString: String, audioPlayer: AudioPlayer) async
 }
 
 // MARK: -
 /// ViewModel providing formatted and display-ready data for a single Pokémon.
 @Observable
 final class PokemonViewModel {
-    // MARK: Private properties
-    private let imageColorAnalyzer: ImageColorAnalyzer
-    private let spriteLoader: SpriteLoader
-    private let audioPlayer: AudioPlayer
-
     @ObservationIgnored
     private(set) var statLookup: [String: Int]
     private(set) var pokemon: Pokemon
@@ -56,21 +55,10 @@ final class PokemonViewModel {
     var backSprite: UIImage?
     var color: Color?
 
-    /// Initializes the ViewModel with Pokémon details, a sprite loader and a audio player.
-    /// - Parameters:
-    ///   - pokemon: The detailed Pokémon model.
-    ///   - spriteLoader: The loader for sprite images.
-    ///   - audioPlayer: The audio player to play the pokemon battle cry.
-    init(
-        pokemon: Pokemon,
-        spriteLoader: SpriteLoader = .init(),
-        audioPlayer: AudioPlayer = .init(),
-        imageColorAnalyzer: ImageColorAnalyzer = .init()
-    ) {
-        self.audioPlayer = audioPlayer
-        self.spriteLoader = spriteLoader
+    /// Initializes the ViewModel with Pokémon details.
+    /// - Parameter pokemon: The detailed Pokémon model.
+    init(pokemon: Pokemon) {
         self.pokemon = pokemon
-        self.imageColorAnalyzer = imageColorAnalyzer
         self.statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
     }
 }
@@ -87,12 +75,11 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var stats: [Stat] { pokemon.stats }
     var latestCry: String? { pokemon.cries.latest }
     var moves: String { pokemon.moveList }
-}
 
-// MARK: - Public PokemonViewModelProtocol functions
-@MainActor
-extension PokemonViewModel {
-    func loadSprite() async {
+    func loadSprite(
+        spriteLoader: SpriteLoader,
+        imageColorAnalyzer: ImageColorAnalyzer
+    ) async {
         guard frontSprite == nil else { return }
 
         frontSprite = await spriteLoader.spriteImage(from: pokemon.sprite.front)
@@ -105,8 +92,12 @@ extension PokemonViewModel {
             backSprite = await spriteLoader.spriteImage(from: back)
         }
     }
+}
 
-    func playBattleCry(_ urlString: String) async {
+// MARK: - Public PokemonViewModelProtocol functions
+@MainActor
+extension PokemonViewModel {
+    func playBattleCry(_ urlString: String, audioPlayer: AudioPlayer) async {
         await audioPlayer.play(from: urlString)
     }
 }

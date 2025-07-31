@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
+    @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
+    @Environment(\.spriteLoader) private var spriteLoader
+
     @State private var hasFadedIn = false
 
     @State var viewModel: ViewModel
@@ -12,7 +15,12 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
             sprite
         }
         .aspectRatio(1.0, contentMode: .fit)
-        .task { await viewModel.loadSprite() }
+        .task {
+            await viewModel.loadSprite(
+                spriteLoader: spriteLoader,
+                imageColorAnalyzer: imageColorAnalyzer
+            )
+        }
     }
 }
 
