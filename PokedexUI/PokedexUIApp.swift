@@ -18,8 +18,7 @@ private struct RootView: View {
     var body: some View {
         PokedexView(
             viewModel: PokedexViewModel(modelContext: modelContext),
-            itemListViewModel: ItemListViewModel(modelContext: modelContext),
-            searchViewModel: SearchViewModel(modelContext: modelContext)
+            itemListViewModel: ItemListViewModel(modelContext: modelContext)
         )
     }
 }

@@ -23,7 +23,6 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
             withAnimation(.bouncy) { viewModel.updateFilteredPokemon() }
         }
         .onChange(of: isSearchFocused, dismissSearch)
-        .task { await viewModel.loadData() }
     }
 }
 
@@ -56,5 +55,8 @@ private extension SearchView {
 #Preview {
     @Previewable
     @Environment(\.modelContext) var modelContext
-    SearchView(viewModel: SearchViewModel(modelContext: modelContext), selectedTab: .constant(.pokedex))
+    SearchView(
+        viewModel: SearchViewModel(pokemon: [.init(pokemon: .pikachu)]),
+        selectedTab: .constant(.pokedex)
+    )
 }

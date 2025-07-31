@@ -2,7 +2,7 @@ import SwiftData
 
 @Model
 final class Cries: Decodable {
-    @Attribute var latest: String?
+    var latest: String?
 
     private enum CodingKeys: String, CodingKey {
         case latest

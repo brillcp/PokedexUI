@@ -11,8 +11,8 @@ protocol SearchViewModelProtocol {
 
     /// Filters the Pokémon list based on the query and updates `filteredPokemon`.
     func updateFilteredPokemon()
-    /// Load Pokémon data from local storage
-    func loadData() async
+
+    init(pokemon: [PokemonViewModel])
 }
 
 // MARK: - SearchViewModel
@@ -20,9 +20,8 @@ protocol SearchViewModelProtocol {
 @Observable
 final class SearchViewModel {
     // MARK: Private Properties
-    private let storageReader: DataStorageReader
     /// The full list of Pokémon to be searched.
-    private var pokemon: [PokemonViewModel] = []
+    private var pokemon: [PokemonViewModel]
 
     // MARK: - Public Properties
     /// The filtered Pokémon data.
@@ -32,8 +31,8 @@ final class SearchViewModel {
     var query: String = ""
 
     // MARK: - Init
-    init(modelContext: ModelContext) {
-        self.storageReader = DataStorageReader(modelContainer: modelContext.container)
+    init(pokemon: [PokemonViewModel]) {
+        self.pokemon = pokemon
     }
 }
 
@@ -61,43 +60,5 @@ extension SearchViewModel: SearchViewModelProtocol {
                 name.contains(term) || types.contains(where: { $0.contains(term) })
             }
         }
-    }
-
-    /// Asynchronously loads Pokémon data from local storage and updates the `pokemon` array.
-    ///
-    /// This method fetches all Pokémon from persistent storage, sorts them by ID, and converts them into
-    /// `PokemonViewModel` instances for UI representation. If an error occurs during loading,
-    /// it prints the error to the console.
-    ///
-    /// - Note: This function should be called on the main actor.
-    func loadData() async {
-        pokemon = await fetchDataFromStorageOrAPI()
-    }
-}
-
-// MARK: - DataFetcher implementation
-extension SearchViewModel: DataFetcher {
-    typealias StoredData = Pokemon
-    typealias APIData = PokemonViewModel
-    typealias ViewModel = PokemonViewModel
-
-    func fetchStoredData() async throws -> [StoredData] {
-        try await storageReader.fetch(sortBy: .init(\.id))
-    }
-
-    func fetchAPIData() async throws -> [ViewModel] {
-        [] // Left empty
-    }
-
-    func storeData(_ data: [StoredData]) async throws {
-        // Not implemented
-    }
-
-    func transformToViewModel(_ data: StoredData) -> ViewModel {
-        ViewModel(pokemon: data)
-    }
-
-    func transformForStorage(_ data: ViewModel) -> StoredData {
-        data.pokemon
     }
 }

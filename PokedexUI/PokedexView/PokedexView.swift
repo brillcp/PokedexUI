@@ -4,12 +4,10 @@ import SwiftData
 // MARK: - Main View
 struct PokedexView<
     PokedexViewModel: PokedexViewModelProtocol,
-    ItemListViewModel: ItemListViewModelProtocol,
-    SearchViewModel: SearchViewModelProtocol
+    ItemListViewModel: ItemListViewModelProtocol
 >: View {
     @State var viewModel: PokedexViewModel
     let itemListViewModel: ItemListViewModel
-    let searchViewModel: SearchViewModel
 
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
@@ -45,8 +43,11 @@ private extension PokedexView {
 
     var searchTab: some View {
         NavigationStack {
-            SearchView(viewModel: searchViewModel, selectedTab: $viewModel.selectedTab)
-                .applyPokedexStyling(title: Tabs.search.title)
+            SearchView(
+                viewModel: SearchViewModel(pokemon: viewModel.pokemon),
+                selectedTab: $viewModel.selectedTab
+            )
+            .applyPokedexStyling(title: Tabs.search.title)
         }
     }
 
@@ -124,7 +125,6 @@ private extension TabView {
     @Environment(\.modelContext) var modelContext
     PokedexView(
         viewModel: PokedexViewModel(modelContext: modelContext),
-        itemListViewModel: ItemListViewModel(modelContext: modelContext),
-        searchViewModel: SearchViewModel(modelContext: modelContext)
+        itemListViewModel: ItemListViewModel(modelContext: modelContext)
     )
 }

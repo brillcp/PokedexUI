@@ -2,8 +2,8 @@ import SwiftData
 
 @Model
 final class Sprite: Decodable {
-    @Attribute var front: String
-    @Attribute var back: String?
+    var front: String
+    var back: String?
 
     private enum CodingKeys: String, CodingKey {
         case front = "front_default"

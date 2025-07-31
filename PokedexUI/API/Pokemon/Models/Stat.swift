@@ -2,7 +2,7 @@ import SwiftData
 
 @Model
 final class Stat: Decodable {
-    @Attribute var baseStat: Int
+    var baseStat: Int
     @Relationship var stat: APIItem
 
     private enum CodingKeys: String, CodingKey {

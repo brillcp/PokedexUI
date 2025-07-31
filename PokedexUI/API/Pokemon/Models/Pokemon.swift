@@ -3,10 +3,10 @@ import SwiftData
 @Model
 final class Pokemon: Decodable {
     @Attribute(.unique) var id: Int
-    @Attribute var name: String
-    @Attribute var weight: Int
-    @Attribute var height: Int
-    @Attribute var isBookmarked: Bool = false
+    var name: String
+    var weight: Int
+    var height: Int
+    var isBookmarked: Bool = false
     @Relationship var cries: Cries
     @Relationship var sprite: Sprite
     @Relationship var abilities: [Ability]
