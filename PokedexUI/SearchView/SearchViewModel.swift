@@ -36,6 +36,7 @@ final class SearchViewModel {
     /// The current search query entered by the user.
     var query: String = ""
 
+    // MARK: - Init
     init(modelContext: ModelContext) {
         self.storageReader = DataStorageReader(modelContainer: modelContext.container)
     }
@@ -67,6 +68,13 @@ extension SearchViewModel: SearchViewModelProtocol {
         }
     }
 
+    /// Asynchronously loads Pokémon data from local storage and updates the `pokemon` array.
+    ///
+    /// This method fetches all Pokémon from persistent storage, sorts them by ID, and converts them into
+    /// `PokemonViewModel` instances for UI representation. If an error occurs during loading,
+    /// it prints the error to the console.
+    ///
+    /// - Note: This function should be called on the main actor.
     func loadData() async {
         do {
             let data: [Pokemon] = try await storageReader.fetch(sortBy: .init(\.id)) { $0 }
@@ -76,3 +84,4 @@ extension SearchViewModel: SearchViewModelProtocol {
         }
     }
 }
+
