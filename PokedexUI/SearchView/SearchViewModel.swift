@@ -71,11 +71,33 @@ extension SearchViewModel: SearchViewModelProtocol {
     ///
     /// - Note: This function should be called on the main actor.
     func loadData() async {
-        do {
-            let data: [Pokemon] = try await storageReader.fetch(sortBy: .init(\.id)) { $0 }
-            pokemon = data.map { PokemonViewModel(pokemon: $0) }
-        } catch {
-            print(error)
-        }
+        pokemon = await fetchDataFromStorageOrAPI()
+    }
+}
+
+// MARK: - DataFetcher implementation
+extension SearchViewModel: DataFetcher {
+    typealias StoredData = Pokemon
+    typealias APIData = PokemonViewModel
+    typealias ViewModel = PokemonViewModel
+
+    func fetchStoredData() async throws -> [StoredData] {
+        try await storageReader.fetch(sortBy: .init(\.id)) { $0 }
+    }
+
+    func fetchAPIData() async throws -> [ViewModel] {
+        [] // Left empty
+    }
+
+    func storeData(_ data: [StoredData]) async throws {
+        // Not implemented
+    }
+
+    func transformToViewModel(_ data: StoredData) -> ViewModel {
+        ViewModel(pokemon: data)
+    }
+
+    func transformForStorage(_ data: ViewModel) -> StoredData {
+        data.pokemon
     }
 }
