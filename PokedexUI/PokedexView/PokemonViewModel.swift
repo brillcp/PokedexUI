@@ -42,6 +42,7 @@ protocol PokemonViewModelProtocol {
 @Observable
 final class PokemonViewModel {
     // MARK: Private properties
+    private let imageColorAnalyzer: ImageColorAnalyzer
     private let spriteLoader: SpriteLoader
     private let audioPlayer: AudioPlayer
 
@@ -63,11 +64,13 @@ final class PokemonViewModel {
     init(
         pokemon: Pokemon,
         spriteLoader: SpriteLoader = .init(),
-        audioPlayer: AudioPlayer = .init()
+        audioPlayer: AudioPlayer = .init(),
+        imageColorAnalyzer: ImageColorAnalyzer = .init()
     ) {
         self.audioPlayer = audioPlayer
         self.spriteLoader = spriteLoader
         self.pokemon = pokemon
+        self.imageColorAnalyzer = imageColorAnalyzer
         self.statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
     }
 }
@@ -91,7 +94,10 @@ extension PokemonViewModel: PokemonViewModelProtocol {
 extension PokemonViewModel {
     func loadSprite() async {
         frontSprite = await spriteLoader.spriteImage(from: pokemon.sprite.front)
-        color = Color(uiColor: frontSprite?.dominantColor ?? .darkGray)
+
+        if let frontSprite, let image = await imageColorAnalyzer.dominantColor(for: id, image: frontSprite) {
+            color = Color(uiColor: image)
+        }
 
         if let back = pokemon.sprite.back {
             backSprite = await spriteLoader.spriteImage(from: back)

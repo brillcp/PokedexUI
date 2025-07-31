@@ -57,6 +57,7 @@
 		D5F41B762E256D5A000341D3 /* ItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F41B752E256D5A000341D3 /* ItemRowView.swift */; };
 		D5F6494B2E30F9D8004FBD18 /* ItemSpriteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F6494A2E30F9D8004FBD18 /* ItemSpriteViewModel.swift */; };
 		D5F6494D2E30FA82004FBD18 /* ItemSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F6494C2E30FA82004FBD18 /* ItemSpriteView.swift */; };
+		D5FED1BD2E3B973A0013D99B /* ImageColorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -111,6 +112,7 @@
 		D5F41B752E256D5A000341D3 /* ItemRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRowView.swift; sourceTree = "<group>"; };
 		D5F6494A2E30F9D8004FBD18 /* ItemSpriteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSpriteViewModel.swift; sourceTree = "<group>"; };
 		D5F6494C2E30FA82004FBD18 /* ItemSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSpriteView.swift; sourceTree = "<group>"; };
+		D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageColorAnalyzer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 			children = (
 				D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */,
 				9332C0F1273F5454003AF377 /* UIImage.swift */,
+				D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */,
 				D5164F742E22707700E3EC8D /* String.swift */,
 				9332C0DF273F2A36003AF377 /* Color.swift */,
 				D5164F702E226DFE00E3EC8D /* View.swift */,
@@ -386,6 +389,7 @@
 			files = (
 				D5164F712E226DFE00E3EC8D /* View.swift in Sources */,
 				D57F261D2E3AF8F30099ADAE /* DataFetcher.swift in Sources */,
+				D5FED1BD2E3B973A0013D99B /* ImageColorAnalyzer.swift in Sources */,
 				D58C0E0D2E3A6DE7003098EC /* Ability.swift in Sources */,
 				D57366192E2116B200FE4ED0 /* APIModels.swift in Sources */,
 				D58C0E0A2E3A6DA1003098EC /* Sprite.swift in Sources */,
