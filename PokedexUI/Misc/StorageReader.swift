@@ -1,30 +1,41 @@
 import SwiftData
 import Foundation
 
-/// An actor responsible for reading and writing `Pokemon` models to SwiftData storage.
+/// An actor responsible for safely reading and writing model objects conforming to `PersistentModel` using SwiftData storage.
 ///
-/// `PokemonStorageReader` uses a thread-safe `ModelContext` via `@ModelActor` to perform
-/// insert and fetch operations, ensuring safe concurrency when interacting with the data layer.
+/// `PokemonStorageReader` leverages the concurrency-safe `@ModelActor` macro to provide an isolated execution context for
+/// all storage operations. This ensures thread safety and data consistency when performing inserts and fetches on the underlying data layer.
+///
+/// - Note: This actor is generic and can operate on any model conforming to `PersistentModel`, not just `Pokemon`.
+/// - Important: All operations are performed on the actor's internal `modelContext`, providing automatic protection from data races.
 @ModelActor
 actor PokemonStorageReader {
-    /// Stores an array of `PokemonViewModel` instances in the SwiftData model context.
+    /// Stores an array of provided `PersistentModel` instances into the actor's SwiftData model context and persists them.
     ///
-    /// - Parameter models: An array of view models whose `pokemon` models will be inserted.
-    /// - Throws: An error if the insertion or save operation fails.
-    func store(_ models: [PokemonViewModel]) throws {
+    /// This method inserts each model into the context and attempts to save the changes. It is generic and supports any type conforming to
+    /// `PersistentModel`.
+    ///
+    /// - Parameter models: An array of models to be inserted and persisted.
+    /// - Throws: An error if the insertion or save operation fails in the underlying `ModelContext`.
+    func store<M: PersistentModel>(_ models: [M]) throws {
         let context = modelContext
-        models.forEach { context.insert($0.pokemon) }
+        models.forEach { context.insert($0) }
         try context.save()
     }
 
-    /// Fetches all stored `Pokemon` models and maps them to `PokemonViewModel`.
+    /// Fetches all stored objects of type `M` from the SwiftData store, applies a transformation closure to each, and returns the results.
     ///
-    /// - Returns: An array of `PokemonViewModel` instances sorted by ID in ascending order.
-    /// - Throws: An error if the fetch operation fails.
-    func fetchAll() throws -> [PokemonViewModel] {
+    /// You can specify a sort order using a `SortDescriptor`, and pass a transformation closure to process each model prior to returning.
+    ///
+    /// - Parameters:
+    ///   - sortBy: The `SortDescriptor` that determines the order of the fetched results.
+    ///   - block: A closure that is called for each fetched model, returning the transformed item.
+    /// - Returns: An array of the transformed models of type `M`, sorted according to the provided descriptor.
+    /// - Throws: An error if the fetch operation from the context fails.
+    func fetch<M: PersistentModel>(sortBy: SortDescriptor<M>, _ block: @escaping (M) -> M) throws -> [M] {
         let context = modelContext
-        let descriptor = FetchDescriptor<Pokemon>(sortBy: [.init(\.id)])
+        let descriptor = FetchDescriptor<M>(sortBy: [sortBy])
         let storedPokemon = try context.fetch(descriptor)
-        return storedPokemon.map { PokemonViewModel(pokemon: $0) }
+        return storedPokemon.map { block($0) }
     }
 }

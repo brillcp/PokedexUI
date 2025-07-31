@@ -68,7 +68,11 @@ extension SearchViewModel: SearchViewModelProtocol {
     }
 
     func loadData() async {
-        guard let data = try? await storageReader.fetchAll() else { return }
-        pokemon = data
+        do {
+            let data: [Pokemon] = try await storageReader.fetch(sortBy: .init(\.id)) { $0 }
+            pokemon = data.map { PokemonViewModel(pokemon: $0) }
+        } catch {
+            print(error)
+        }
     }
 }

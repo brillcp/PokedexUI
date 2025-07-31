@@ -20,5 +20,5 @@ struct ItemDetailView<ViewModel: ItemDetailViewModelProtocol>: View {
 }
 
 #Preview {
-    ItemDetailView(viewModel: ItemDetailViewModel(item: .init()))
+    ItemDetailView(viewModel: ItemDetailViewModel(item: .init(title: "title", items: [])))
 }

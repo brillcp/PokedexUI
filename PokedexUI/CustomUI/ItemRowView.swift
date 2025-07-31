@@ -6,7 +6,7 @@ struct ItemRowView: View {
     var body: some View {
         HStack {
             ItemSpriteView(viewModel: ItemSpriteViewModel(spriteURL: spriteURL))
-            Text(item.title?.pretty ?? "none")
+            Text(item.title.pretty)
             Spacer()
             Text(">")
         }
@@ -22,5 +22,5 @@ private extension ItemRowView {
 }
 
 #Preview {
-    ItemRowView(item: .init())
+    ItemRowView(item: .init(title: "", items: []))
 }

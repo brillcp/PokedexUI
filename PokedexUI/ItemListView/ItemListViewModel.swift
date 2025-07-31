@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 /// Protocol defining an observable view model that manages a list of items and supports searching.
 @MainActor
@@ -19,6 +20,7 @@ protocol ItemListViewModelProtocol {
 final class ItemListViewModel {
     /// Service responsible for fetching items.
     private let itemService: ItemServiceProtocol
+    private let storage: PokemonStorageReader
 
     /// The list of items currently displayed to the user.
     var items: [ItemData] = []
@@ -28,8 +30,9 @@ final class ItemListViewModel {
 
     /// Initializes a new instance of `ItemsListViewModel` with an optional item service.
     /// - Parameter itemService: The service used to fetch items. Defaults to a new `ItemService`.
-    init(itemService: ItemService = ItemService()) {
+    init(modelContext: ModelContext, itemService: ItemService = ItemService()) {
         self.itemService = itemService
+        self.storage = PokemonStorageReader(modelContainer: modelContext.container)
     }
 }
 
@@ -40,13 +43,45 @@ extension ItemListViewModel: ItemListViewModelProtocol {
     @MainActor
     func loadItems() async {
         guard !isLoading, items.isEmpty else { return }
-        isLoading.toggle()
-        defer { isLoading.toggle() }
 
-        do {
-            items = try await itemService.requestItems()
-        } catch {
-            print(error.localizedDescription)
+        items = await withLoadingState {
+            await fetchDataFromStorageOrAPI()
         }
+    }
+}
+
+// MARK: - DataFetcher implementation
+extension ItemListViewModel: DataFetcher {
+    typealias StoredData = ItemData
+    typealias APIData = ItemData
+    typealias ViewModel = ItemData
+
+    func fetchStoredData() async throws -> [StoredData] {
+        try await storage.fetch(sortBy: SortDescriptor(\.title)) { $0 }
+    }
+
+    func fetchAPIData() async throws -> [APIData] {
+        try await itemService.requestItems()
+    }
+
+    func storeData(_ data: [StoredData]) async throws {
+        try await storage.store(data)
+    }
+
+    func transformToViewModel(_ data: StoredData) -> ViewModel {
+        ViewModel(title: data.title, items: data.items)
+    }
+
+    func transformForStorage(_ data: ViewModel) -> StoredData {
+        data
+    }
+}
+
+// MARK: - Private loading function
+private extension ItemListViewModel {
+    func withLoadingState<T>(_ operation: () async throws -> T) async rethrows -> T {
+        isLoading = true
+        defer { isLoading = false }
+        return try await operation()
     }
 }

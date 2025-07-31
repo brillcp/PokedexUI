@@ -7,7 +7,7 @@ struct PokedexUIApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [Pokemon.self])
+        .modelContainer(for: [ItemData.self, Pokemon.self])
     }
 }
 
@@ -18,7 +18,7 @@ private struct RootView: View {
     var body: some View {
         PokedexView(
             viewModel: PokedexViewModel(modelContext: modelContext),
-            itemListViewModel: ItemListViewModel(),
+            itemListViewModel: ItemListViewModel(modelContext: modelContext),
             searchViewModel: SearchViewModel(modelContext: modelContext)
         )
     }

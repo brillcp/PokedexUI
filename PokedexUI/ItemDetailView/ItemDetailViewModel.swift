@@ -25,7 +25,7 @@ final class ItemDetailViewModel {
 extension ItemDetailViewModel: ItemDetailViewModelProtocol {
     /// The display title for this item, using a pretty format or "Unknown" if unavailable.
     var title: String {
-        item.title?.pretty ?? "Unknown"
+        item.title.pretty
     }
 
     /// The details for each item associated with this data.

@@ -69,8 +69,8 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {
         guard !isLoading else { return }
 
-        await withLoadingState {
-            pokemon = await fetchPokemonFromStorageOrAPI()
+        pokemon = await withLoadingState {
+            await fetchDataFromStorageOrAPI()
         }
     }
 
@@ -81,48 +81,35 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     }
 }
 
-// MARK: - Private fetch helper functions
+// MARK: - DataFetcher implementation
+extension PokedexViewModel: DataFetcher {
+    typealias StoredData = Pokemon
+    typealias APIData = PokemonViewModel
+    typealias ViewModel = PokemonViewModel
+
+    func fetchStoredData() async throws -> [StoredData] {
+        try await storageReader.fetch(sortBy: SortDescriptor(\.id)) { $0 }
+    }
+
+    func fetchAPIData() async throws -> [APIData] {
+        try await pokemonService.requestPokemon()
+    }
+
+    func storeData(_ data: [StoredData]) async throws {
+        try await storageReader.store(data)
+    }
+
+    func transformToViewModel(_ data: StoredData) -> ViewModel {
+        ViewModel(pokemon: data)
+    }
+
+    func transformForStorage(_ data: ViewModel) -> StoredData {
+        data.pokemon
+    }
+}
+
+// MARK: - Private loading function
 private extension PokedexViewModel {
-    /// Attempts to retrieve Pokémon from local storage first; if unavailable or empty, fetches from the API instead.
-    /// - Returns: An array of `PokemonViewModel` either from local storage or the API.
-    /// - Note: This method prioritizes stored data for performance.
-    func fetchPokemonFromStorageOrAPI() async -> [PokemonViewModel] {
-        guard let localPokemon = await fetchStoredPokemon(), !localPokemon.isEmpty else {
-            return await fetchPokemonFromAPI()
-        }
-        return localPokemon
-    }
-
-    /// Fetches all stored Pokémon from persistent storage.
-    /// - Returns: An array of `PokemonViewModel` if retrieval is successful; otherwise, `nil`.
-    /// - Throws: Logs and returns nil on failure to fetch from storage.
-    func fetchStoredPokemon() async -> [PokemonViewModel]? {
-        do {
-            return try await storageReader.fetchAll()
-        } catch {
-            print("Failed to fetch stored Pokémon: \(error)")
-            return nil
-        }
-    }
-
-    /// Requests Pokémon from the external API and stores the result locally.
-    /// - Returns: The fetched array of `PokemonViewModel` on success; empty array if the API call fails.
-    /// - Throws: Errors are caught and logged; function returns an empty array on failure.
-    func fetchPokemonFromAPI() async -> [PokemonViewModel] {
-        do {
-            let apiPokemon = try await pokemonService.requestPokemon()
-            try await storageReader.store(apiPokemon)
-            return apiPokemon
-        } catch {
-            print("API request failed: \(error)")
-            return []
-        }
-    }
-
-    /// Executes the given asynchronous operation while updating the `isLoading` state.
-    /// - Parameter operation: An async closure to perform while loading.
-    /// - Returns: The result of the operation.
-    /// - Note: Ensures `isLoading` is set to `true` during the operation and reset to `false` afterwards, even on error.
     func withLoadingState<T>(_ operation: () async throws -> T) async rethrows -> T {
         isLoading = true
         defer { isLoading = false }
