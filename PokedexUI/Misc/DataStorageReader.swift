@@ -29,13 +29,13 @@ actor DataStorageReader {
     ///
     /// - Parameters:
     ///   - sortBy: The `SortDescriptor` that determines the order of the fetched results.
-    ///   - block: A closure that is called for each fetched model, returning the transformed item.
+    ///   - transform: A closure that is called for each fetched model, returning the transformed item.
     /// - Returns: An array of the transformed models of type `M`, sorted according to the provided descriptor.
     /// - Throws: An error if the fetch operation from the context fails.
-    func fetch<M: PersistentModel>(sortBy: SortDescriptor<M>, _ block: @escaping (M) -> M) throws -> [M] {
+    func fetch<M: PersistentModel>(sortBy: SortDescriptor<M>, _ transform: @escaping (M) -> M) throws -> [M] {
         let context = modelContext
         let descriptor = FetchDescriptor<M>(sortBy: [sortBy])
         let storedPokemon = try context.fetch(descriptor)
-        return storedPokemon.map { block($0) }
+        return storedPokemon.map { transform($0) }
     }
 }
