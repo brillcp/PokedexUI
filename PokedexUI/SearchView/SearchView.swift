@@ -20,7 +20,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
         .overlay(resultText)
         .scrollDismissesKeyboard(.immediately)
         .onChange(of: viewModel.query) { _, _ in
-            withAnimation(.default.delay(0.3)) { viewModel.updateFilteredPokemon() }
+            withAnimation(.bouncy) { viewModel.updateFilteredPokemon() }
         }
         .onChange(of: isSearchFocused, dismissSearch)
         .task { await viewModel.loadData() }
