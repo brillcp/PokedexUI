@@ -39,7 +39,7 @@ extension SearchViewModel: SearchViewModelProtocol {
     /// and filters Pokémon whose name or types match all terms.
     func updateFilteredPokemon() {
         let queryTerms = query
-            .split(whereSeparator: { $0.isWhitespace })
+            .split(whereSeparator: \.isWhitespace)
             .map { String($0).normalize }
             .filter { !$0.isEmpty }
 

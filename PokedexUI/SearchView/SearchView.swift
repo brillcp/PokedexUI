@@ -24,7 +24,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
             withAnimation { viewModel.updateFilteredPokemon() }
         }
         .onChange(of: isSearchFocused, dismissSearch)
-        .task(id: pokemonData) { viewModel.pokemonSource = pokemonData }
+        .onAppear { viewModel.pokemonSource = pokemonData }
     }
 }
 
