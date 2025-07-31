@@ -10,13 +10,13 @@ struct BookmarksView: View {
 
     var body: some View {
         NavigationStack {
-            if favouriteVMs.isEmpty {
+            if pokemonViewModels.isEmpty {
                 Text("No favourites yet…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .font(.pixel14)
             } else {
                 PokedexGridView(
-                    pokemon: favouriteVMs,
+                    pokemon: pokemonViewModels,
                     grid: .three
                 )
             }
@@ -26,7 +26,7 @@ struct BookmarksView: View {
 
 // MARK: - Private calculated properties
 private extension BookmarksView {
-    var favouriteVMs: [PokemonViewModel] {
+    var pokemonViewModels: [PokemonViewModel] {
         bookmarks.map { PokemonViewModel(pokemon: $0) }
     }
 }
