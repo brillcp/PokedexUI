@@ -2,8 +2,8 @@ import SwiftData
 
 @Model
 final class APIItem: Decodable {
-    @Attribute var name: String
-    @Attribute var url: String
+    var name: String
+    var url: String
 
     private enum CodingKeys: String, CodingKey {
         case name

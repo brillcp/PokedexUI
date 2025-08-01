@@ -3,7 +3,7 @@ import Foundation
 
 /// An actor responsible for safely reading and writing model objects conforming to `PersistentModel` using SwiftData storage.
 ///
-/// `PokemonStorageReader` leverages the concurrency-safe `@ModelActor` macro to provide an isolated execution context for
+/// `DataStorageReader` leverages the concurrency-safe `@ModelActor` macro to provide an isolated execution context for
 /// all storage operations. This ensures thread safety and data consistency when performing inserts and fetches on the underlying data layer.
 ///
 /// - Note: This actor is generic and can operate on any model conforming to `PersistentModel`, not just `Pokemon`.

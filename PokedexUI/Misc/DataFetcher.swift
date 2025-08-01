@@ -10,7 +10,7 @@ protocol DataFetcher {
     /// The concrete type representing items as fetched from a remote API (e.g., DTO).
     associatedtype APIData
     /// The concrete type representing items as presented to the UI (e.g., view model).
-    associatedtype ViewModel
+    associatedtype ViewModel where ViewModel == APIData
 
     /// Fetches all items from persistent storage.
     /// - Returns: An array of stored data objects.
@@ -66,7 +66,7 @@ private extension DataFetcher {
             let apiData = try await fetchAPIData()
             let storageData = apiData.map(transformForStorage)
             try await storeData(storageData)
-            return storageData.map(transformToViewModel)
+            return apiData
         } catch {
             print("API request failed: \(error)")
             return []
