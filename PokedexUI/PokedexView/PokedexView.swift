@@ -94,7 +94,7 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
 
     private var sortMenu: some View {
         Menu {
-            Text("Sort by")
+            Label("Sort by", systemImage: "arrow.up.and.down.text.horizontal")
             ForEach(SortType.allCases, id: \.self) { type in
                 Button {
                     Task { await viewModel.sort(by: type) }
