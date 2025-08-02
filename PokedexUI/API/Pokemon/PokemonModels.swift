@@ -60,7 +60,7 @@ final class Pokemon: Decodable {
 
 // MARK: - Private decoding helper fucntion
 private extension KeyedDecodingContainer {
-    func decode<T: Decodable>(limitedTo count: Int, forKey key: K, ) throws -> [T] {
+    func decode<T: Decodable>(limitedTo count: Int, forKey key: K) throws -> [T] {
         let container = try nestedUnkeyedContainer(forKey: key)
         var output = [T]()
 
