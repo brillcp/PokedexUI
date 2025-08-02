@@ -9,7 +9,7 @@ extension ImageColorAnalyzer {
     func dominantColor(for id: Int, image: UIImage) -> UIColor? {
         if let cached = cache[id] { return cached }
 
-        guard let cgImage = image.resize(to: CGSize(width: 30, height: 30))?.cgImage,
+        guard let cgImage = image.resize(to: CGSize(width: 50, height: 50))?.cgImage,
               let data = cgImage.dataProvider?.data,
               let bytes = CFDataGetBytePtr(data) else {
             return nil
@@ -34,7 +34,7 @@ extension ImageColorAnalyzer {
             }
         }
 
-        let threshold = Int(CGFloat(height) * 0.005)
+        let threshold = Int(CGFloat(height) * 0.01)
         let sortedColors = colorCounts
             .filter { $0.value > threshold }
             .sorted { $0.value > $1.value }
