@@ -92,7 +92,7 @@ private extension PokemonDetailView {
             }
         }
         .buttonStyle(.glass)
-        .tint(.white)
+        .tint(color?.isLight ?? false ? .black : .white)
         .padding()
     }
 
