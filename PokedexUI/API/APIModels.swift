@@ -6,8 +6,7 @@ final class APIItem: Decodable {
     var url: String
 
     private enum CodingKeys: String, CodingKey {
-        case name
-        case url
+        case name, url
     }
 
     required init(from decoder: Decoder) throws {

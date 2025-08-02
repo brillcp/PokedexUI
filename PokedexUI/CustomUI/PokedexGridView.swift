@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PokedexGridView<Pokemon: PokemonViewModel>: View {
+struct PokedexGridView<Pokemon: PokemonViewModelProtocol>: View {
     let pokemon: [Pokemon]
     let grid: GridLayout
     var isLoading: Bool = false
@@ -27,10 +27,10 @@ struct PokedexGridView<Pokemon: PokemonViewModel>: View {
 }
 
 // MARK: - Grid item
-private struct PokedexGridItem<ViewModel: PokemonViewModel>: View {
+private struct PokedexGridItem<ViewModel: PokemonViewModelProtocol>: View {
     @Namespace private var namespace
 
-    let pokemon: ViewModel
+    var pokemon: ViewModel
     let grid: GridLayout
 
     var body: some View {

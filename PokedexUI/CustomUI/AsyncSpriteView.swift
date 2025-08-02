@@ -1,47 +1,46 @@
 import SwiftUI
 
 struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
+    // MARK: Private properties
     @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
     @Environment(\.spriteLoader) private var spriteLoader
 
     @State private var hasFadedIn = false
+    @State private var sprite: Image?
+    @State private var color: Color?
 
+    // MARK: - Public properties
     @State var viewModel: ViewModel
     let showOverlay: Bool
 
+    // MARK: - Body
     var body: some View {
         ZStack {
             Color(.darkGray)
-            sprite
+            sprite?
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .background(color)
+                .overlay(cardOverlay(for: viewModel))
+                .if(!hasFadedIn) { $0.fadeIn(when: sprite) }
+                .onChange(of: sprite) { _, newSprite in
+                    guard newSprite != nil, !hasFadedIn else { return }
+                    hasFadedIn = true
+                }
         }
         .aspectRatio(1.0, contentMode: .fit)
-        .task {
-            await viewModel.loadSprite(
-                spriteLoader: spriteLoader,
-                imageColorAnalyzer: imageColorAnalyzer
-            )
+        .task(id: viewModel.id) {
+            if let image = await spriteLoader.spriteImage(from: viewModel.frontSprite),
+               let uicolor = await imageColorAnalyzer.dominantColor(for: viewModel.id, image: image) {
+                color = Color(uiColor: uicolor)
+                sprite = Image(uiImage: image)
+            }
         }
     }
 }
 
 // MARK: - Private UI components
 private extension AsyncSpriteView {
-    @ViewBuilder
-    var sprite: some View {
-        if let sprite = viewModel.frontSprite {
-            Image(uiImage: sprite)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .background(viewModel.color)
-                .overlay(cardOverlay(for: viewModel))
-                .if(!hasFadedIn) { $0.fadeIn(when: sprite) }
-                .onChange(of: viewModel.frontSprite) { _, newSprite in
-                    guard newSprite != nil, !hasFadedIn else { return }
-                    hasFadedIn = true
-                }
-        }
-    }
-
     @ViewBuilder
     func cardOverlay(for pokemon: PokemonViewModelProtocol) -> some View {
         if showOverlay {

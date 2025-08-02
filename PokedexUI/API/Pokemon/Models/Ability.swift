@@ -2,7 +2,10 @@ import SwiftData
 
 @Model
 final class Ability: Decodable {
-    @Relationship var ability: APIItem
+    var ability: APIItem
+
+    @Relationship(inverse: \Pokemon.abilities)
+    var pokemon: Pokemon?
 
     private enum CodingKeys: String, CodingKey {
         case ability

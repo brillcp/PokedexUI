@@ -3,9 +3,9 @@ import SwiftData
 @Model
 final class ItemDetail: Decodable {
     @Attribute(.unique) var id: Int
-    @Attribute var name: String
-    @Relationship var sprites: ItemSprite
-    @Relationship var category: APIItem
+    var name: String
+    var sprites: ItemSprite
+    var category: APIItem
     @Relationship var effect: [Effect]
 
     private enum CodingKeys: String, CodingKey {
@@ -34,8 +34,8 @@ final class ItemDetail: Decodable {
 // MARK: -
 @Model
 final class ItemData {
-    @Attribute var title: String
-    @Attribute var items: [ItemDetail]
+    var title: String
+    var items: [ItemDetail]
 
     init(title: String, items: [ItemDetail]) {
         self.title = title
@@ -52,7 +52,7 @@ extension ItemData {
 // MARK: -
 @Model
 final class ItemSprite: Decodable {
-    @Attribute var `default`: String
+    var `default`: String
 
     private enum CodingKeys: String, CodingKey {
         case `default` = "default"
@@ -71,7 +71,10 @@ final class ItemSprite: Decodable {
 // MARK: -
 @Model
 final class Effect: Decodable {
-    @Attribute var effect: String
+    var effect: String
+
+    @Relationship(inverse: \ItemDetail.effect)
+    var itemDetail: ItemDetail?
 
     private enum CodingKeys: String, CodingKey {
         case effect

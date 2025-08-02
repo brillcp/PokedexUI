@@ -2,7 +2,10 @@ import SwiftData
 
 @Model
 final class Move: Decodable {
-    @Relationship var move: APIItem
+    var move: APIItem
+
+    @Relationship(inverse: \Pokemon.moves)
+    var pokemon: Pokemon?
 
     private enum CodingKeys: String, CodingKey {
         case move

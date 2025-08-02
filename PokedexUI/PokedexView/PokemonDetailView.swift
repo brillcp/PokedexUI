@@ -4,7 +4,9 @@ import SwiftData
 struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
     // MARK: Private properties
     @Environment(\.hapticFeedback) private var haptic: UIImpactFeedbackGenerator
+    @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
     @Environment(\.audioPlayer) private var audioPlayer: AudioPlayer
+    @Environment(\.spriteLoader) private var spriteLoader
     @Environment(\.modelContext) private var modelContext
 
     @Query(
@@ -15,6 +17,9 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
 
     @State private var viewModel: ViewModel
     @State private var isFlipped = false
+    @State private var frontSprite: Image?
+    @State private var backSprite: Image?
+    @State private var color: Color?
 
     // MARK: - Init
     init(viewModel: ViewModel) {
@@ -26,7 +31,12 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 ZStack(alignment: .bottom) {
-                    sprite()
+                    (isFlipped ? backSprite : frontSprite)?
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 320)
+                        .modifier(Perspective3D(isFlipped: $isFlipped))
+                        .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: isFlipped)
                     actionButtons()
                 }
 
@@ -43,29 +53,30 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
                 .foregroundStyle(.white)
             }
         }
+        .task(id: viewModel.id) {
+            if let image = await spriteLoader.spriteImage(from: viewModel.frontSprite),
+               let uicolor = await imageColorAnalyzer.dominantColor(for: viewModel.id, image: image) {
+                color = Color(uiColor: uicolor)
+                frontSprite = Image(uiImage: image)
+                if let back = viewModel.backSprite, let img = await spriteLoader.spriteImage(from: back) {
+                    backSprite = Image(uiImage: img)
+                }
+            }
+        }
         .onAppear {
             viewModel.isBookmarked = bookmarks.contains(where: { $0.id == viewModel.id })
         }
-        .applyDetailViewStyling(viewModel: viewModel)
+        .applyDetailViewStyling(viewModel: viewModel, color: color)
     }
 }
 
 // MARK: - Content Sections
 private extension PokemonDetailView {
-    func sprite() -> some View {
-        Image(uiImage: (isFlipped ? viewModel.backSprite : viewModel.frontSprite) ?? UIImage())
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(height: 320)
-            .modifier(Perspective3D(isFlipped: $isFlipped))
-            .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: isFlipped)
-    }
-
     func actionButtons() -> some View {
         HStack {
             if let cryURL = viewModel.latestCry {
                 Button {
-                    Task { await viewModel.playBattleCry(cryURL, audioPlayer: audioPlayer) }
+                    Task { await audioPlayer.play(from: cryURL) }
                 } label: {
                     imageIcon("speaker.wave.3.fill")
                 }
@@ -126,7 +137,7 @@ private extension PokemonDetailView {
             detailRowStat(
                 title: stat.stat.name,
                 value: stat.baseStat,
-                color: viewModel.color
+                color: color
             )
         }
     }
@@ -208,11 +219,12 @@ private extension PokemonDetailView {
 // MARK: - View Modifiers
 private extension View {
     func applyDetailViewStyling<ViewModel: PokemonViewModelProtocol>(
-        viewModel: ViewModel
+        viewModel: ViewModel,
+        color: Color?
     ) -> some View {
         ZStack {
             VStack(spacing: 0) {
-                viewModel.color
+                color
                 Spacer()
                 Color.darkGrey
                     .frame(height: 300)

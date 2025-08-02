@@ -3,7 +3,10 @@ import SwiftData
 @Model
 final class Stat: Decodable {
     var baseStat: Int
-    @Relationship var stat: APIItem
+    var stat: APIItem
+
+    @Relationship(inverse: \Pokemon.stats)
+    var pokemon: Pokemon?
 
     private enum CodingKeys: String, CodingKey {
         case stat
