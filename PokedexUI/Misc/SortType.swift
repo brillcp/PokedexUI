@@ -21,11 +21,11 @@ enum SortType: Hashable {
 extension SortType {
     var title: String {
         switch self {
-            case .number: "Sort by Number"
-            case .name: "Sort by Name"
-            case .height: "Sort by Height"
-            case .weight: "Sort by Weight"
-            case .stat(let name): "Sort by \(name.displayName)"
+            case .number: "Number"
+            case .name: "Name"
+            case .height: "Height"
+            case .weight: "Weight"
+            case .stat(let name): "\(name.displayName)"
         }
     }
 
