@@ -65,7 +65,7 @@ private extension KeyedDecodingContainer {
         var output = [T]()
 
         var tempContainer = container
-        while !tempContainer.isAtEnd && output.count <= count {
+        while !tempContainer.isAtEnd && output.count < count {
             output.append(try tempContainer.decode(T.self))
         }
         return output
