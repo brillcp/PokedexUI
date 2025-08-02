@@ -52,7 +52,7 @@ final class Pokemon: Decodable {
         cries = try container.decode(Cries.self, forKey: .cries)
         sprite = try container.decode(Sprite.self, forKey: .sprite)
         abilities = try container.decode([Ability].self, forKey: .abilities)
-        moves = try container.limitedDecoding(forKey: .moves)
+        moves = try container.decode(limitedTo: 10, forKey: .moves)
         types = try container.decode([Type].self, forKey: .types)
         stats = try container.decode([Stat].self, forKey: .stats)
     }
@@ -60,12 +60,12 @@ final class Pokemon: Decodable {
 
 // MARK: - Private decoding helper fucntion
 private extension KeyedDecodingContainer {
-    func limitedDecoding<T: Decodable>(forKey key: K, maxCount: Int = 10) throws -> [T] {
+    func decode<T: Decodable>(limitedTo count: Int, forKey key: K, ) throws -> [T] {
         let container = try nestedUnkeyedContainer(forKey: key)
         var output = [T]()
 
         var tempContainer = container
-        while !tempContainer.isAtEnd && output.count <= maxCount {
+        while !tempContainer.isAtEnd && output.count <= count {
             output.append(try tempContainer.decode(T.self))
         }
         return output
