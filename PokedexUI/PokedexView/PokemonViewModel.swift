@@ -6,8 +6,6 @@ protocol PokemonViewModelProtocol {
     var frontSprite: String { get }
     /// The Pokémon back sprite image.
     var backSprite: String? { get }
-    /// Indicates if the color is light for UI adjustments.
-    var isLight: Bool { get }
     /// Types associated with the Pokémon.
     var types: String { get }
     /// Abilities associated with the Pokémon.
@@ -28,7 +26,6 @@ protocol PokemonViewModelProtocol {
     var latestCry: String? { get }
     /// A boolean value that determine if the Pokémon is bookmarked.
     var isBookmarked: Bool { get set }
-
 }
 
 // MARK: -
@@ -59,20 +56,11 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var backSprite: String? { pokemon.sprite.back }
     var height: String { pokemon.formattedHeight }
     var weight: String { pokemon.formattedWeight }
-    var isLight: Bool { false }
     var types: String { pokemon.typeList }
     var abilities: String { pokemon.abilityList }
     var stats: [Stat] { pokemon.stats }
     var latestCry: String? { pokemon.cries.latest }
     var moves: String { pokemon.moveList }
-}
-
-// MARK: - Public PokemonViewModelProtocol functions
-@MainActor
-extension PokemonViewModel {
-    func playBattleCry(_ urlString: String, audioPlayer: AudioPlayer) async {
-        await audioPlayer.play(from: urlString)
-    }
 }
 
 // MARK: - Equatable

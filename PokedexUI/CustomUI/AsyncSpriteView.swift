@@ -54,7 +54,7 @@ private extension AsyncSpriteView {
                 Text(pokemon.name)
             }
             .padding(.bottom, 10)
-            .foregroundStyle(pokemon.isLight ? .black : .white)
+            .foregroundStyle(color?.isLight ?? false ? .black : .white)
         }
     }
 }

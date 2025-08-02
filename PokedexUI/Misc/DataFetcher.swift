@@ -39,6 +39,7 @@ extension DataFetcher {
     /// Fetches data from local storage if available; otherwise, fetches it from the API. Returns the data as view models.
     /// - Returns: An array of view models, sourced from storage or API as needed.
     func fetchDataFromStorageOrAPI() async -> [ViewModel] {
+        return await fetchDataFromAPI()
         guard let localData = await fetchStoredDataSafely(), !localData.isEmpty else {
             return await fetchDataFromAPI()
         }
