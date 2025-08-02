@@ -30,9 +30,7 @@ protocol PokemonViewModelProtocol {
 
 // MARK: -
 /// ViewModel providing formatted and display-ready data for a single Pokémon.
-@Observable
-final class PokemonViewModel {
-    @ObservationIgnored
+struct PokemonViewModel {
     private(set) var statLookup: [String: Int]
     private(set) var pokemon: Pokemon
 
@@ -51,16 +49,23 @@ final class PokemonViewModel {
 // MARK: - Calculated PokemonViewModelProtocol properties
 extension PokemonViewModel: PokemonViewModelProtocol {
     var id: Int { pokemon.id }
-    var name: String { pokemon.capitalizedName }
+    var name: String { pokemon.name.capitalized }
     var frontSprite: String { pokemon.sprite.front }
     var backSprite: String? { pokemon.sprite.back }
-    var height: String { pokemon.formattedHeight }
-    var weight: String { pokemon.formattedWeight }
-    var types: String { pokemon.typeList }
-    var abilities: String { pokemon.abilityList }
-    var stats: [Stat] { pokemon.stats }
+    var height: String { "\(Double(pokemon.height) / 10.0) m" }
+    var weight: String { "\(Double(pokemon.height) / 10.0) m" }
     var latestCry: String? { pokemon.cries.latest }
-    var moves: String { pokemon.moveList }
+    var stats: [Stat] { pokemon.stats }
+
+    var types: String {
+        pokemon.types.map { $0.type.name.capitalized }.joined(separator: ", ")
+    }
+    var abilities: String {
+        pokemon.abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n")
+    }
+    var moves: String {
+        pokemon.moves.map { $0.move.name.capitalized }.joined(separator: ", ")
+    }
 }
 
 // MARK: - Equatable

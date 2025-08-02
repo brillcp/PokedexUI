@@ -46,13 +46,7 @@
 		D57F261D2E3AF8F30099ADAE /* DataFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57F261C2E3AF8F30099ADAE /* DataFetcher.swift */; };
 		D58C0DFB2E398709003098EC /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0DFA2E398709003098EC /* BookmarksView.swift */; };
 		D58C0E022E3A26D0003098EC /* DataStorageReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E012E3A26D0003098EC /* DataStorageReader.swift */; };
-		D58C0E062E3A6D63003098EC /* Pokemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E052E3A6D63003098EC /* Pokemon.swift */; };
-		D58C0E082E3A6D77003098EC /* Cries.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E072E3A6D77003098EC /* Cries.swift */; };
-		D58C0E0A2E3A6DA1003098EC /* Sprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E092E3A6DA1003098EC /* Sprite.swift */; };
-		D58C0E0D2E3A6DE7003098EC /* Ability.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E0C2E3A6DE7003098EC /* Ability.swift */; };
-		D58C0E0F2E3A6DFC003098EC /* Move.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E0E2E3A6DFC003098EC /* Move.swift */; };
-		D58C0E112E3A6E13003098EC /* Type.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E102E3A6E13003098EC /* Type.swift */; };
-		D58C0E132E3A6E2E003098EC /* Stat.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E122E3A6E2E003098EC /* Stat.swift */; };
+		D58C0E062E3A6D63003098EC /* PokemonModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58C0E052E3A6D63003098EC /* PokemonModels.swift */; };
 		D58F8D992E3970F300BB9A45 /* SortType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58F8D982E3970F300BB9A45 /* SortType.swift */; };
 		D58F9B032E1FC82800BB2D36 /* ItemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58F9B022E1FC82800BB2D36 /* ItemListView.swift */; };
 		D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D503082E39305500AC4BC5 /* Tabs.swift */; };
@@ -105,13 +99,7 @@
 		D57F261C2E3AF8F30099ADAE /* DataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataFetcher.swift; sourceTree = "<group>"; };
 		D58C0DFA2E398709003098EC /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
 		D58C0E012E3A26D0003098EC /* DataStorageReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStorageReader.swift; sourceTree = "<group>"; };
-		D58C0E052E3A6D63003098EC /* Pokemon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pokemon.swift; sourceTree = "<group>"; };
-		D58C0E072E3A6D77003098EC /* Cries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cries.swift; sourceTree = "<group>"; };
-		D58C0E092E3A6DA1003098EC /* Sprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sprite.swift; sourceTree = "<group>"; };
-		D58C0E0C2E3A6DE7003098EC /* Ability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ability.swift; sourceTree = "<group>"; };
-		D58C0E0E2E3A6DFC003098EC /* Move.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Move.swift; sourceTree = "<group>"; };
-		D58C0E102E3A6E13003098EC /* Type.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Type.swift; sourceTree = "<group>"; };
-		D58C0E122E3A6E2E003098EC /* Stat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stat.swift; sourceTree = "<group>"; };
+		D58C0E052E3A6D63003098EC /* PokemonModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonModels.swift; sourceTree = "<group>"; };
 		D58F8D982E3970F300BB9A45 /* SortType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortType.swift; sourceTree = "<group>"; };
 		D58F9B022E1FC82800BB2D36 /* ItemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemListView.swift; sourceTree = "<group>"; };
 		D5D503082E39305500AC4BC5 /* Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tabs.swift; sourceTree = "<group>"; };
@@ -286,7 +274,7 @@
 		D57366172E21160F00FE4ED0 /* Pokemon */ = {
 			isa = PBXGroup;
 			children = (
-				D58C0E0B2E3A6DCA003098EC /* Models */,
+				D58C0E052E3A6D63003098EC /* PokemonModels.swift */,
 				D57366112E21160900FE4ED0 /* PokemonRequest.swift */,
 				9332C0D6273F1DA6003AF377 /* PokemonService.swift */,
 			);
@@ -308,20 +296,6 @@
 				D58C0DFA2E398709003098EC /* BookmarksView.swift */,
 			);
 			path = BookmarksView;
-			sourceTree = "<group>";
-		};
-		D58C0E0B2E3A6DCA003098EC /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				D58C0E052E3A6D63003098EC /* Pokemon.swift */,
-				D58C0E0C2E3A6DE7003098EC /* Ability.swift */,
-				D58C0E092E3A6DA1003098EC /* Sprite.swift */,
-				D58C0E0E2E3A6DFC003098EC /* Move.swift */,
-				D58C0E072E3A6D77003098EC /* Cries.swift */,
-				D58C0E102E3A6E13003098EC /* Type.swift */,
-				D58C0E122E3A6E2E003098EC /* Stat.swift */,
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 		D5D5030C2E393B8A00AC4BC5 /* ItemSpriteView */ = {
@@ -410,10 +384,8 @@
 				D5164F712E226DFE00E3EC8D /* View.swift in Sources */,
 				D57F261D2E3AF8F30099ADAE /* DataFetcher.swift in Sources */,
 				D5FED1BD2E3B973A0013D99B /* ImageColorAnalyzer.swift in Sources */,
-				D58C0E0D2E3A6DE7003098EC /* Ability.swift in Sources */,
 				D57366192E2116B200FE4ED0 /* APIModels.swift in Sources */,
 				D55130692E3C0BB20004A44B /* SpriteLoaderKey.swift in Sources */,
-				D58C0E0A2E3A6DA1003098EC /* Sprite.swift in Sources */,
 				D5011AA82E36C13E00A2F8EE /* PokedexGridView.swift in Sources */,
 				D58C0E022E3A26D0003098EC /* DataStorageReader.swift in Sources */,
 				9332C0EA273F51E1003AF377 /* AsyncSpriteView.swift in Sources */,
@@ -426,30 +398,26 @@
 				D5751CF62E3641EF0090FB5F /* SearchView.swift in Sources */,
 				D57366092E2114E400FE4ED0 /* ItemModels.swift in Sources */,
 				D5164F732E22702000E3EC8D /* ItemDetailRowView.swift in Sources */,
-				D58C0E112E3A6E13003098EC /* Type.swift in Sources */,
 				9332C0E8273F3219003AF377 /* SpriteLoader.swift in Sources */,
 				D5F41B762E256D5A000341D3 /* ItemRowView.swift in Sources */,
 				93F7F578274009B2002CEBB5 /* PokemonDetailView.swift in Sources */,
 				D5D5030B2E39344500AC4BC5 /* ViewModifiers.swift in Sources */,
 				D58C0DFB2E398709003098EC /* BookmarksView.swift in Sources */,
-				D58C0E0F2E3A6DFC003098EC /* Move.swift in Sources */,
 				D55130672E3C0BB10004A44B /* ImageColorAnalyzerKey.swift in Sources */,
 				9332C0E0273F2A36003AF377 /* Color.swift in Sources */,
 				9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */,
 				D54F5AA22E1D9FF800411759 /* PokemonViewModel.swift in Sources */,
-				D58C0E082E3A6D77003098EC /* Cries.swift in Sources */,
 				D5164F752E22707700E3EC8D /* String.swift in Sources */,
 				D545C2F42E242F5E007F1BBA /* ItemDetailViewModel.swift in Sources */,
 				D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */,
 				D5F6494B2E30F9D8004FBD18 /* ItemSpriteViewModel.swift in Sources */,
-				D58C0E132E3A6E2E003098EC /* Stat.swift in Sources */,
 				D573660C2E2115FA00FE4ED0 /* Endpoints.swift in Sources */,
 				9332C0F2273F5454003AF377 /* UIImage.swift in Sources */,
 				D51DA2572E3409E900028782 /* GridLayout.swift in Sources */,
 				D58F8D992E3970F300BB9A45 /* SortType.swift in Sources */,
 				D55D580C2E204BBC008F1B16 /* Font.swift in Sources */,
 				D57366002E2110E000FE4ED0 /* ItemListViewModel.swift in Sources */,
-				D58C0E062E3A6D63003098EC /* Pokemon.swift in Sources */,
+				D58C0E062E3A6D63003098EC /* PokemonModels.swift in Sources */,
 				D5D6250D2E2194230030867D /* ItemDetailView.swift in Sources */,
 				D573661B2E2176AC00FE4ED0 /* ItemService.swift in Sources */,
 				D55130652E3C0B2D0004A44B /* HapticFeedbackKey.swift in Sources */,
