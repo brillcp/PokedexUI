@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 // MARK: - Main View
 struct PokedexView<
