@@ -1,8 +1,8 @@
 import SwiftUI
 import SwiftData
 
-struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
-    // MARK: Environment Dependencies
+struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: View {
+    // MARK: - Environment Dependencies
     @Environment(\.hapticFeedback) private var haptic: UIImpactFeedbackGenerator
     @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
     @Environment(\.audioPlayer) private var audioPlayer: AudioPlayer
@@ -18,17 +18,13 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
 
     // MARK: - State Management
     @State private var viewModel: ViewModel
-    @State private var isFlipped = false
-    @State private var frontSprite: Image?
-    @State private var backSprite: Image?
-    @State private var color: Color?
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
     }
 
-    // MARK: - Body
+    // MARK: - Main Body
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
@@ -36,9 +32,16 @@ struct PokemonDetailView<ViewModel: PokemonViewModelProtocol & Sendable>: View {
                 contentSection()
             }
         }
-        .task(id: viewModel.id, loadSpritesAndColor)
-        .onAppear(perform: updateBookmarkStatus)
-        .applyDetailViewStyling(viewModel: viewModel, color: color)
+        .task(id: viewModel.pokemon.id) {
+            await viewModel.loadSpritesAndColor(
+                withSpriteLoader: spriteLoader,
+                imageColorAnalyzer: imageColorAnalyzer
+            )
+        }
+        .onAppear {
+            viewModel.updateBookmarkStatus(from: bookmarks)
+        }
+        .applyDetailViewStyling(viewModel: viewModel)
     }
 }
 
@@ -53,11 +56,11 @@ private extension PokemonDetailView {
 
     func contentSection() -> some View {
         VStack {
-            basicInfoSection(viewModel: viewModel)
+            basicInfoSection()
             sectionDivider()
-            statsSection(viewModel: viewModel)
+            statsSection()
             sectionDivider()
-            movesSection(viewModel: viewModel)
+            movesSection()
             bottomSpacer()
         }
         .padding()
@@ -66,12 +69,12 @@ private extension PokemonDetailView {
     }
 
     func spriteImage() -> some View {
-        (isFlipped ? backSprite : frontSprite)?
+        (viewModel.isFlipped ? viewModel.backSprite : viewModel.frontSprite)?
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(height: 320)
-            .modifier(Perspective3D(isFlipped: $isFlipped))
-            .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: isFlipped)
+            .modifier(Perspective3D(isFlipped: $viewModel.isFlipped))
+            .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: viewModel.isFlipped)
     }
 }
 
@@ -79,23 +82,23 @@ private extension PokemonDetailView {
 private extension PokemonDetailView {
     func actionButtons() -> some View {
         HStack {
-            if let cryURL = viewModel.latestCry {
-                playSoundButton(cryURL: cryURL)
+            if viewModel.pokemon.latestCry != nil {
+                playSoundButton()
             }
             Spacer()
             bookmarkButton()
-            if viewModel.backSprite != nil {
+            if viewModel.pokemon.backSprite != nil {
                 flipButton()
             }
         }
         .buttonStyle(.glass)
-        .tint(color?.isLight ?? false ? .black : .white)
+        .tint(viewModel.color?.isLight ?? false ? .black : .white)
         .padding()
     }
 
-    func playSoundButton(cryURL: String) -> some View {
+    func playSoundButton() -> some View {
         Button {
-            Task { await audioPlayer.play(from: cryURL) }
+            Task { await viewModel.playSound(with: audioPlayer) }
         } label: {
             imageIcon("speaker.wave.3.fill")
         }
@@ -103,7 +106,7 @@ private extension PokemonDetailView {
 
     func bookmarkButton() -> some View {
         Button {
-            toggleBookmark()
+            viewModel.toggleBookmark(in: modelContext)
         } label: {
             imageIcon(viewModel.isBookmarked ? "bookmark.fill" : "bookmark")
         }
@@ -115,14 +118,10 @@ private extension PokemonDetailView {
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { _ in
-                            guard !isFlipped else { return }
-                            isFlipped = true
-                            haptic.impactOccurred()
+                            viewModel.flipSprite(hapticFeedback: haptic)
                         }
                         .onEnded { _ in
-                            guard isFlipped else { return }
-                            isFlipped = false
-                            haptic.impactOccurred()
+                            viewModel.flipSpriteBack(hapticFeedback: haptic)
                         }
                 )
         }
@@ -139,30 +138,30 @@ private extension PokemonDetailView {
 
 // MARK: - Information Sections
 private extension PokemonDetailView {
-    func basicInfoSection(viewModel: ViewModel) -> some View {
+    func basicInfoSection() -> some View {
         VStack {
-            detailRow(title: "Types", subtitle: viewModel.types)
-            detailRow(title: "Height", subtitle: viewModel.height)
-            detailRow(title: "Weight", subtitle: viewModel.weight)
-            detailRow(title: "Abilities", subtitle: viewModel.abilities)
+            detailRow(title: "Types", subtitle: viewModel.pokemon.types)
+            detailRow(title: "Height", subtitle: viewModel.pokemon.height)
+            detailRow(title: "Weight", subtitle: viewModel.pokemon.weight)
+            detailRow(title: "Abilities", subtitle: viewModel.pokemon.abilities)
         }
     }
 
-    func statsSection(viewModel: ViewModel) -> some View {
-        ForEach(viewModel.stats) { stat in
+    func statsSection() -> some View {
+        ForEach(viewModel.pokemon.stats) { stat in
             detailRowStat(
                 title: stat.stat.name,
                 value: stat.baseStat,
-                color: color
+                color: viewModel.color
             )
         }
     }
 
-    func movesSection(viewModel: ViewModel) -> some View {
+    func movesSection() -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Moves")
                 .foregroundStyle(.secondary)
-            Text(viewModel.moves)
+            Text(viewModel.pokemon.moves)
         }
         .padding(.vertical)
     }
@@ -217,49 +216,12 @@ private extension PokemonDetailView {
     }
 }
 
-// MARK: - Data Operations
-private extension PokemonDetailView {
-    @Sendable
-    func loadSpritesAndColor() async {
-        if let image = await spriteLoader.spriteImage(from: viewModel.frontSprite),
-           let uicolor = await imageColorAnalyzer.dominantColor(for: viewModel.id, image: image) {
-            color = Color(uiColor: uicolor)
-            frontSprite = Image(uiImage: image)
-            if let back = viewModel.backSprite, let img = await spriteLoader.spriteImage(from: back) {
-                backSprite = Image(uiImage: img)
-            }
-        }
-    }
-
-    func updateBookmarkStatus() {
-        viewModel.isBookmarked = bookmarks.contains(where: { $0.id == viewModel.id })
-    }
-
-    func toggleBookmark() {
-        let id = viewModel.id
-        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
-
-        do {
-            if let pokemon = try modelContext.fetch(descriptor).first {
-                pokemon.isBookmarked.toggle()
-                viewModel.isBookmarked = pokemon.isBookmarked
-                try modelContext.save()
-            }
-        } catch {
-            print("Failed to toggle bookmark: \(error)")
-        }
-    }
-}
-
 // MARK: - View Modifiers
 private extension View {
-    func applyDetailViewStyling<ViewModel: PokemonViewModelProtocol>(
-        viewModel: ViewModel,
-        color: Color?
-    ) -> some View {
+    func applyDetailViewStyling(viewModel: PokemonDetailViewModelProtocol) -> some View {
         ZStack {
             VStack(spacing: 0) {
-                color
+                viewModel.color
                 Spacer()
                 Color.darkGrey
                     .frame(height: 300)
@@ -270,15 +232,17 @@ private extension View {
                 .font(.pixel14)
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        Text("\(viewModel.name) #\(viewModel.id)")
+                        Text("\(viewModel.pokemon.name) #\(viewModel.pokemon.id)")
                             .font(.pixel17)
-                            .foregroundStyle(color?.isLight ?? false ? .black : .white)
+                            .foregroundStyle(viewModel.color?.isLight ?? false ? .black : .white)
                     }
                 }
         }
         .ignoresSafeArea(edges: .bottom)
     }
 }
+
 #Preview {
-    PokemonDetailView(viewModel: PokemonViewModel(pokemon: .pikachu))
+    let vm = PokemonDetailViewModel(pokemon: PokemonViewModel(pokemon: .pikachu))
+    PokemonDetailView(viewModel: vm)
 }

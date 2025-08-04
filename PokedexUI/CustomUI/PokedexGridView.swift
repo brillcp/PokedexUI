@@ -35,7 +35,7 @@ private struct PokedexGridItem<ViewModel: PokemonViewModelProtocol>: View {
 
     var body: some View {
         NavigationLink {
-            PokemonDetailView(viewModel: pokemon)
+            PokemonDetailView(viewModel: PokemonDetailViewModel(pokemon: pokemon))
                 .navigationTransition(
                     .zoom(sourceID: pokemon.id, in: namespace)
                 )
