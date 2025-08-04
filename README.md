@@ -41,11 +41,9 @@ The root `PokedexView` is a generic view that accepts protocol-conforming ViewMo
 struct PokedexView<
     PokedexViewModel: PokedexViewModelProtocol,
     ItemListViewModel: ItemListViewModelProtocol,
-    SearchViewModel: SearchViewModelProtocol
 >: View {
     @State var viewModel: PokedexViewModel
     let itemListViewModel: ItemListViewModel
-    let searchViewModel: SearchViewModel
     
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
@@ -65,8 +63,8 @@ struct PokedexView<
 ViewModels conform to protocols, enabling flexible implementations and easier testing:
 ```swift
 protocol PokedexViewModelProtocol {
-    var pokemon: [PokemonViewModel] { get set }
-    var isLoading: Bool { get set }
+    var pokemon: [PokemonViewModel] { get }
+    var isLoading: Bool { get }
     var selectedTab: Tabs { get set }
     var grid: GridLayout { get set }
     
