@@ -53,7 +53,7 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var frontSprite: String { pokemon.sprite.front }
     var backSprite: String? { pokemon.sprite.back }
     var height: String { "\(Double(pokemon.height) / 10.0) m" }
-    var weight: String { "\(Double(pokemon.height) / 10.0) m" }
+    var weight: String { "\(Double(pokemon.weight) / 10.0) kg" }
     var latestCry: String? { pokemon.cries.latest }
     var stats: [Stat] { pokemon.stats }
 
