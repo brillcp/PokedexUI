@@ -58,13 +58,13 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var stats: [Stat] { pokemon.stats }
 
     var types: String {
-        pokemon.types.map { $0.type.name.capitalized }.joined(separator: ", ")
+        pokemon.types.map { $0.type }.joinedCapitalizedNames
     }
     var abilities: String {
         pokemon.abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n")
     }
     var moves: String {
-        pokemon.moves.map { $0.move.name.capitalized }.joined(separator: ", ")
+        pokemon.moves.map { $0.move }.joinedCapitalizedNames
     }
 }
 
@@ -74,3 +74,16 @@ extension PokemonViewModel: Equatable {
         lhs.id == rhs.id
     }
 }
+
+// MARK: - Array helper functions
+private protocol NameProvidable {
+    var name: String { get }
+}
+
+private extension Array where Element: NameProvidable {
+    var joinedCapitalizedNames: String {
+        map { $0.name.capitalized }.joined(separator: ", ")
+    }
+}
+
+extension APIItem: NameProvidable {}
