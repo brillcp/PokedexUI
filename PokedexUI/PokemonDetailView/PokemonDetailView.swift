@@ -163,6 +163,7 @@ private extension PokemonDetailView {
                 .foregroundStyle(.secondary)
             Text(viewModel.pokemon.moves)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical)
     }
 }
