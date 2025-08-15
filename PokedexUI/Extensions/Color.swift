@@ -8,40 +8,30 @@ extension Color {
     static let grey = Color(hex: "8db6d2")
     static let green = Color(hex: "5ba74f")
 
-    init(hex: String, alpha: CGFloat = 1.0) {
-        let scanner = Scanner(string: hex)
-        let hexStart = hex[hex.startIndex] == "#"
-        let current = String.Index(utf16Offset: hexStart ? 1 : 0, in: hex)
-        scanner.currentIndex = current
+    init?(hex: String, alpha: Double = 1.0) {
+        var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexString = hexString.hasPrefix("#") ? String(hexString.dropFirst()) : hexString
 
-        var rgb: UInt64 = 0
-        scanner.scanHexInt64(&rgb)
+        guard let hexNumber = UInt64(hexString, radix: 16), hexString.count == 6 else { return nil }
 
-        let r = CGFloat((rgb & 0xFF0000) >> 16) / 255.0
-        let g = CGFloat((rgb & 0xFF00) >> 8) / 255.0
-        let b = CGFloat((rgb & 0xFF)) / 255.0
-
-        self.init(red: r, green: g, blue: b)
+        let r = Double((hexNumber & 0xFF0000) >> 16) / 255
+        let g = Double((hexNumber & 0x00FF00) >> 8) / 255
+        let b = Double(hexNumber & 0x0000FF) / 255
+        self = Color(red: r, green: g, blue: b, opacity: alpha)
     }
 }
 
 // MARK: -
 extension Color {
     var isLight: Bool {
-        UIColor(self).isLight
-    }
-}
-
-// MARK: -
-extension UIColor {
-    var isLight: Bool {
-        guard let components = cgColor.components, components.count > 2 else { return false }
-
-        let r = components[0] * 299
-        let b = components[1] * 587
-        let g = components[2] * 114
-
-        let brightness = (r + b + g) / 1000
-        return brightness > 0.7
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        if UIColor(self).getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+            let brightness = (red * 299 + green * 587 + blue * 114) / 1000
+            return brightness > 0.7
+        }
+        return false
     }
 }

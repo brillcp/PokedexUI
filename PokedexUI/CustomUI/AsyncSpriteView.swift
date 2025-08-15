@@ -21,7 +21,14 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .background(color)
-                .overlay(cardOverlay(for: viewModel))
+                .overlay {
+                    if showOverlay {
+                        CardOverlay(
+                            pokemon: viewModel,
+                            color: color
+                        )
+                    }
+                }
                 .if(!hasFadedIn) { $0.fadeIn(when: sprite) }
                 .onChange(of: sprite) { _, newSprite in
                     guard newSprite != nil, !hasFadedIn else { return }
@@ -41,9 +48,11 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
 
 // MARK: - Private UI components
 private extension AsyncSpriteView {
-    @ViewBuilder
-    func cardOverlay(for pokemon: PokemonViewModelProtocol) -> some View {
-        if showOverlay {
+    struct CardOverlay: View {
+        let pokemon: PokemonViewModelProtocol
+        let color: Color?
+
+        var body: some View {
             VStack {
                 HStack {
                     Spacer()
@@ -60,5 +69,8 @@ private extension AsyncSpriteView {
 }
 
 #Preview {
-    AsyncSpriteView(viewModel: PokemonViewModel(pokemon: .pikachu), showOverlay: false)
+    AsyncSpriteView(
+        viewModel: PokemonViewModel(pokemon: .pikachu),
+        showOverlay: true
+    )
 }
