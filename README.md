@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=brillcp&project=PokedexUI&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 ![icon](https://github.com/user-attachments/assets/5abf1763-b290-4f12-a661-986e58fbeaad)
 
 ![swift](https://img.shields.io/badge/Swift-5.0%2B-green)
