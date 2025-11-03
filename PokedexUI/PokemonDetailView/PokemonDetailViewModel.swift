@@ -1,10 +1,5 @@
-/// PokemonDetailViewModel.swift
-///
-/// Contains the ViewModel and protocol for presenting detailed information about a single Pokémon.
-/// Handles sprite and color loading, bookmarking, sprite flipping, and sound playback.
-
-import SwiftUI // Required for Image and Color types
-import SwiftData // Required for SwiftData model and context
+import SwiftUI
+import SwiftData
 
 /// Protocol defining the requirements for a Pokémon detail view model.
 /// Provides state and behaviors for displaying and interacting with Pokémon details in the UI.
