@@ -102,7 +102,7 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
                 }
             }
         } label: {
-            Image(systemName: "line.3.horizontal.decrease")
+            Image(systemName: "arrow.up.and.down.text.horizontal")
         }
     }
 }
