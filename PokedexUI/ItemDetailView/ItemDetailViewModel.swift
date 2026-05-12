@@ -28,8 +28,8 @@ extension ItemDetailViewModel: ItemDetailViewModelProtocol {
         item.title.pretty
     }
 
-    /// The details for each item associated with this data.
+    /// The details for each item associated with this data, sorted alphabetically by name.
     var items: [ItemDetail] {
-        item.items
+        item.items.sorted(by: { $0.name < $1.name })
     }
 }

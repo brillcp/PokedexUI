@@ -62,19 +62,17 @@ extension ItemService {
             ItemRequest.details(urlComponent)
         }
 
-        /// Transforms an array of item details into grouped and sorted `ItemData` models.
+        /// Transforms an array of item details into grouped `ItemData` models.
+        /// Categories are sorted alphabetically by title. Items within each category are
+        /// sorted at the display layer because SwiftData `@Relationship` arrays do not
+        /// preserve order on persistence.
         ///
         /// - Parameter response: The array of detailed item objects.
-        /// - Returns: An array of `ItemData`, grouped by category and sorted alphabetically.
+        /// - Returns: An array of `ItemData` grouped by category, sorted alphabetically by title.
         func transformResponse(_ response: [ResponseType]) -> [OutputModel] {
-            let grouped = Dictionary(grouping: response, by: { $0.category.name })
-                .mapValues { $0.sorted(by: { $0.name < $1.name }) }
-
-            let categories = grouped
+            Dictionary(grouping: response, by: { $0.category.name })
                 .sorted(by: { $0.key < $1.key })
                 .map { ItemData(title: $0.key, items: $0.value) }
-
-            return categories
         }
     }
 }
