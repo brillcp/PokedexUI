@@ -5,9 +5,16 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            itemList
+        List(viewModel.items, id: \.title) { item in
+            itemRow(for: item)
+                .listRowBackground(Color.clear)
+                .listRowSeparatorTint(Color(.systemGray4))
         }
+        .font(.pixel14)
+        .foregroundStyle(.white)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .scrollIndicators(.hidden)
         .overlay {
             if viewModel.isLoading {
                 ProgressView()
@@ -20,21 +27,15 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
 
 // MARK: - View Components
 private extension ItemListView {
-    var itemList: some View {
-        LazyVStack(alignment: .leading) {
-            ForEach(viewModel.items, id: \.title) { item in
-                itemRow(for: item)
-            }
-        }
-        .font(.pixel14)
-        .foregroundStyle(.white)
-        .padding(.horizontal)
-    }
-
     func itemRow(for item: ItemData) -> some View {
-        NavigationLink {
-            ItemDetailView(viewModel: ItemDetailViewModel(item: item))
-        } label: {
+        ZStack {
+            NavigationLink {
+                ItemDetailView(viewModel: ItemDetailViewModel(item: item))
+            } label: {
+                EmptyView()
+            }
+            .opacity(0)
+
             ItemRowView(item: item)
         }
     }

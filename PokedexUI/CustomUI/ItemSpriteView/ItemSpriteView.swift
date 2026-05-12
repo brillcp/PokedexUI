@@ -16,7 +16,8 @@ struct ItemSpriteView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } else {
-                Color(.darkGray)
+                Color(.systemGray4)
+                    .clipShape(Circle())
             }
         }
         .task(id: viewModel.spriteURL) {

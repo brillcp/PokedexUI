@@ -4,17 +4,16 @@ struct ItemDetailView<ViewModel: ItemDetailViewModelProtocol>: View {
     let viewModel: ViewModel
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVStack(alignment: .leading) {
-                ForEach(viewModel.items, id: \.id) { item in
-                    ItemDetailRowView(item: item)
-                    Divider().background(.secondary)
-                }
-            }
-            .font(.pixel14)
-            .foregroundStyle(.white)
-            .padding()
+        List(viewModel.items, id: \.id) { item in
+            ItemDetailRowView(item: item)
+                .listRowBackground(Color.clear)
+                .listRowSeparatorTint(Color(.systemGray4))
         }
+        .font(.pixel14)
+        .foregroundStyle(.white)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .scrollIndicators(.hidden)
         .applyPokedexStyling(title: viewModel.title)
     }
 }

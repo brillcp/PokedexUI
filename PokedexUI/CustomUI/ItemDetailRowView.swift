@@ -4,14 +4,16 @@ struct ItemDetailRowView: View {
     let item: ItemDetail
 
     var body: some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .top, spacing: 16.0) {
             ItemSpriteView(viewModel: ItemSpriteViewModel(spriteURL: item.sprites?.default))
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(item.name.pretty)
-                Text(item.effect.first?.effect.pretty ?? "")
-                    .foregroundStyle(.secondary)
-                    .lineHeight(.loose)
+                if let effect = item.effect.first?.effect.pretty, !effect.isEmpty {
+                    Text(effect)
+                        .foregroundStyle(.secondary)
+                        .lineHeight(.loose)
+                }
             }
         }
         .padding(.vertical)

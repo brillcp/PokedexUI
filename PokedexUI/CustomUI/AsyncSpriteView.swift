@@ -16,7 +16,7 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            Color(.darkGray)
+            Color(.systemGray4)
             sprite?
                 .resizable()
                 .aspectRatio(contentMode: .fit)
