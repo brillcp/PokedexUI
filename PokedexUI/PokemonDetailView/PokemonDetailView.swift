@@ -195,11 +195,18 @@ private extension PokemonDetailView {
     func detailRowStat(title: String, value: Int, color: Color?) -> some View {
         let maxValue = max(value, 100)
         let clampedValue = max(value, 0)
-        return baseRow(title: title.capitalized) {
-            ProgressView(value: Double(clampedValue), total: Double(maxValue))
-                .frame(height: 20)
-                .tint(color ?? .white)
-            Text("\(clampedValue) / \(maxValue)")
+        return statRow(title: title.capitalized) {
+            Gauge(value: Double(clampedValue), in: 0...Double(maxValue)) {
+                EmptyView()
+            } currentValueLabel: {
+                EmptyView()
+            } minimumValueLabel: {
+                Text("0")
+            } maximumValueLabel: {
+                Text("\(maxValue)")
+            }
+            .gaugeStyle(.linearCapacity)
+            .tint(color ?? .white)
         }
     }
 
@@ -207,14 +214,28 @@ private extension PokemonDetailView {
         title: String,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
-        HStack(alignment: .top, spacing: 20) {
+        HStack(alignment: .top, spacing: 24) {
             Text(title)
                 .foregroundStyle(.secondary)
-                .frame(minWidth: 96, alignment: .leading)
+                .frame(alignment: .leading)
             content()
         }
         .padding(.vertical)
     }
+
+    func statRow<Content: View>(
+        title: String,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        VStack(spacing: 24) {
+            Text(title)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            content()
+        }
+        .padding(.vertical)
+    }
+
 }
 
 // MARK: - View Modifiers

@@ -76,19 +76,37 @@ private extension KeyedDecodingContainer {
 extension Pokemon {
     static var pikachu: Pokemon {
         Pokemon(
-            id: 0,
-            name: "Pika",
-            weight: 0,
-            height: 0,
+            id: 25,
+            name: "Pikachu",
+            weight: 60,
+            height: 4,
             cries: Cries(latest: nil),
             sprite: Sprite(
                 front: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
                 back: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png"
             ),
-            abilities: [Ability(ability: APIItem(name: "Hp", url: ""))],
-            moves: [Move(move: APIItem(name: "Move", url: ""))],
-            types: [Type(type: APIItem(name: "gunther", url: ""))],
-            stats: [Stat(baseStat: 69, stat: APIItem(name: "stat", url: ""))]
+            abilities: [
+                Ability(ability: APIItem(name: "static", url: "")),
+                Ability(ability: APIItem(name: "lightning-rod", url: ""))
+            ],
+            moves: [
+                Move(move: APIItem(name: "mega-punch", url: "")),
+                Move(move: APIItem(name: "pay-day", url: "")),
+                Move(move: APIItem(name: "thunder-punch", url: "")),
+                Move(move: APIItem(name: "slam", url: "")),
+                Move(move: APIItem(name: "thunderbolt", url: ""))
+            ],
+            types: [
+                Type(type: APIItem(name: "electric", url: ""))
+            ],
+            stats: [
+                Stat(baseStat: 35, stat: APIItem(name: "hp", url: "")),
+                Stat(baseStat: 55, stat: APIItem(name: "attack", url: "")),
+                Stat(baseStat: 40, stat: APIItem(name: "defense", url: "")),
+                Stat(baseStat: 50, stat: APIItem(name: "special-attack", url: "")),
+                Stat(baseStat: 50, stat: APIItem(name: "special-defense", url: "")),
+                Stat(baseStat: 90, stat: APIItem(name: "speed", url: ""))
+            ]
         )
     }
 }
