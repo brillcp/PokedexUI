@@ -56,11 +56,14 @@ private extension PokemonDetailView {
 
     func contentSection() -> some View {
         VStack {
-            basicInfoSection()
-            if viewModel.pokemon.flavorText != nil {
+            if let flavorText = viewModel.pokemon.flavorText?.pretty {
+                Text(flavorText)
+                    .lineHeight(.loose)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top)
                 sectionDivider()
-                flavorTextSection()
             }
+            basicInfoSection()
             sectionDivider()
             statsSection()
             sectionDivider()
@@ -112,7 +115,7 @@ private extension PokemonDetailView {
         Button {
             viewModel.toggleBookmark(in: modelContext)
         } label: {
-            imageIcon(viewModel.isBookmarked ? "bookmark.fill" : "bookmark")
+            imageIcon(viewModel.isBookmarked ? "heart.fill" : "heart")
         }
         .glassEffect(.clear.interactive(), in: Circle())
     }
@@ -154,17 +157,6 @@ private extension PokemonDetailView {
                 detailRow(title: "Habitat", subtitle: habitat)
             }
         }
-    }
-
-    func flavorTextSection() -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Pokedex")
-                .foregroundStyle(.secondary)
-            Text(viewModel.pokemon.flavorText?.pretty ?? "")
-        }
-        .lineHeight(.loose)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical)
     }
 
     func statsSection() -> some View {

@@ -19,7 +19,7 @@ extension Tabs {
         switch self {
             case .pokedex: GridLayout.three.icon
             case .items: "xmark.triangle.circle.square.fill"
-            case .favourites: "bookmark.fill"
+            case .favourites: "heart.fill"
             case .search: "magnifyingglass"
         }
     }

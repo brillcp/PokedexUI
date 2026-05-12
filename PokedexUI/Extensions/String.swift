@@ -5,9 +5,7 @@ extension String {
         self
             .replacingOccurrences(of: "-", with: " ")
             .replacingOccurrences(of: "é", with: "e")
-            .replacingOccurrences(of: "\n:", with: ": ")
-            .replacingOccurrences(of: "   ", with: "")
-            .replacingOccurrences(of: "    ", with: "")
+            .replacingOccurrences(of: "à", with: "a")
             .capitalized
     }
 }
