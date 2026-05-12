@@ -37,4 +37,13 @@ actor DataStorageReader {
         let storedPokemon = try context.fetch(descriptor)
         return storedPokemon
     }
+
+    /// Deletes every persisted object of the given type and saves the context.
+    /// - Parameter type: The `PersistentModel` type to purge from storage.
+    /// - Throws: An error if the delete or save operation fails.
+    func clear<M: PersistentModel>(_ type: M.Type) throws {
+        let context = modelContext
+        try context.delete(model: M.self)
+        try context.save()
+    }
 }

@@ -32,17 +32,30 @@ protocol DataFetcher {
     /// - Parameter data: The API data object to transform.
     /// - Returns: The corresponding stored data object.
     func transformForStorage(_ data: APIData) -> StoredData
+    /// Indicates whether the locally stored data should be invalidated and re-fetched
+    /// from the API. Defaults to `false`. Override to detect schema migrations or
+    /// missing fields that require a refresh.
+    func shouldInvalidate(_ stored: [StoredData]) -> Bool
+    /// Removes all locally stored data. Defaults to a no-op.
+    func clearStoredData() async throws
 }
 
 // MARK: - Default Implementation
 extension DataFetcher {
-    /// Fetches data from local storage if available; otherwise, fetches it from the API. Returns the data as view models.
+    func shouldInvalidate(_ stored: [StoredData]) -> Bool { false }
+    func clearStoredData() async throws {}
+
+    /// Fetches data from local storage if available and valid; otherwise, fetches it from the API.
+    /// If the cached data fails the `shouldInvalidate` check, storage is cleared before the API call.
     /// - Returns: An array of view models, sourced from storage or API as needed.
     func fetchDataFromStorageOrAPI() async -> [ViewModel] {
-        guard let localData = await fetchStoredDataSafely(), !localData.isEmpty else {
-            return await fetchDataFromAPI()
+        if let localData = await fetchStoredDataSafely(),
+           !localData.isEmpty,
+           !shouldInvalidate(localData) {
+            return localData.map(transformToViewModel)
         }
-        return localData.map(transformToViewModel)
+        try? await clearStoredData()
+        return await fetchDataFromAPI()
     }
 }
 

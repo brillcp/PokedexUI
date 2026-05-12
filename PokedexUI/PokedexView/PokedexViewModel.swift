@@ -108,6 +108,14 @@ extension PokedexViewModel: DataFetcher {
     func transformForStorage(_ data: ViewModel) -> StoredData {
         data.pokemon
     }
+
+    func shouldInvalidate(_ stored: [Pokemon]) -> Bool {
+        stored.contains(where: { $0.flavorText == nil })
+    }
+
+    func clearStoredData() async throws {
+        try await storageReader.clear(Pokemon.self)
+    }
 }
 
 // MARK: - Private loading function
