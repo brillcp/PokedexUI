@@ -28,6 +28,10 @@ protocol PokemonViewModelProtocol {
     var isBookmarked: Bool { get set }
     /// Precomputed, normalized text used for search matching.
     var searchHaystack: String { get }
+    /// Display-ready habitat name, if available.
+    var habitat: String? { get }
+    /// English Pokédex flavor text, if available.
+    var flavorText: String? { get }
 }
 
 // MARK: -
@@ -73,6 +77,12 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     }
     var moves: String {
         pokemon.moves.map { $0.move }.joinedCapitalizedNames
+    }
+    var habitat: String? {
+        pokemon.habitat?.capitalized
+    }
+    var flavorText: String? {
+        pokemon.flavorText
     }
 }
 

@@ -1,7 +1,7 @@
 import SwiftData
 
 @Model
-final class Pokemon: Decodable {
+final class Pokemon: Decodable, Sendable {
     @Attribute(.unique) var id: Int
     var name: String
     var weight: Int
@@ -13,6 +13,8 @@ final class Pokemon: Decodable {
     var moves: [Move]
     var types: [Type]
     var stats: [Stat]
+    var habitat: String?
+    var flavorText: String?
 
     private enum CodingKeys: String, CodingKey {
         case id, name, weight, height, cries, abilities, moves, types, stats
@@ -29,7 +31,9 @@ final class Pokemon: Decodable {
         abilities: [Ability],
         moves: [Move],
         types: [Type],
-        stats: [Stat]
+        stats: [Stat],
+        habitat: String? = nil,
+        flavorText: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -41,6 +45,8 @@ final class Pokemon: Decodable {
         self.moves = moves
         self.types = types
         self.stats = stats
+        self.habitat = habitat
+        self.flavorText = flavorText
     }
 
     required init(from decoder: Decoder) throws {

@@ -43,19 +43,37 @@ extension PokemonService {
         typealias ResponseType = Pokemon & Sendable
         typealias OutputModel = PokemonViewModel
 
-        /// Builds the request used to fetch a complete list of Pokémon.
-        ///
-        /// - Returns: A `Requestable` representing the Pokémon list request.
+        /// Builds the request used to fetch the species list (one entry per Pokédex species).
         func createRequest() -> Requestable {
-            PokemonRequest.pokemon
+            PokemonRequest.speciesList
         }
 
-        /// Builds a request for fetching detailed information about a single Pokémon.
-        ///
-        /// - Parameter urlComponent: The last path component of the Pokémon detail URL.
-        /// - Returns: A `Requestable` representing the Pokémon detail request.
+        /// Builds a request for fetching species data, used as the entry point for each detail.
         func createDetailRequest(from urlComponent: String) -> Requestable {
-            PokemonRequest.details(urlComponent)
+            PokemonRequest.species(urlComponent)
+        }
+
+        /// Fetches species first, resolves the default variety's Pokémon URL, then fetches
+        /// that Pokémon and attaches species-derived habitat and flavor text.
+        func fetchDetail(from urlComponent: String, networkService: Network.Service) async throws -> ResponseType {
+            let species: PokemonSpecies = try await networkService.request(
+                PokemonRequest.species(urlComponent)
+            )
+
+            let pokemonId: String
+            if let variety = species.defaultVariety,
+               let url = try? variety.pokemon.url.asURL() {
+                pokemonId = url.lastPathComponent
+            } else {
+                pokemonId = urlComponent
+            }
+
+            let pokemon: Pokemon = try await networkService.request(
+                PokemonRequest.details(pokemonId)
+            )
+            pokemon.habitat = species.habitat?.name
+            pokemon.flavorText = species.englishFlavorText
+            return pokemon
         }
 
         /// Transforms an array of detailed Pokémon data into sorted `PokemonViewModel` instances.

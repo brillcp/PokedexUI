@@ -11,6 +11,7 @@ struct ItemDetailRowView: View {
                 Text(item.name.pretty)
                 Text(item.effect.first?.effect.pretty ?? "")
                     .foregroundStyle(.secondary)
+                    .lineHeight(.loose)
             }
         }
         .padding(.vertical)

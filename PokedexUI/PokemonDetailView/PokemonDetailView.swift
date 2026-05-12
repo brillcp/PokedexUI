@@ -57,6 +57,10 @@ private extension PokemonDetailView {
     func contentSection() -> some View {
         VStack {
             basicInfoSection()
+            if viewModel.pokemon.flavorText != nil {
+                sectionDivider()
+                flavorTextSection()
+            }
             sectionDivider()
             statsSection()
             sectionDivider()
@@ -146,7 +150,21 @@ private extension PokemonDetailView {
             detailRow(title: "Height", subtitle: viewModel.pokemon.height)
             detailRow(title: "Weight", subtitle: viewModel.pokemon.weight)
             detailRow(title: "Abilities", subtitle: viewModel.pokemon.abilities)
+            if let habitat = viewModel.pokemon.habitat {
+                detailRow(title: "Habitat", subtitle: habitat)
+            }
         }
+    }
+
+    func flavorTextSection() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Pokedex")
+                .foregroundStyle(.secondary)
+            Text(viewModel.pokemon.flavorText ?? "")
+        }
+        .lineHeight(.loose)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical)
     }
 
     func statsSection() -> some View {
@@ -165,6 +183,7 @@ private extension PokemonDetailView {
                 .foregroundStyle(.secondary)
             Text(viewModel.pokemon.moves)
         }
+        .lineHeight(.loose)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical)
     }

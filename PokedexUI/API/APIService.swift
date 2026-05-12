@@ -14,9 +14,19 @@ protocol ServiceConfiguration {
     /// Returns the request to fetch detailed data from a specific item URL component.
     /// - Parameter urlComponent: The last path component of a resource URL.
     func createDetailRequest(from urlComponent: String) -> Requestable
+    /// Fetches a single detail entry. Override to perform multi-step or merged fetches.
+    /// Default implementation issues `createDetailRequest` directly.
+    func fetchDetail(from urlComponent: String, networkService: Network.Service) async throws -> ResponseType
     /// Transforms a list of decoded response objects into output models.
     /// - Parameter response: The raw decoded response items.
     func transformResponse(_ response: [ResponseType]) -> [OutputModel]
+}
+
+extension ServiceConfiguration {
+    func fetchDetail(from urlComponent: String, networkService: Network.Service) async throws -> ResponseType {
+        let request = createDetailRequest(from: urlComponent)
+        return try await networkService.request(request)
+    }
 }
 
 // MARK: - Generic API Service Actor
@@ -49,13 +59,13 @@ extension APIService {
     /// - Throws: Any error thrown by the network service or decoding pipeline.
     func requestData() async throws -> [Config.OutputModel] {
         let request = config.createRequest()
-        let response: APIResponse = try await networkService.request(request, logResponse: false)
+        let response: APIResponse = try await networkService.request(request)
 
         let details = try await withThrowingTaskGroup(of: Config.ResponseType.self) { group in
             for result in response.results {
                 group.addTask { [config, networkService] in
-                    let request = config.createDetailRequest(from: try result.url.asURL().lastPathComponent)
-                    return try await networkService.request(request, logResponse: false)
+                    let urlComponent = try result.url.asURL().lastPathComponent
+                    return try await config.fetchDetail(from: urlComponent, networkService: networkService)
                 }
             }
 
