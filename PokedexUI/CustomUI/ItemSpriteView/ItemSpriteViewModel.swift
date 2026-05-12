@@ -4,12 +4,12 @@ import SwiftUI
 /// Utilizes an ImageLoader to fetch images asynchronously and exposes loading state.
 final class ItemSpriteViewModel {
     /// The url string to load the sprite from.
-    let spriteURL: String
+    let spriteURL: String?
 
     /// Initializes the ItemSpriteViewModel with the provided sprite URL.
     ///
     /// - Parameter spriteURL: The URL string pointing to the sprite image that should be loaded and managed by this view model.
-    init(spriteURL: String) {
+    init(spriteURL: String?) {
         self.spriteURL = spriteURL
     }
 }

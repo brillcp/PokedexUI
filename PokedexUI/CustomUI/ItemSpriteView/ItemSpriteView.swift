@@ -30,7 +30,9 @@ struct ItemSpriteView: View {
 // MARK: - Private functions
 private extension ItemSpriteView {
     func loadSprite() async {
-        guard let uiImage = await spriteLoader.spriteImage(from: viewModel.spriteURL) else { return }
+        guard let url = viewModel.spriteURL,
+              let uiImage = await spriteLoader.spriteImage(from: url)
+        else { return }
         image = Image(uiImage: uiImage)
     }
 }
