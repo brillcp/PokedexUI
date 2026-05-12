@@ -79,7 +79,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
             return self.pokemon.sorted(by: type.comparator)
         }.value
 
-        withAnimation(.bouncy) { pokemon = sorted }
+        withAnimation(.snappy(duration: 0.25)) { pokemon = sorted }
     }
 }
 

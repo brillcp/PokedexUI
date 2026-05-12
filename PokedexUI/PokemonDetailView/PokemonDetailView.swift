@@ -81,7 +81,7 @@ private extension PokemonDetailView {
             .aspectRatio(contentMode: .fit)
             .frame(height: 320)
             .modifier(Perspective3D(isFlipped: $viewModel.isFlipped))
-            .animation(.bouncy(duration: 0.3, extraBounce: 0.1), value: viewModel.isFlipped)
+            .animation(.bouncy(duration: 0.25, extraBounce: 0.1), value: viewModel.isFlipped)
     }
 }
 
