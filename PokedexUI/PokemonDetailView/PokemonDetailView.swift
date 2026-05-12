@@ -160,7 +160,7 @@ private extension PokemonDetailView {
         VStack(alignment: .leading, spacing: 16) {
             Text("Pokedex")
                 .foregroundStyle(.secondary)
-            Text(viewModel.pokemon.flavorText ?? "")
+            Text(viewModel.pokemon.flavorText?.pretty ?? "")
         }
         .lineHeight(.loose)
         .frame(maxWidth: .infinity, alignment: .leading)
