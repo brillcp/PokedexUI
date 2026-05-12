@@ -3,10 +3,6 @@ import SwiftUI
 extension Color {
     static let darkGrey = Color(hex: "222222")
     static let pokedexRed = Color(hex: "d53b47")
-    static let orange = Color(hex: "f89e2e")
-    static let blue = Color(hex: "3898fe")
-    static let grey = Color(hex: "8db6d2")
-    static let green = Color(hex: "5ba74f")
 
     init?(hex: String, alpha: Double = 1.0) {
         var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -19,10 +15,7 @@ extension Color {
         let b = Double(hexNumber & 0x0000FF) / 255
         self = Color(red: r, green: g, blue: b, opacity: alpha)
     }
-}
 
-// MARK: -
-extension Color {
     var isLight: Bool {
         var red: CGFloat = 0
         var green: CGFloat = 0
