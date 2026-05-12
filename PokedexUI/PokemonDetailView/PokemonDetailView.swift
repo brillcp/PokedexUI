@@ -91,6 +91,7 @@ private extension PokemonDetailView {
                 flipButton()
             }
         }
+        .tint(viewModel.color?.isLight == true ? .black : .white)
         .padding()
     }
 
@@ -132,8 +133,8 @@ private extension PokemonDetailView {
         Image(systemName: icon)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 22, height: 22)
-            .padding(8)
+            .frame(width: 24.0, height: 24.0)
+            .padding(10)
     }
 }
 
