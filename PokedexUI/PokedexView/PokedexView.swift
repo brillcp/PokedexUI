@@ -30,7 +30,7 @@ struct PokedexView<
 // MARK: - Tabs
 private extension PokedexView {
     var pokedexTab: some View {
-        PokedexContent(viewModel: $viewModel)
+        PokedexContent(viewModel: viewModel)
     }
 
     var itemsTab: some View {
@@ -60,7 +60,7 @@ private extension PokedexView {
 
 // MARK: - Content Views
 private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
-    @Binding var viewModel: ViewModel
+    let viewModel: ViewModel
 
     var body: some View {
         NavigationStack {
@@ -70,7 +70,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
                 isLoading: viewModel.isLoading
             )
             .applyPokedexStyling(title: Tabs.pokedex.title)
-            .toolbar { PokedexToolbar(viewModel: $viewModel) }
+            .toolbar { PokedexToolbar(viewModel: viewModel) }
             .tint(.white)
         }
     }
@@ -78,7 +78,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
 
 // MARK: - Toolbar
 private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: ToolbarContent {
-    @Binding var viewModel: ViewModel
+    @State var viewModel: ViewModel
 
     var body: some ToolbarContent {
         ToolbarItem { gridLayoutButton }
@@ -87,7 +87,7 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
 
     private var gridLayoutButton: some View {
         Button("", systemImage: viewModel.grid.otherIcon) {
-            withAnimation(.bouncy) { viewModel.grid.toggle() }
+            withAnimation(.bouncy(duration: 0.25)) { viewModel.grid.toggle() }
         }
     }
 
