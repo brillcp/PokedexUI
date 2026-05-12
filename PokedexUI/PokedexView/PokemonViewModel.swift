@@ -35,6 +35,9 @@ protocol PokemonViewModelProtocol {
 struct PokemonViewModel {
     private(set) var statLookup: [String: Int]
     private(set) var pokemon: Pokemon
+    let id: Int
+    let name: String
+    let frontSprite: String
     let searchHaystack: String
 
     // MARK: - Public properties
@@ -46,6 +49,9 @@ struct PokemonViewModel {
         self.pokemon = pokemon
         self.statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
         self.isBookmarked = pokemon.isBookmarked
+        self.id = pokemon.id
+        self.name = pokemon.name.capitalized
+        self.frontSprite = pokemon.sprite.front
         let typeNames = pokemon.types.map { $0.type.name }.joined(separator: " ")
         self.searchHaystack = "\(pokemon.name) \(typeNames)".normalize
     }
@@ -53,9 +59,6 @@ struct PokemonViewModel {
 
 // MARK: - Calculated PokemonViewModelProtocol properties
 extension PokemonViewModel: PokemonViewModelProtocol {
-    var id: Int { pokemon.id }
-    var name: String { pokemon.name.capitalized }
-    var frontSprite: String { pokemon.sprite.front }
     var backSprite: String? { pokemon.sprite.back }
     var height: String { "\(Double(pokemon.height) / 10.0) m" }
     var weight: String { "\(Double(pokemon.weight) / 10.0) kg" }
