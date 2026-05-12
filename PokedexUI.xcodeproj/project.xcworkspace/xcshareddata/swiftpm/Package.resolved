@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/brillcp/Networking",
       "state" : {
-        "revision" : "6ed3683ad47d53b97a716d3ee38f35d7400cc737",
-        "version" : "0.9.3"
+        "revision" : "419a8f9ec67464a8cbdc86681d0bf96605317129",
+        "version" : "0.10.0"
       }
     }
   ],
