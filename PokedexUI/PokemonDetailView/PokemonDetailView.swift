@@ -91,8 +91,6 @@ private extension PokemonDetailView {
                 flipButton()
             }
         }
-        .buttonStyle(.glass)
-        .tint(viewModel.color?.isLight ?? false ? .black : .white)
         .padding()
     }
 
@@ -102,6 +100,7 @@ private extension PokemonDetailView {
         } label: {
             imageIcon("speaker.wave.3.fill")
         }
+        .glassEffect(.clear.interactive(), in: Circle())
     }
 
     func bookmarkButton() -> some View {
@@ -110,6 +109,7 @@ private extension PokemonDetailView {
         } label: {
             imageIcon(viewModel.isBookmarked ? "bookmark.fill" : "bookmark")
         }
+        .glassEffect(.clear.interactive(), in: Circle())
     }
 
     func flipButton() -> some View {
@@ -125,6 +125,7 @@ private extension PokemonDetailView {
                         }
                 )
         }
+        .glassEffect(.clear.interactive(), in: Circle())
     }
 
     func imageIcon(_ icon: String) -> some View {
@@ -132,7 +133,7 @@ private extension PokemonDetailView {
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: 22, height: 22)
-            .padding(6)
+            .padding(8)
     }
 }
 

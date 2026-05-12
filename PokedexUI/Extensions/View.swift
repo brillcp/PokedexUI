@@ -14,6 +14,8 @@ extension View {
             .toolbarBackground(Color.pokedexRed ?? .red, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .background(Color.darkGrey)
+            .ignoresSafeArea(edges: .bottom)
+            .contentMargins(.bottom, 88.0)
     }
 
     func fadeIn<Value: Equatable>(when value: Value, duration: Double = 0.4) -> some View {
