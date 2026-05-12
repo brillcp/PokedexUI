@@ -4,7 +4,7 @@ struct ItemRowView: View {
     let item: ItemData
 
     var body: some View {
-        HStack {
+        HStack(spacing: 16.0) {
             ItemSpriteView(viewModel: ItemSpriteViewModel(spriteURL: spriteURL))
             Text(item.title.pretty)
             Spacer()
