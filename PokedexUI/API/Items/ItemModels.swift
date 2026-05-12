@@ -4,7 +4,7 @@ import SwiftData
 final class ItemDetail: Decodable {
     @Attribute(.unique) var id: Int
     var name: String
-    var sprites: ItemSprite
+    var sprites: ItemSprite?
     var category: APIItem
     @Relationship var effect: [Effect]
 
@@ -17,12 +17,12 @@ final class ItemDetail: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(Int.self, forKey: .id)
         self.name = try container.decode(String.self, forKey: .name)
-        self.sprites = try container.decode(ItemSprite.self, forKey: .sprites)
+        self.sprites = try container.decodeIfPresent(ItemSprite.self, forKey: .sprites)
         self.category = try container.decode(APIItem.self, forKey: .category)
         self.effect = try container.decode([Effect].self, forKey: .effect)
     }
 
-    init(id: Int, name: String, sprites: ItemSprite, category: APIItem, effect: [Effect]) {
+    init(id: Int, name: String, sprites: ItemSprite?, category: APIItem, effect: [Effect]) {
         self.id = id
         self.name = name
         self.sprites = sprites
@@ -45,14 +45,14 @@ final class ItemData {
 
 extension ItemData {
     var icon: String? {
-        items.first?.sprites.default
+        items.first?.sprites?.default
     }
 }
 
 // MARK: -
 @Model
 final class ItemSprite: Decodable {
-    var `default`: String
+    var `default`: String?
 
     private enum CodingKeys: String, CodingKey {
         case `default` = "default"
@@ -60,10 +60,10 @@ final class ItemSprite: Decodable {
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.default = try container.decode(String.self, forKey: .default)
+        self.default = try container.decodeIfPresent(String.self, forKey: .default)
     }
 
-    init(default: String) {
+    init(default: String?) {
         self.default = `default`
     }
 }

@@ -51,7 +51,7 @@ extension ItemService {
         ///
         /// - Returns: A `Requestable` representing the item list request.
         func createRequest() -> Requestable {
-            ItemRequest.items(limit: 860)
+            ItemRequest.items(limit: 2176)
         }
 
         /// Builds a request for fetching detailed information about a single item.
