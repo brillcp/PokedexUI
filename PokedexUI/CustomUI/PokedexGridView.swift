@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PokedexGridView<Pokemon: PokemonViewModelProtocol>: View {
     let pokemon: [Pokemon]
-    let grid: GridLayout
+    var grid: GridLayout = .three
     var isLoading: Bool = false
 
     var body: some View {

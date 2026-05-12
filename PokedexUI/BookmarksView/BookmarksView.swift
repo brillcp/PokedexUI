@@ -15,10 +15,7 @@ struct BookmarksView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .font(.pixel14)
             } else {
-                PokedexGridView(
-                    pokemon: pokemonViewModels,
-                    grid: .three
-                )
+                PokedexGridView(pokemon: pokemonViewModels)
             }
         }
     }
