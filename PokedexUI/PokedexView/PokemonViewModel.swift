@@ -26,6 +26,8 @@ protocol PokemonViewModelProtocol {
     var latestCry: String? { get }
     /// A boolean value that determine if the Pokémon is bookmarked.
     var isBookmarked: Bool { get set }
+    /// Precomputed, normalized text used for search matching.
+    var searchHaystack: String { get }
 }
 
 // MARK: -
@@ -33,6 +35,7 @@ protocol PokemonViewModelProtocol {
 struct PokemonViewModel {
     private(set) var statLookup: [String: Int]
     private(set) var pokemon: Pokemon
+    let searchHaystack: String
 
     // MARK: - Public properties
     var isBookmarked: Bool
@@ -43,6 +46,8 @@ struct PokemonViewModel {
         self.pokemon = pokemon
         self.statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
         self.isBookmarked = pokemon.isBookmarked
+        let typeNames = pokemon.types.map { $0.type.name }.joined(separator: " ")
+        self.searchHaystack = "\(pokemon.name) \(typeNames)".normalize
     }
 }
 

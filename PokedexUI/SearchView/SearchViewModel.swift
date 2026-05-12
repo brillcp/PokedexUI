@@ -54,11 +54,8 @@ extension SearchViewModel: SearchViewModelProtocol {
         }
 
         filtered = pokemon.filter { pokemonVM in
-            let name = pokemonVM.name.normalize
-            let types = pokemonVM.types.components(separatedBy: ",").map { $0.normalize }
-            return queryTerms.allSatisfy { term in
-                name.contains(term) || types.contains(where: { $0.contains(term) })
-            }
+            let haystack = pokemonVM.searchHaystack
+            return queryTerms.allSatisfy { haystack.contains($0) }
         }
     }
 }
