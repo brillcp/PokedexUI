@@ -77,7 +77,7 @@ final class Effect: Decodable {
     var itemDetail: ItemDetail?
 
     private enum CodingKeys: String, CodingKey {
-        case effect
+        case effect = "short_effect"
     }
 
     required init(from decoder: Decoder) throws {
