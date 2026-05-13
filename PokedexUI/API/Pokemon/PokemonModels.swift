@@ -15,6 +15,16 @@ final class Pokemon: Decodable, Sendable {
     var stats: [Stat]
     var habitat: String?
     var flavorText: String?
+    var genus: String? = nil
+    var generationName: String? = nil
+    var genderRate: Int = -1
+    var captureRate: Int = 0
+    var baseHappiness: Int = 0
+    var hatchCounter: Int = 0
+    var eggGroups: [String] = []
+    var evolutionChainId: String? = nil
+    var isLegendary: Bool = false
+    var isMythical: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case id, name, weight, height, cries, abilities, moves, types, stats
@@ -33,7 +43,17 @@ final class Pokemon: Decodable, Sendable {
         types: [Type],
         stats: [Stat],
         habitat: String? = nil,
-        flavorText: String? = nil
+        flavorText: String? = nil,
+        genus: String? = nil,
+        generationName: String? = nil,
+        genderRate: Int = -1,
+        captureRate: Int = 0,
+        baseHappiness: Int = 0,
+        hatchCounter: Int = 0,
+        eggGroups: [String] = [],
+        evolutionChainId: String? = nil,
+        isLegendary: Bool = false,
+        isMythical: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -47,6 +67,16 @@ final class Pokemon: Decodable, Sendable {
         self.stats = stats
         self.habitat = habitat
         self.flavorText = flavorText
+        self.genus = genus
+        self.generationName = generationName
+        self.genderRate = genderRate
+        self.captureRate = captureRate
+        self.baseHappiness = baseHappiness
+        self.hatchCounter = hatchCounter
+        self.eggGroups = eggGroups
+        self.evolutionChainId = evolutionChainId
+        self.isLegendary = isLegendary
+        self.isMythical = isMythical
     }
 
     required init(from decoder: Decoder) throws {
@@ -114,7 +144,8 @@ extension Pokemon {
                 Stat(baseStat: 90, stat: APIItem(name: "speed", url: ""))
             ],
             habitat: "Forest",
-            flavorText: "This Pokemon is electric"
+            flavorText: "This Pokemon is electric",
+            evolutionChainId: "10"
         )
     }
 }

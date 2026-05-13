@@ -32,6 +32,27 @@ protocol PokemonViewModelProtocol {
     var habitat: String? { get }
     /// English Pokédex flavor text, if available.
     var flavorText: String? { get }
+    /// "Mouse Pokémon", etc.
+    var genus: String? { get }
+    /// "generation-i" style name.
+    var generationName: String? { get }
+    /// `-1` genderless, else `0...8` (1/8 increments female).
+    var genderRate: Int { get }
+    /// PokeAPI capture rate (0–255). 255 = easiest.
+    var captureRate: Int { get }
+    /// Steps required to hatch: `(hatchCounter + 1) * 255`.
+    var hatchSteps: Int { get }
+    /// Egg group display names.
+    var eggGroups: [String] { get }
+    /// Evolution chain id (last path component) for lazy fetch.
+    var evolutionChainId: String? { get }
+    /// Sum of all six base stats.
+    var baseStatTotal: Int { get }
+    /// Lowercase type names (e.g. `["fire", "flying"]`) for effectiveness lookup.
+    var typeNames: [String] { get }
+    /// `true` when this pokemon is flagged legendary or mythical.
+    var isLegendary: Bool { get }
+    var isMythical: Bool { get }
 }
 
 // MARK: -
@@ -84,6 +105,19 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var flavorText: String? {
         pokemon.flavorText
     }
+    var genus: String? { pokemon.genus }
+    var generationName: String? { pokemon.generationName }
+    var genderRate: Int { pokemon.genderRate }
+    var captureRate: Int { pokemon.captureRate }
+    var hatchSteps: Int { (pokemon.hatchCounter + 1) * 255 }
+    var eggGroups: [String] {
+        pokemon.eggGroups.map { $0.replacingOccurrences(of: "-", with: " ").capitalized }
+    }
+    var evolutionChainId: String? { pokemon.evolutionChainId }
+    var baseStatTotal: Int { pokemon.stats.map(\.baseStat).reduce(0, +) }
+    var typeNames: [String] { pokemon.types.map { $0.type.name } }
+    var isLegendary: Bool { pokemon.isLegendary }
+    var isMythical: Bool { pokemon.isMythical }
 }
 
 // MARK: - Equatable / Hashable

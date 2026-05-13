@@ -4,11 +4,31 @@ struct PokemonSpecies: Decodable, Sendable {
     let habitat: APINamed?
     let flavorTextEntries: [FlavorTextEntry]
     let varieties: [Variety]
+    let genera: [Genus]
+    let genderRate: Int
+    let captureRate: Int
+    let baseHappiness: Int?
+    let hatchCounter: Int?
+    let eggGroups: [APINamed]
+    let generation: APINamed?
+    let evolutionChain: EvolutionChainRef?
+    let isLegendary: Bool
+    let isMythical: Bool
 
     private enum CodingKeys: String, CodingKey {
         case habitat
         case flavorTextEntries = "flavor_text_entries"
         case varieties
+        case genera
+        case genderRate = "gender_rate"
+        case captureRate = "capture_rate"
+        case baseHappiness = "base_happiness"
+        case hatchCounter = "hatch_counter"
+        case eggGroups = "egg_groups"
+        case generation
+        case evolutionChain = "evolution_chain"
+        case isLegendary = "is_legendary"
+        case isMythical = "is_mythical"
     }
 
     var defaultVariety: Variety? {
@@ -21,6 +41,10 @@ struct PokemonSpecies: Decodable, Sendable {
             .flavorText
             .replacingOccurrences(of: "\n", with: " ")
             .replacingOccurrences(of: "\u{000C}", with: " ")
+    }
+
+    var englishGenus: String? {
+        genera.first(where: { $0.language.name == "en" })?.genus
     }
 }
 
@@ -35,6 +59,22 @@ struct FlavorTextEntry: Decodable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case flavorText = "flavor_text"
         case language
+    }
+}
+
+struct Genus: Decodable, Sendable {
+    let genus: String
+    let language: APINamed
+}
+
+struct EvolutionChainRef: Decodable, Sendable {
+    let url: String
+
+    /// Last path component is the chain id.
+    var id: String? {
+        URL(string: url)?
+            .pathComponents
+            .last(where: { !$0.isEmpty && $0 != "/" })
     }
 }
 

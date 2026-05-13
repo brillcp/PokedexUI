@@ -17,7 +17,11 @@ protocol PokemonDetailViewModelProtocol {
     var backSprite: Image? { get }
     /// The dominant color extracted from the Pokémon's sprite image, if available.
     var color: Color? { get }
+    /// Linear chain of evolution stages, set after `loadEvolutionChain` completes.
+    var evolutionStages: [EvolutionChain.Stage] { get }
 
+    /// Fetches the evolution chain (no-op if the species has no chain id or it's already loaded).
+    func loadEvolutionChain() async
     /// Loads the Pokémon's front and back sprite images and determines the dominant color.
     /// - Parameters:
     ///   - spriteLoader: Helper for loading sprite images asynchronously.
@@ -57,17 +61,36 @@ final class PokemonDetailViewModel {
     var backSprite: Image?
     /// The dominant color extracted from the front sprite image.
     var color: Color?
+    /// Evolution chain stages for this species. Empty until the lazy fetch completes.
+    var evolutionStages: [EvolutionChain.Stage] = []
+
+    private let evolutionService: EvolutionServiceProtocol
 
     // MARK: - Initialization
     /// Creates a new ViewModel for the specified Pokémon.
     /// - Parameter pokemon: The Pokémon to represent.
-    init(pokemon: PokemonViewModelProtocol) {
+    init(
+        pokemon: PokemonViewModelProtocol,
+        evolutionService: EvolutionServiceProtocol = EvolutionService()
+    ) {
         self.pokemon = pokemon
+        self.evolutionService = evolutionService
     }
 }
 
 // MARK: - PokemonDetailViewModelProtocol
 extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
+    /// Fetches the species evolution chain via the API and flattens it into a linear list.
+    func loadEvolutionChain() async {
+        guard evolutionStages.isEmpty, let chainId = pokemon.evolutionChainId else { return }
+        do {
+            let chain = try await evolutionService.requestChain(id: chainId)
+            evolutionStages = chain.stages
+        } catch {
+            print("Evolution chain failed for \(pokemon.name): \(error)")
+        }
+    }
+
     /// Updates `isBookmarked` based on whether this Pokémon appears in the provided bookmarks list.
     /// - Parameter bookmarks: The user's list of bookmarked Pokémon entities.
     func updateBookmarkStatus(from bookmarks: [Pokemon]) {

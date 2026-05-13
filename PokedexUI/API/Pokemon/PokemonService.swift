@@ -73,6 +73,16 @@ extension PokemonService {
             )
             pokemon.habitat = species.habitat?.name
             pokemon.flavorText = species.englishFlavorText
+            pokemon.genus = species.englishGenus
+            pokemon.generationName = species.generation?.name
+            pokemon.genderRate = species.genderRate
+            pokemon.captureRate = species.captureRate
+            pokemon.baseHappiness = species.baseHappiness ?? 0
+            pokemon.hatchCounter = species.hatchCounter ?? 0
+            pokemon.eggGroups = species.eggGroups.map(\.name)
+            pokemon.evolutionChainId = species.evolutionChain?.id
+            pokemon.isLegendary = species.isLegendary
+            pokemon.isMythical = species.isMythical
             return pokemon
         }
 
