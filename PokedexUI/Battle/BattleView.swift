@@ -52,7 +52,7 @@ struct BattleView: View {
     }
 
     private func battleLayout(state: BattleState) -> some View {
-        VStack(spacing: 32) {
+        VStack(spacing: 12) {
             Spacer(minLength: 0)
             arena(state: state)
                 .padding(.horizontal, 16)
@@ -111,29 +111,43 @@ struct BattleView: View {
     }
 
     /// GameBoy-style fixed window — always 5 lines tall, showing the most recent 5.
-    /// Pads the top with empty rows when there are fewer entries so the window never reflows.
+    /// Each real entry carries a stable identity (its absolute index in `log`)
+    /// so a fresh line gets `.transition(.move + .opacity)` instead of swapping
+    /// in place. Placeholders use negative ids — also stable — and animate out
+    /// from the top as real lines push them off-screen.
     private var logFeed: some View {
         let lineCount = 5
         let lineHeight: CGFloat = 16
-        let recent = Array(viewModel.log.suffix(lineCount))
-        let padded = Array(repeating: "", count: max(0, lineCount - recent.count)) + recent
+        let logCount = viewModel.log.count
+        let firstVisible = max(0, logCount - lineCount)
+        let visible: [(id: Int, text: String)] = (firstVisible..<logCount).map { ($0, viewModel.log[$0]) }
+        let placeholderCount = max(0, lineCount - visible.count)
+        let placeholders: [(id: Int, text: String)] = (0..<placeholderCount).map { (-($0 + 1), "") }
+        let rows = placeholders + visible
         return VStack(alignment: .leading, spacing: 4) {
-            ForEach(Array(padded.enumerated()), id: \.offset) { _, line in
-                Text(line)
+            ForEach(rows, id: \.id) { row in
+                Text(row.text)
                     .font(.pixel12)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(height: lineHeight, alignment: .leading)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        )
+                    )
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
+        .animation(.easeOut(duration: 0.25), value: logCount)
     }
 
     private func moveGrid(state: BattleState) -> some View {
         let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
         let disabled = viewModel.isResolvingTurn || viewModel.winner != nil
         let visibleRows: CGFloat = 3
-        let approxCellHeight: CGFloat = 72
+        let approxCellHeight: CGFloat = 78
         let spacing: CGFloat = 16
         let height = visibleRows * approxCellHeight + (visibleRows - 1) * spacing
         return ScrollView {
@@ -153,10 +167,8 @@ struct BattleView: View {
         }
         .scrollIndicators(.hidden)
         .frame(height: height)
+        .disabled(disabled)
         .mask(
-            // Soft fade at the top edge so cells dissolve into the log above
-            // when the user scrolls; solid through the rest so the bottom row
-            // sits crisp under the tab bar.
             LinearGradient(
                 stops: [
                     .init(color: .clear, location: 0),
