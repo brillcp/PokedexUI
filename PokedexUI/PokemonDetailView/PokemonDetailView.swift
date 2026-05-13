@@ -249,7 +249,7 @@ private extension View {
             .background {
                 LinearGradient(
                     stops: [
-                        .init(color: viewModel.color ?? .clear, location: 0.3),
+                        .init(color: viewModel.color ?? .clear, location: 0.4),
                         .init(color: (viewModel.color ?? .black).mix(with: .black, by: 0.2), location: 1)
                     ],
                     startPoint: .top, endPoint: .bottom
