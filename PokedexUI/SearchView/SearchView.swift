@@ -10,17 +10,23 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
 
     // MARK: - Body
     var body: some View {
-        PokedexGridView(
-            pokemon: viewModel.filtered,
-            grid: .three
-        )
+        Group {
+            if !viewModel.query.isEmpty && viewModel.filtered.isEmpty {
+                Text("No result…")
+            } else if viewModel.filtered.isEmpty {
+                Text("Search Pokemon and types")
+            } else {
+                PokedexGridView(pokemon: viewModel.filtered)
+            }
+        }
+        .font(.pixel14)
+        .background(Color.darkGrey.ignoresSafeArea())
         .searchable(text: $viewModel.query)
         .searchFocused($isSearchFocused)
         .onAppear { isSearchFocused = true }
-        .overlay(resultText)
         .scrollDismissesKeyboard(.immediately)
         .onChange(of: viewModel.query) { _, _ in
-            withAnimation(.bouncy) { viewModel.updateFilteredPokemon() }
+            withAnimation(.bouncy(duration: 0.25)) { viewModel.updateFilteredPokemon() }
         }
         .onChange(of: isSearchFocused, dismissSearch)
     }
@@ -33,22 +39,6 @@ private extension SearchView {
         withTransaction(.init(animation: .default)) {
             selectedTab = .pokedex
         }
-    }
-}
-
-// MARK: - Private UI components
-private extension SearchView {
-    var resultText: some View {
-        Group {
-            if !viewModel.query.isEmpty && viewModel.filtered.isEmpty {
-                Text("No result…")
-            } else if viewModel.filtered.isEmpty {
-                Text("Search Pokemon and types")
-            } else {
-                EmptyView()
-            }
-        }
-        .font(.pixel14)
     }
 }
 
