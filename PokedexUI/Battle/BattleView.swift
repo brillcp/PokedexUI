@@ -34,43 +34,61 @@ struct BattleView: View {
     @ViewBuilder
     private var content: some View {
         if viewModel.isLoadingMoves {
-            ProgressView("Loading moves…").tint(.white)
+            ProgressView("Loading moves…")
+                .tint(.white)
+                .font(.pixel14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .lineHeight(.loose)
         } else if let error = viewModel.errorMessage {
-            Text(error).padding()
+            Text(error)
+                .tint(.white)
+                .font(.pixel14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+                .lineHeight(.loose)
         } else if let state = viewModel.state {
             battleLayout(state: state)
         }
     }
 
     private func battleLayout(state: BattleState) -> some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 32) {
             Spacer(minLength: 0)
             arena(state: state)
-                .padding(.bottom, 16)
+                .padding(.horizontal, 24)
             logFeed
+                .padding(.horizontal, 24)
             moveGrid(state: state)
-                .padding(.top, 0)
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 23)
+//        .padding(.horizontal, 24)
         .frame(maxHeight: .infinity)
+        .ignoresSafeArea(.container, edges: .bottom)
     }
 
     /// Classic Gameboy-style layout: opponent top-right with HP top-left,
     /// player bottom-left (back sprite) with HP bottom-right.
     private func arena(state: BattleState) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: -28) {
             HStack(alignment: .top) {
                 hpCard(state.opponent)
                 Spacer(minLength: 12)
                 sprite(url: state.opponent.frontSpriteURL, side: .opponent)
             }
             HStack(alignment: .bottom) {
-                sprite(url: state.player.backSpriteURL ?? state.player.frontSpriteURL, side: .player)
+                // When the player wins, swap to the front sprite and let BattlerSprite
+                // mirror it so the winner faces the camera with a celebratory wobble.
+                sprite(url: playerSpriteURL(state: state), side: .player)
                 Spacer(minLength: 12)
                 hpCard(state.player)
             }
         }
+    }
+
+    private func playerSpriteURL(state: BattleState) -> String? {
+        if viewModel.winner == .player {
+            return state.player.frontSpriteURL
+        }
+        return state.player.backSpriteURL ?? state.player.frontSpriteURL
     }
 
     private func sprite(url: String?, side: BattleSide) -> some View {
@@ -95,10 +113,10 @@ struct BattleView: View {
         .equatable()
     }
 
-    /// GameBoy-style fixed window — always 8 lines tall, showing the most recent 8.
+    /// GameBoy-style fixed window — always 5 lines tall, showing the most recent 5.
     /// Pads the top with empty rows when there are fewer entries so the window never reflows.
     private var logFeed: some View {
-        let lineCount = 8
+        let lineCount = 5
         let lineHeight: CGFloat = 16
         let recent = Array(viewModel.log.suffix(lineCount))
         let padded = Array(repeating: "", count: max(0, lineCount - recent.count)) + recent
@@ -112,22 +130,32 @@ struct BattleView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .padding(.bottom, 16)
     }
 
     private func moveGrid(state: BattleState) -> some View {
-        let columns = [GridItem(.flexible()), GridItem(.flexible())]
+        let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
         let disabled = viewModel.isResolvingTurn || viewModel.winner != nil
-        return LazyVGrid(columns: columns, spacing: 8) {
-            ForEach(state.player.moves, id: \.name) { move in
-                Button {
-                    Task { await viewModel.submit(move) }
-                } label: {
-                    moveLabel(move)
+        let visibleRows: CGFloat = 3
+        let approxCellHeight: CGFloat = 64
+        let spacing: CGFloat = 14
+        let height = visibleRows * approxCellHeight + (visibleRows - 1) * spacing
+        return ScrollView {
+            LazyVGrid(columns: columns, spacing: spacing) {
+                ForEach(state.player.moves, id: \.name) { move in
+                    Button {
+                        Task { await viewModel.submit(move) }
+                    } label: {
+                        moveLabel(move)
+                    }
+                    .disabled(disabled)
                 }
-                .disabled(disabled)
             }
+            .padding(.top)
+            .padding(.horizontal)
+            .safeAreaPadding(.bottom, 88)
         }
+        .scrollIndicators(.hidden)
+        .frame(height: height)
         .opacity(disabled ? 0.35 : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }
@@ -190,7 +218,7 @@ private struct HPCard: View, Equatable {
     let status: BattleStatus
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(name).font(.pixel14)
                 if status != .none {
@@ -214,7 +242,8 @@ private struct HPCard: View, Equatable {
                 .contentTransition(.numericText(value: Double(currentHP)))
                 .animation(.easeOut(duration: 0.5), value: currentHP)
         }
-        .padding(10)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 12)
         .frame(width: 180, alignment: .leading)
         .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 8))
     }
@@ -301,6 +330,7 @@ private struct BattlerSprite: View {
             Color(.systemGray4).clipShape(Circle())
         }
         .frame(width: 168, height: 168)
+        .scaleEffect(x: isWinner ? -1 : 1, y: 1)
         .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))
         .rotationEffect(.degrees(celebratingTilt))
         .offset(
@@ -334,4 +364,42 @@ private struct ShakeEffect: GeometryEffect {
         let translation = amount * sin(animatableData * .pi * shakes)
         return ProjectionTransform(CGAffineTransform(translationX: translation, y: 0))
     }
+}
+
+// MARK: - Preview
+
+/// Returns canned `MoveDetail` instances so previews don't hit the network.
+private struct MockMoveService: MoveServiceProtocol {
+    func requestMove(named name: String) async throws -> MoveDetail { Self.make(name) }
+
+    func requestMoves(named names: [String]) async throws -> [MoveDetail] {
+        names.map(Self.make)
+    }
+
+    private static func make(_ name: String) -> MoveDetail {
+        let move = MoveDetail(name: name)
+        move.power = 40
+        move.accuracy = 100
+        move.pp = 25
+        move.priority = 0
+        move.typeName = "normal"
+        move.damageClass = "physical"
+        return move
+    }
+}
+
+#Preview {
+    NavigationStack {
+        TabView {
+            BattleView(
+                viewModel: BattleViewModel(
+                    player: PokemonViewModel(pokemon: .pikachu),
+                    opponent: PokemonViewModel(pokemon: .pikachu),
+                    typeChart: .shared,
+                    moveService: MockMoveService()
+                )
+            )
+        }
+    }
+    .colorScheme(.dark)
 }

@@ -88,23 +88,9 @@ final class Pokemon: Decodable, Sendable {
         cries = try container.decode(Cries.self, forKey: .cries)
         sprite = try container.decode(Sprite.self, forKey: .sprite)
         abilities = try container.decode([Ability].self, forKey: .abilities)
-        moves = try container.decode(limitedTo: 10, forKey: .moves)
+        moves = try container.decode([Move].self, forKey: .moves)
         types = try container.decode([Type].self, forKey: .types)
         stats = try container.decode([Stat].self, forKey: .stats)
-    }
-}
-
-// MARK: - Private decoding helper fucntion
-private extension KeyedDecodingContainer {
-    func decode<T: Decodable>(limitedTo count: Int, forKey key: K) throws -> [T] {
-        let container = try nestedUnkeyedContainer(forKey: key)
-        var output = [T]()
-
-        var tempContainer = container
-        while !tempContainer.isAtEnd && output.count < count {
-            output.append(try tempContainer.decode(T.self))
-        }
-        return output
     }
 }
 
@@ -144,7 +130,8 @@ extension Pokemon {
                 Stat(baseStat: 90, stat: APIItem(name: "speed", url: ""))
             ],
             habitat: "Forest",
-            flavorText: "This Pokemon is electric",
+            flavorText: "This Pokemon is electric. This Pokemon is electric. This Pokemon is electric. This Pokemon is electric. ",
+            genderRate: 5,
             evolutionChainId: "10"
         )
     }

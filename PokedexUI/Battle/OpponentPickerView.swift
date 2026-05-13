@@ -75,7 +75,7 @@ struct OpponentPickerView: View {
             .padding(.vertical, 14)
             .foregroundStyle(.white)
         }
-        .glassEffect(.clear.tint(.pokedexRed?.opacity(0.4)).interactive(), in: Capsule())
+        .glassEffect(.clear.tint(.pokedexRed?.opacity(0.8)).interactive(), in: Capsule())
         .padding(.bottom, 32)
         .padding(.horizontal, 24)
     }
@@ -116,7 +116,7 @@ private struct OpponentCard: View, Equatable {
                     .frame(maxWidth: .infinity)
                 Text(row.name)
                     .font(.pixel12)
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 14)
             }
             .frame(maxWidth: .infinity)
             .background(.white.opacity(0.04))

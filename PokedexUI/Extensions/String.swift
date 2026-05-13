@@ -1,11 +1,12 @@
 import Foundation
 
 extension String {
+    /// Display-safe transform: replaces hyphens with spaces and strips diacritics
+    /// so glyphs not in the pixel font (é, è, É, È, à, etc.) render as ASCII fallbacks.
     var pretty: String {
         self
             .replacingOccurrences(of: "-", with: " ")
-            .replacingOccurrences(of: "é", with: "e")
-            .replacingOccurrences(of: "à", with: "a")
+            .folding(options: .diacriticInsensitive, locale: .current)
             .firstUppercased
     }
 }

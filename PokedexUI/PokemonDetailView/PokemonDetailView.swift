@@ -106,20 +106,18 @@ private extension PokemonDetailView {
             if let habitat = viewModel.pokemon.habitat {
                 DetailRow(title: "Habitat", subtitle: habitat)
             }
-            GenderRow(rate: viewModel.pokemon.genderRate, textColor: textColor)
             DetailRow(title: "Capture", subtitle: capturePercentText)
+            GenderRow(rate: viewModel.pokemon.genderRate, textColor: textColor)
             WeaknessGridView(
                 pokemon: viewModel.pokemon,
                 typeChart: typeChart,
                 textColor: textColor
             )
-            DetailRow(title: "Egg Groups", subtitle: viewModel.pokemon.eggGroups.joined(separator: ", "))
-            DetailRow(title: "Hatch Steps", subtitle: "\(viewModel.pokemon.hatchSteps)")
 
             rowSection(title: "Abilities", data: viewModel.pokemon.abilities)
             rowSection(title: "Moves", data: viewModel.pokemon.moves)
             statsSection()
-            Divider().foregroundStyle(.secondary)
+            Divider().foregroundStyle(textColor)
             EvolutionChainView(
                 stages: viewModel.evolutionStages,
                 textColor: textColor,
@@ -136,7 +134,7 @@ private extension PokemonDetailView {
     func speciesHeader() -> some View {
         HStack {
             if let genus = viewModel.pokemon.genus {
-                Text(genus)
+                Text(genus.pretty)
                     .font(.pixel14)
                     .foregroundStyle(.secondary)
             }
@@ -234,7 +232,8 @@ private extension PokemonDetailView {
     func statsSection() -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Divider()
-                .foregroundStyle(.secondary)
+                .foregroundStyle(textColor)
+                .frame(height: 2)
             ForEach(viewModel.pokemon.stats) { stat in
                 DetailRowStat(
                     title: stat.stat.name,
@@ -429,9 +428,9 @@ private struct GenderRow: View {
                         .font(.pixel12)
                         .foregroundStyle(textColor.opacity(0.8))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

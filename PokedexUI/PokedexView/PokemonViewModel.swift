@@ -40,10 +40,6 @@ protocol PokemonViewModelProtocol {
     var genderRate: Int { get }
     /// PokeAPI capture rate (0–255). 255 = easiest.
     var captureRate: Int { get }
-    /// Steps required to hatch: `(hatchCounter + 1) * 255`.
-    var hatchSteps: Int { get }
-    /// Egg group display names.
-    var eggGroups: [String] { get }
     /// Evolution chain id (last path component) for lazy fetch.
     var evolutionChainId: String? { get }
     /// Sum of all six base stats.
@@ -105,9 +101,14 @@ extension PokemonViewModel: PokemonViewModelProtocol {
             pokemon.abilities.map { $0.ability }.joinedCapitalizedNames
         }
     }
+    /// Display-friendly list capped at the first 10 moves; appends an ellipsis
+    /// when the underlying movepool is larger. Battles draw from the full list.
     var moves: String {
         derived.joined(\.cachedMoves) {
-            pokemon.moves.map { $0.move }.joinedCapitalizedNames
+            let names = pokemon.moves.map { $0.move.name.capitalized }
+            let displayed = Array(names.prefix(10))
+            let joined = displayed.joined(separator: ", ")
+            return names.count > displayed.count ? "\(joined)…" : joined
         }
     }
     var searchHaystack: String {

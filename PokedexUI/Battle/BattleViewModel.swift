@@ -153,13 +153,17 @@ final class BattleViewModel {
         }
     }
 
-    /// Fetch up to 4 damaging moves; fall back to the first 4 known moves so status-only
-    /// movesets still produce usable battle buttons.
+    /// Fetch the pokemon's full movepool up front, capped at 40 moves to keep the
+    /// preflight from spiralling on pokemon with massive movesets. The shuffle
+    /// means battles with >40-move pokemon see a different random 40 each fight.
+    /// `MoveService.requestMoves(named:)` parallelises the network calls via a
+    /// `withThrowingTaskGroup`, so wall time scales with the slowest move, not
+    /// the count.
     private func fetchMoves(for pokemon: PokemonViewModel) async throws -> [MoveDetail] {
-        let names = pokemon.pokemon.moves.map { $0.move.name }
-        let firstFour = Array(names.prefix(4))
-        guard !firstFour.isEmpty else { return [] }
-        return try await moveService.requestMoves(named: firstFour)
+        let names = pokemon.pokemon.moves.map(\.move.name)
+        guard !names.isEmpty else { return [] }
+        let capped = Array(names.shuffled().prefix(40))
+        return try await moveService.requestMoves(named: capped)
     }
 
     private func name(of side: BattleSide) -> String {
