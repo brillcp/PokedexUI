@@ -342,7 +342,6 @@ private struct BattlerSprite: View {
             Color(.systemGray4).clipShape(Circle())
         }
         .frame(width: 168, height: 168)
-        .scaleEffect(x: isWinner ? -1 : 1, y: 1)
         .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))
         .rotationEffect(.degrees(celebratingTilt))
         .offset(

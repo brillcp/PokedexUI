@@ -140,9 +140,9 @@ final class BattleViewModel {
     private func playAnimation(for event: BattleEvent) async {
         switch event {
         case .used(let side, _):
-            withAnimation(.easeOut(duration: 0.15)) { attackingSide = side }
-            try? await Task.sleep(for: .milliseconds(180))
-            withAnimation(.easeIn(duration: 0.15)) { attackingSide = nil }
+            withAnimation(.easeOut(duration: 0.10)) { attackingSide = side }
+            try? await Task.sleep(for: .milliseconds(110))
+            withAnimation(.spring(response: 0.18, dampingFraction: 0.4)) { attackingSide = nil }
         case .damaged(let side, _, _, _):
             switch side {
             case .player: playerShakeTick += 1
