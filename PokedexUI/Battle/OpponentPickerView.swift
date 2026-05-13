@@ -25,10 +25,10 @@ struct OpponentPickerView: View {
             ScrollView {
                 LazyVGrid(
                     columns: [
-                        GridItem(.flexible(), spacing: 1),
-                        GridItem(.flexible(), spacing: 1)
+                        GridItem(.flexible(maximum: .infinity), spacing: 2),
+                        GridItem(.flexible(maximum: .infinity), spacing: 2)
                     ],
-                    spacing: 1
+                    spacing: 2
                 ) {
                     ForEach(allPokemon, id: \.id) { opp in
                         opponentCard(opp)
@@ -76,12 +76,9 @@ struct OpponentPickerView: View {
             onSelect(PokemonViewModel(pokemon: pokemon))
         } label: {
             VStack(spacing: 4) {
-                AsyncImage(url: URL(string: pokemon.sprite.front)) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: {
-                    Color(.systemGray4)
-                }
-                .frame(height: 96)
+                spriteWithPlaceholder(url: pokemon.sprite.front)
+                    .frame(height: 96)
+                    .frame(maxWidth: .infinity)
                 Text(pokemon.name.capitalized).font(.pixel12)
                     .padding(.bottom, 6)
             }
@@ -89,5 +86,23 @@ struct OpponentPickerView: View {
             .background(.white.opacity(0.04))
         }
         .buttonStyle(.plain)
+    }
+
+    /// Renders the cell layout instantly; image fades in once loaded. Placeholder
+    /// is a circle so the empty state reads as a coin/icon rather than a square hole.
+    @ViewBuilder
+    private func spriteWithPlaceholder(url: String?) -> some View {
+        AsyncImage(url: url.flatMap(URL.init(string:)), transaction: .init(animation: .easeInOut(duration: 0.2))) { phase in
+            switch phase {
+            case .success(let image):
+                image.resizable().aspectRatio(contentMode: .fit)
+            case .empty, .failure:
+                Color(.systemGray4)
+                    .clipShape(Circle())
+                    .padding(24)
+            @unknown default:
+                Color(.systemGray4).clipShape(Circle()).padding(24)
+            }
+        }
     }
 }

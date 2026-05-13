@@ -7,7 +7,7 @@ struct BattleView: View {
     var body: some View {
         content
             .foregroundStyle(.white)
-            .background(Color.darkGrey)
+            .background(Color.darkGrey.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
