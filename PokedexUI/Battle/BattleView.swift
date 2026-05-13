@@ -29,6 +29,7 @@ struct BattleView: View {
                 case .none: return nil
                 }
             }
+            .padding(.horizontal, 24)
     }
 
     @ViewBuilder
@@ -104,9 +105,10 @@ struct BattleView: View {
                     .font(.pixel14)
                 if c.status != .none {
                     Text(c.status.displayName)
-                        .font(.pixel12)
+                        .font(.pixel10)
                         .foregroundStyle(statusColor(c.status))
-                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
                         .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 4))
                 }
             }
@@ -169,9 +171,9 @@ struct BattleView: View {
             Text(move.displayName).font(.pixel12)
             HStack(spacing: 8) {
                 Text(move.typeName.uppercased())
-                    .font(.pixel12)
+                    .font(.pixel10)
                     .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.vertical, 4)
                     .background(typeColor(move.typeName))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
                 if let pp = move.pp {
