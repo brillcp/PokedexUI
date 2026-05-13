@@ -1,6 +1,8 @@
 import SwiftUI
 
-struct PokedexGridView<Pokemon: PokemonViewModelProtocol>: View {
+struct PokedexGridView<Pokemon: PokemonViewModelProtocol & Hashable>: View {
+    @Namespace private var namespace
+
     let pokemon: [Pokemon]
     var grid: GridLayout = .three
     var isLoading: Bool = false
@@ -11,7 +13,8 @@ struct PokedexGridView<Pokemon: PokemonViewModelProtocol>: View {
                 ForEach(pokemon, id: \.id) { vm in
                     PokedexGridItem(
                         pokemon: vm,
-                        grid: grid
+                        grid: grid,
+                        namespace: namespace
                     )
                 }
             }
@@ -23,23 +26,21 @@ struct PokedexGridView<Pokemon: PokemonViewModelProtocol>: View {
                     .tint(.white)
             }
         }
+        .navigationDestination(for: Pokemon.self) { vm in
+            PokemonDetailView(viewModel: PokemonDetailViewModel(pokemon: vm))
+                .navigationTransition(.zoom(sourceID: vm.id, in: namespace))
+        }
     }
 }
 
 // MARK: - Grid item
-private struct PokedexGridItem<ViewModel: PokemonViewModelProtocol>: View {
-    @Namespace private var namespace
-
-    var pokemon: ViewModel
+private struct PokedexGridItem<ViewModel: PokemonViewModelProtocol & Hashable>: View {
+    let pokemon: ViewModel
     let grid: GridLayout
+    let namespace: Namespace.ID
 
     var body: some View {
-        NavigationLink {
-            PokemonDetailView(viewModel: PokemonDetailViewModel(pokemon: pokemon))
-                .navigationTransition(
-                    .zoom(sourceID: pokemon.id, in: namespace)
-                )
-        } label: {
+        NavigationLink(value: pokemon) {
             AsyncSpriteView(
                 viewModel: pokemon,
                 showOverlay: grid == .three

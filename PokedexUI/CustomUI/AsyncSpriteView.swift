@@ -5,41 +5,45 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
     @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
     @Environment(\.spriteLoader) private var spriteLoader
 
-    @State private var hasFadedIn = false
     @State private var sprite: Image?
     @State private var color: Color?
+    @State private var isLight = false
 
     // MARK: - Public properties
-    @State var viewModel: ViewModel
+    let viewModel: ViewModel
     let showOverlay: Bool
 
     // MARK: - Body
     var body: some View {
         ZStack {
             Color(.systemGray4)
-            sprite?
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .background(color)
-                .overlay {
-                    if showOverlay {
-                        CardOverlay(
-                            pokemon: viewModel,
-                            color: color
-                        )
+            if let sprite {
+                sprite
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .background(color)
+                    .overlay {
+                        if showOverlay {
+                            CardOverlay(
+                                id: viewModel.id,
+                                name: viewModel.name,
+                                isLight: isLight
+                            )
+                        }
                     }
-                }
-                .if(!hasFadedIn) { $0.fadeIn(when: sprite) }
-                .onChange(of: sprite) { _, newSprite in
-                    guard newSprite != nil, !hasFadedIn else { return }
-                    hasFadedIn = true
-                }
+                    .transition(.opacity)
+            }
         }
         .aspectRatio(1.0, contentMode: .fit)
         .task(id: viewModel.id) {
-            if let image = await spriteLoader.spriteImage(from: viewModel.frontSprite),
-               let uicolor = await imageColorAnalyzer.dominantColor(for: viewModel.id, image: image) {
-                color = Color(uiColor: uicolor)
+            guard let image = await spriteLoader.spriteImage(from: viewModel.frontSprite),
+                  let uicolor = await imageColorAnalyzer.dominantColor(for: viewModel.id, image: image)
+            else { return }
+
+            let resolved = Color(uiColor: uicolor)
+            isLight = resolved.isLight
+            withAnimation(.easeInOut(duration: 0.4)) {
+                color = resolved
                 sprite = Image(uiImage: image)
             }
         }
@@ -49,21 +53,22 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
 // MARK: - Private UI components
 private extension AsyncSpriteView {
     struct CardOverlay: View {
-        let pokemon: PokemonViewModelProtocol
-        let color: Color?
+        let id: Int
+        let name: String
+        let isLight: Bool
 
         var body: some View {
             VStack {
                 HStack {
                     Spacer()
-                    Text("#\(pokemon.id)")
+                    Text("#\(id)")
                         .padding(8)
                 }
                 Spacer()
-                Text(pokemon.name)
+                Text(name)
             }
             .padding(.bottom, 10)
-            .foregroundStyle(color?.isLight ?? false ? .black : .white)
+            .foregroundStyle(isLight ? .black : .white)
         }
     }
 }

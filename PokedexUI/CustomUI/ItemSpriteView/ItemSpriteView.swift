@@ -6,9 +6,9 @@ struct ItemSpriteView: View {
     @State private var image: Image?
 
     // MARK: - Public properties
-    let viewModel: ItemSpriteViewModel
+    let spriteURL: String?
 
-    // MARK: - Boby
+    // MARK: - Body
     var body: some View {
         Group {
             if let image {
@@ -20,7 +20,7 @@ struct ItemSpriteView: View {
                     .clipShape(Circle())
             }
         }
-        .task(id: viewModel.spriteURL) {
+        .task(id: spriteURL) {
             await loadSprite()
         }
         .aspectRatio(1, contentMode: .fit)
@@ -31,7 +31,7 @@ struct ItemSpriteView: View {
 // MARK: - Private functions
 private extension ItemSpriteView {
     func loadSprite() async {
-        guard let url = viewModel.spriteURL,
+        guard let url = spriteURL,
               let uiImage = await spriteLoader.spriteImage(from: url)
         else { return }
         image = Image(uiImage: uiImage)

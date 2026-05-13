@@ -114,7 +114,7 @@ extension PokedexViewModel: DataFetcher {
     }
 
     func clearStoredData() async throws {
-        try await storageReader.clear(Pokemon.self)
+        await storageReader.clear(Pokemon.self)
     }
 }
 

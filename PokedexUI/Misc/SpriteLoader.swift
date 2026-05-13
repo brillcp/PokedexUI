@@ -5,6 +5,10 @@ import UIKit
 /// This loader uses `URLSession` for networking and `URLCache` for in-memory/disk caching.
 /// Requests are deduplicated through the actor model, and cache hits return instantly.
 actor SpriteLoader {
+    /// Shared process-wide loader. Use this to avoid repeated `init` work on every
+    /// environment value access.
+    static let shared = SpriteLoader()
+
     // MARK: - Private properties
     /// The URL session used for downloading sprite image data.
     private let session: URLSession
@@ -18,7 +22,7 @@ actor SpriteLoader {
     /// - Parameters:
     ///   - session: The `URLSession` instance to use. Defaults to `.shared`.
     ///   - cache: The `URLCache` instance to use. Defaults to `.shared`.
-    init(session: URLSession = .shared, cache: URLCache = .shared) {
+    private init(session: URLSession = .shared, cache: URLCache = .shared) {
         self.session = session
         self.cache = cache
     }

@@ -73,7 +73,7 @@ extension PokemonViewModel: PokemonViewModelProtocol {
         pokemon.types.map { $0.type }.joinedCapitalizedNames
     }
     var abilities: String {
-        pokemon.abilities.map { $0.ability.name.capitalized }.joined(separator: ",\n\n")
+        pokemon.abilities.map { $0.ability }.joinedCapitalizedNames
     }
     var moves: String {
         pokemon.moves.map { $0.move }.joinedCapitalizedNames
@@ -86,10 +86,14 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     }
 }
 
-// MARK: - Equatable
-extension PokemonViewModel: Equatable {
+// MARK: - Equatable / Hashable
+extension PokemonViewModel: Hashable {
     static func == (lhs: PokemonViewModel, rhs: PokemonViewModel) -> Bool {
         lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

@@ -112,7 +112,9 @@ extension Pokemon {
                 Stat(baseStat: 50, stat: APIItem(name: "special-attack", url: "")),
                 Stat(baseStat: 50, stat: APIItem(name: "special-defense", url: "")),
                 Stat(baseStat: 90, stat: APIItem(name: "speed", url: ""))
-            ]
+            ],
+            habitat: "Forest",
+            flavorText: "This Pokemon is electric"
         )
     }
 }

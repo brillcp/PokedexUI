@@ -4,6 +4,7 @@ import SwiftData
 final class ItemDetail: Decodable {
     @Attribute(.unique) var id: Int
     var name: String
+    var prettyName: String = ""
     var sprites: ItemSprite?
     var category: APIItem
     @Relationship var effect: [Effect]
@@ -16,7 +17,9 @@ final class ItemDetail: Decodable {
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id = try container.decode(Int.self, forKey: .id)
-        self.name = try container.decode(String.self, forKey: .name)
+        let decodedName = try container.decode(String.self, forKey: .name)
+        self.name = decodedName
+        self.prettyName = decodedName.pretty
         self.sprites = try container.decodeIfPresent(ItemSprite.self, forKey: .sprites)
         self.category = try container.decode(APIItem.self, forKey: .category)
         self.effect = try container.decode([Effect].self, forKey: .effect)
@@ -25,9 +28,17 @@ final class ItemDetail: Decodable {
     init(id: Int, name: String, sprites: ItemSprite?, category: APIItem, effect: [Effect]) {
         self.id = id
         self.name = name
+        self.prettyName = name.pretty
         self.sprites = sprites
         self.category = category
         self.effect = effect
+    }
+}
+
+extension ItemDetail {
+    /// First Effect's short text, pre-formatted. Empty string when no effect available.
+    var prettyEffect: String {
+        effect.first?.prettyEffect ?? ""
     }
 }
 
@@ -35,10 +46,12 @@ final class ItemDetail: Decodable {
 @Model
 final class ItemData {
     var title: String
+    var prettyTitle: String = ""
     var items: [ItemDetail]
 
     init(title: String, items: [ItemDetail]) {
         self.title = title
+        self.prettyTitle = title.pretty
         self.items = items
     }
 }
@@ -72,6 +85,7 @@ final class ItemSprite: Decodable {
 @Model
 final class Effect: Decodable {
     var effect: String
+    var prettyEffect: String = ""
 
     @Relationship(inverse: \ItemDetail.effect)
     var itemDetail: ItemDetail?
@@ -82,11 +96,14 @@ final class Effect: Decodable {
 
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.effect = try container.decode(String.self, forKey: .effect)
+        let decoded = try container.decode(String.self, forKey: .effect)
+        self.effect = decoded
+        self.prettyEffect = decoded.pretty
     }
 
     init(effect: String) {
         self.effect = effect
+        self.prettyEffect = effect.pretty
     }
 }
 

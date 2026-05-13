@@ -26,12 +26,16 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
 
     // MARK: - Main Body
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                spriteSection()
+        ScrollView {
+            VStack(spacing: 32) {
+                VStack(spacing: 0) {
+                    spriteImage()
+                    actionButtons()
+                }
                 contentSection()
             }
         }
+        .scrollIndicators(.hidden)
         .task(id: viewModel.pokemon.id) {
             await viewModel.loadSpritesAndColor(
                 withSpriteLoader: spriteLoader,
@@ -41,38 +45,41 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         .onAppear {
             viewModel.updateBookmarkStatus(from: bookmarks)
         }
-        .applyDetailViewStyling(viewModel: viewModel)
+        .applyDetailViewStyling(viewModel: viewModel, textColor: textColor)
     }
 }
 
 // MARK: - Main Content Sections
 private extension PokemonDetailView {
-    func spriteSection() -> some View {
-        ZStack(alignment: .bottom) {
-            spriteImage()
-            actionButtons()
-        }
+    var textColor: Color {
+        viewModel.color?.isLight ?? false ? .black : .white
     }
 
     func contentSection() -> some View {
-        VStack {
+        Group {
             if let flavorText = viewModel.pokemon.flavorText?.pretty {
                 Text(flavorText)
-                    .lineHeight(.loose)
+                    .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top)
-                sectionDivider()
+                    .foregroundStyle(textColor)
+                    .background(textColor.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             }
-            basicInfoSection()
-            sectionDivider()
+            DetailRow(title: "Types", subtitle: viewModel.pokemon.types)
+            DetailRow(title: "Height", subtitle: viewModel.pokemon.height)
+            DetailRow(title: "Weight", subtitle: viewModel.pokemon.weight)
+
+            if let habitat = viewModel.pokemon.habitat {
+                DetailRow(title: "Habitat", subtitle: habitat)
+            }
+            rowSection(title: "Abilities", data: viewModel.pokemon.abilities)
+            rowSection(title: "Moves", data: viewModel.pokemon.moves)
             statsSection()
-            sectionDivider()
-            movesSection()
-            bottomSpacer()
+            Spacer().frame(height: 96)
         }
-        .padding()
-        .background(Color.darkGrey)
-        .foregroundStyle(.white)
+        .padding(.horizontal, 24)
+        .foregroundStyle(textColor)
+        .lineHeight(.loose)
     }
 
     func spriteImage() -> some View {
@@ -90,53 +97,76 @@ private extension PokemonDetailView {
     func actionButtons() -> some View {
         HStack {
             if viewModel.pokemon.latestCry != nil {
-                playSoundButton()
+                DetailButton(icon: "speaker.wave.3.fill") {
+                    Task { await viewModel.playSound(with: audioPlayer) }
+                }
             }
             Spacer()
-            bookmarkButton()
+            DetailButton(icon: viewModel.isBookmarked ? "heart.fill" : "heart") {
+                viewModel.toggleBookmark(in: modelContext)
+            }
             if viewModel.pokemon.backSprite != nil {
                 flipButton()
             }
         }
-        .tint(viewModel.color?.isLight == true ? .black : .white)
-        .padding()
-    }
-
-    func playSoundButton() -> some View {
-        Button {
-            Task { await viewModel.playSound(with: audioPlayer) }
-        } label: {
-            imageIcon("speaker.wave.3.fill")
-        }
-        .glassEffect(.clear.interactive(), in: Circle())
-    }
-
-    func bookmarkButton() -> some View {
-        Button {
-            viewModel.toggleBookmark(in: modelContext)
-        } label: {
-            imageIcon(viewModel.isBookmarked ? "heart.fill" : "heart")
-        }
-        .glassEffect(.clear.interactive(), in: Circle())
+        .tint(textColor)
+        .padding(.horizontal, 24)
     }
 
     func flipButton() -> some View {
-        Button(action: {}) {
-            imageIcon("arrow.trianglehead.2.clockwise")
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in
-                            viewModel.flipSprite(hapticFeedback: haptic)
-                        }
-                        .onEnded { _ in
-                            viewModel.flipSpriteBack(hapticFeedback: haptic)
-                        }
+        DetailButton(icon: "arrow.trianglehead.2.clockwise") {}
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        viewModel.flipSprite(hapticFeedback: haptic)
+                    }
+                    .onEnded { _ in
+                        viewModel.flipSpriteBack(hapticFeedback: haptic)
+                    }
+            )
+    }
+}
+
+// MARK: - Information Sections
+private extension PokemonDetailView {
+    func statsSection() -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Divider()
+                .foregroundStyle(.secondary)
+            ForEach(viewModel.pokemon.stats) { stat in
+                DetailRowStat(
+                    title: stat.stat.name,
+                    value: stat.baseStat,
+                    color: viewModel.color,
+                    textColor: textColor
                 )
+            }
+        }
+    }
+
+    func rowSection(title: String, data: String) -> some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .foregroundStyle(.secondary)
+            Text(data)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Reusable Row Components
+private struct DetailButton: View {
+    let icon: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            imageIcon(icon)
         }
         .glassEffect(.clear.interactive(), in: Circle())
     }
 
-    func imageIcon(_ icon: String) -> some View {
+    private func imageIcon(_ icon: String) -> some View {
         Image(systemName: icon)
             .resizable()
             .aspectRatio(contentMode: .fit)
@@ -145,139 +175,93 @@ private extension PokemonDetailView {
     }
 }
 
-// MARK: - Information Sections
-private extension PokemonDetailView {
-    func basicInfoSection() -> some View {
-        VStack {
-            detailRow(title: "Types", subtitle: viewModel.pokemon.types)
-            detailRow(title: "Height", subtitle: viewModel.pokemon.height)
-            detailRow(title: "Weight", subtitle: viewModel.pokemon.weight)
-            detailRow(title: "Abilities", subtitle: viewModel.pokemon.abilities)
-            if let habitat = viewModel.pokemon.habitat {
-                detailRow(title: "Habitat", subtitle: habitat)
-            }
-        }
-    }
+private struct DetailRow: View {
+    let title: String
+    let subtitle: String
 
-    func statsSection() -> some View {
-        ForEach(viewModel.pokemon.stats) { stat in
-            detailRowStat(
-                title: stat.stat.name,
-                value: stat.baseStat,
-                color: viewModel.color
-            )
-        }
-    }
-
-    func movesSection() -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Moves")
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            Text(title)
                 .foregroundStyle(.secondary)
-            Text(viewModel.pokemon.moves)
-        }
-        .lineHeight(.loose)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical)
-    }
-}
-
-// MARK: - Layout Helpers
-private extension PokemonDetailView {
-    func sectionDivider() -> some View {
-        Divider()
-            .background(.secondary)
-            .padding(.vertical)
-    }
-
-    func bottomSpacer() -> some View {
-        Spacer()
-            .frame(height: 96)
-    }
-}
-
-// MARK: - Reusable Row Components
-private extension PokemonDetailView {
-    func detailRow(title: String, subtitle: String) -> some View {
-        baseRow(title: title) {
+                .frame(width: 82, alignment: .leading)
             Text(subtitle)
-                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+}
 
-    func detailRowStat(title: String, value: Int, color: Color?) -> some View {
+private struct DetailRowStat: View {
+    let title: String
+    let value: Int
+    let color: Color?
+    let textColor: Color
+
+    private var abbreviatedTitle: String {
+        switch title.lowercased() {
+        case "special-attack": return "SATK"
+        case "attack": return "ATK"
+        case "hp": return "HP"
+        case "speed": return "SPD"
+        case "special-defense": return "SDEF"
+        case "defense": return "DEF"
+        default: return title.capitalized
+        }
+    }
+
+    var body: some View {
         let maxValue = max(value, 100)
         let clampedValue = max(value, 0)
-        return statRow(title: title.capitalized) {
+
+        HStack {
+            Text(abbreviatedTitle)
+                .foregroundStyle(.secondary)
+                .frame(width: 58, alignment: .leading)
+                .lineLimit(1)
+            Text("\(clampedValue)")
+                .frame(width: 32)
             Gauge(value: Double(clampedValue), in: 0...Double(maxValue)) {
                 EmptyView()
             } currentValueLabel: {
                 EmptyView()
             } minimumValueLabel: {
-                Text("0")
+                Text("")
             } maximumValueLabel: {
                 Text("\(maxValue)")
             }
             .gaugeStyle(.linearCapacity)
-            .tint(color ?? .white)
-        }
-    }
-
-    func baseRow<Content: View>(
-        title: String,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        HStack(alignment: .top, spacing: 24) {
-            Text(title)
-                .foregroundStyle(.secondary)
-                .frame(alignment: .leading)
-            content()
+            .tint(textColor)
         }
         .padding(.vertical)
     }
-
-    func statRow<Content: View>(
-        title: String,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        VStack(spacing: 24) {
-            Text(title)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            content()
-        }
-        .padding(.vertical)
-    }
-
 }
 
 // MARK: - View Modifiers
 private extension View {
-    func applyDetailViewStyling(viewModel: PokemonDetailViewModelProtocol) -> some View {
-        ZStack {
-            VStack(spacing: 0) {
-                viewModel.color
-                Spacer()
-                Color.darkGrey
-                    .frame(height: 300)
-            }
-            .ignoresSafeArea()
-
-            self
-                .font(.pixel14)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        Text("\(viewModel.pokemon.name) #\(viewModel.pokemon.id)")
-                            .font(.pixel17)
-                            .foregroundStyle(viewModel.color?.isLight ?? false ? .black : .white)
-                    }
+    func applyDetailViewStyling(viewModel: PokemonDetailViewModelProtocol, textColor: Color) -> some View {
+        self.font(.pixel14)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("\(viewModel.pokemon.name) #\(viewModel.pokemon.id)")
+                        .font(.pixel17)
+                        .foregroundStyle(textColor)
                 }
-        }
-        .ignoresSafeArea(edges: .bottom)
+            }
+            .background {
+                LinearGradient(
+                    stops: [
+                        .init(color: viewModel.color ?? .clear, location: 0.3),
+                        .init(color: (viewModel.color ?? .black).mix(with: .black, by: 0.2), location: 1)
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            }
+            .ignoresSafeArea(edges: .bottom)
     }
 }
 
 #Preview {
     let vm = PokemonDetailViewModel(pokemon: PokemonViewModel(pokemon: .pikachu))
     PokemonDetailView(viewModel: vm)
+        .colorScheme(.dark)
 }

@@ -39,11 +39,16 @@ actor DataStorageReader {
     }
 
     /// Deletes every persisted object of the given type and saves the context.
+    /// Swallows the case where the entity is not in the current schema — that
+    /// only happens after a migration mismatch and there is nothing to delete.
     /// - Parameter type: The `PersistentModel` type to purge from storage.
-    /// - Throws: An error if the delete or save operation fails.
-    func clear<M: PersistentModel>(_ type: M.Type) throws {
+    func clear<M: PersistentModel>(_ type: M.Type) {
         let context = modelContext
-        try context.delete(model: M.self)
-        try context.save()
+        do {
+            try context.delete(model: M.self)
+            try context.save()
+        } catch {
+            print("Skipped clear for \(M.self): \(error)")
+        }
     }
 }

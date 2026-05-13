@@ -23,7 +23,7 @@ extension Color {
         var alpha: CGFloat = 0
         if UIColor(self).getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
             let brightness = (red * 299 + green * 587 + blue * 114) / 1000
-            return brightness > 0.7
+            return brightness > 0.6
         }
         return false
     }
