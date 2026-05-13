@@ -61,7 +61,7 @@ struct BattleView: View {
             moveGrid(state: state)
         }
         .frame(maxHeight: .infinity)
-        .ignoresSafeArea(.container, edges: .bottom)
+        .padding(.bottom, 24.0)
     }
 
     /// Classic Gameboy-style layout: opponent top-right with HP top-left,
@@ -144,41 +144,30 @@ struct BattleView: View {
     }
 
     private func moveGrid(state: BattleState) -> some View {
-        let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
         let disabled = viewModel.isResolvingTurn || viewModel.winner != nil
-        let visibleRows: CGFloat = 3
-        let approxCellHeight: CGFloat = 78
-        let spacing: CGFloat = 16
-        let height = visibleRows * approxCellHeight + (visibleRows - 1) * spacing
-        return ScrollView {
-            LazyVGrid(columns: columns, spacing: spacing) {
+        let rowHeight: CGFloat = 56
+        let cardWidth: CGFloat = 160
+        let spacing: CGFloat = 12
+        // Two stacked rows of moves that scroll horizontally — paired so each
+        // swipe reveals two new cells at once.
+        let rows = [GridItem(.fixed(rowHeight), spacing: spacing), GridItem(.fixed(rowHeight), spacing: spacing)]
+        return ScrollView(.horizontal, showsIndicators: false) {
+            LazyHGrid(rows: rows, spacing: spacing) {
                 ForEach(state.player.moves, id: \.name) { move in
                     Button {
                         Task { await viewModel.submit(move) }
                     } label: {
                         moveLabel(move)
                     }
+                    .frame(width: cardWidth)
                     .disabled(disabled)
                 }
             }
-            .padding(.top)
-            .padding(.horizontal)
-            .safeAreaPadding(.bottom, 110)
+            .padding(.horizontal, 16)
         }
-        .scrollIndicators(.hidden)
-        .frame(height: height)
+        .scrollTargetBehavior(.viewAligned)
+        .frame(height: rowHeight * 2 + spacing + 16)
         .disabled(disabled)
-        .mask(
-            LinearGradient(
-                stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: .black, location: 0.12),
-                    .init(color: .black, location: 1)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
         .opacity(disabled ? 0.35 : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }

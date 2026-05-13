@@ -448,18 +448,20 @@ private struct EvolutionChainView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Evolution")
                     .foregroundStyle(.secondary)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .center, spacing: 16) {
-                        ForEach(Array(stages.enumerated()), id: \.offset) { index, stage in
-                            stageCell(stage)
-                                .frame(maxWidth: .infinity)
-                            if index < stages.count - 1 {
-                                arrow(for: stages[index + 1].trigger)
-                            }
+                // Full-width row: each stage gets an equal share of the available
+                // space (≈ screen/3 when there are 3 stages, screen/2 for 2).
+                // Arrows size to their content and sit between the equal columns.
+                HStack(alignment: .center, spacing: 0) {
+                    ForEach(Array(stages.enumerated()), id: \.offset) { index, stage in
+                        stageCell(stage)
+                            .frame(maxWidth: .infinity)
+                        if index < stages.count - 1 {
+                            arrow(for: stages[index + 1].trigger)
+                                .frame(width: 56)
                         }
                     }
-                    .frame(maxWidth: .infinity)
                 }
+                .frame(maxWidth: .infinity)
             }
             .frame(maxWidth: .infinity)
         }
@@ -483,7 +485,10 @@ private struct EvolutionChainView: View {
                 Text(stage.species.name.capitalized)
                     .font(.pixel12)
                     .foregroundStyle(textColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
         .disabled(stage.species.id == nil)

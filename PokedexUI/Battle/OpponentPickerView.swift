@@ -12,7 +12,7 @@ struct OpponentPickerView: View {
     init(player: PokemonViewModel, onSelect: @escaping (PokemonViewModel) -> Void) {
         self.player = player
         self.onSelect = onSelect
-        // Filter + sort in SwiftData so we don't pay the cost on every body.
+        // Filter + sort in SwiftData. Pokedex order (by id) is the most familiar.
         let playerId = player.id
         _allPokemon = Query(
             filter: #Predicate<Pokemon> { $0.id != playerId },

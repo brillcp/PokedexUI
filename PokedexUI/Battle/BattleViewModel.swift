@@ -82,7 +82,11 @@ final class BattleViewModel {
         let events = engine.resolveRound(playerMove: move)
         for event in events {
             lastEvent = event
-            log.append(format(event))
+            let line = format(event)
+            log.append(line)
+            #if DEBUG
+            print("⚔️ \(line)")
+            #endif
             apply(event)
             await playAnimation(for: event)
             try? await Task.sleep(for: .milliseconds(500))
