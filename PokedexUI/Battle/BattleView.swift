@@ -55,12 +55,11 @@ struct BattleView: View {
         VStack(spacing: 32) {
             Spacer(minLength: 0)
             arena(state: state)
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 16)
             logFeed
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 16)
             moveGrid(state: state)
         }
-//        .padding(.horizontal, 24)
         .frame(maxHeight: .infinity)
         .ignoresSafeArea(.container, edges: .bottom)
     }
@@ -75,8 +74,6 @@ struct BattleView: View {
                 sprite(url: state.opponent.frontSpriteURL, side: .opponent)
             }
             HStack(alignment: .bottom) {
-                // When the player wins, swap to the front sprite and let BattlerSprite
-                // mirror it so the winner faces the camera with a celebratory wobble.
                 sprite(url: playerSpriteURL(state: state), side: .player)
                 Spacer(minLength: 12)
                 hpCard(state.player)
@@ -136,8 +133,8 @@ struct BattleView: View {
         let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
         let disabled = viewModel.isResolvingTurn || viewModel.winner != nil
         let visibleRows: CGFloat = 3
-        let approxCellHeight: CGFloat = 64
-        let spacing: CGFloat = 14
+        let approxCellHeight: CGFloat = 72
+        let spacing: CGFloat = 16
         let height = visibleRows * approxCellHeight + (visibleRows - 1) * spacing
         return ScrollView {
             LazyVGrid(columns: columns, spacing: spacing) {
@@ -152,10 +149,24 @@ struct BattleView: View {
             }
             .padding(.top)
             .padding(.horizontal)
-            .safeAreaPadding(.bottom, 88)
+            .safeAreaPadding(.bottom, 110)
         }
         .scrollIndicators(.hidden)
         .frame(height: height)
+        .mask(
+            // Soft fade at the top edge so cells dissolve into the log above
+            // when the user scrolls; solid through the rest so the bottom row
+            // sits crisp under the tab bar.
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .black, location: 0.12),
+                    .init(color: .black, location: 1)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
         .opacity(disabled ? 0.35 : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }
