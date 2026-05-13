@@ -22,6 +22,9 @@ final class BattleViewModel {
     var opponentShakeTick: Int = 0
     /// Increments when the player commits a move — drives the attack-confirm haptic.
     var attackTick: Int = 0
+    /// `false` while sprites are off-stage on first appear. Flipped to `true`
+    /// shortly after `prepare` finishes so SwiftUI can animate them in.
+    var hasEntered: Bool = false
 
     private let typeChart: TypeChartLoader
     private let moveService: MoveServiceProtocol
@@ -50,9 +53,21 @@ final class BattleViewModel {
             self.state = state
             self.engine = BattleEngine(state: state, typeChart: typeChart)
             self.isLoadingMoves = false
+            await playEntrance()
         } catch {
             self.errorMessage = "Couldn't load moves: \(error.localizedDescription)"
             self.isLoadingMoves = false
+        }
+    }
+
+    /// Brief delay, then slide both sprites in and play the opponent's cry.
+    private func playEntrance() async {
+        try? await Task.sleep(for: .milliseconds(250))
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
+            hasEntered = true
+        }
+        if let cry = opponentPokemon.latestCry {
+            await AudioPlayer.shared.play(from: cry)
         }
     }
 
@@ -73,12 +88,22 @@ final class BattleViewModel {
             try? await Task.sleep(for: .milliseconds(500))
             if case .ended(let w) = event {
                 winner = w ?? .player
+                await playWinnerCry()
                 break
             }
         }
         // Reconcile with engine in case of drift (status flags resolved during ticks etc).
         state = engine.state
         isResolvingTurn = false
+    }
+
+    /// Brief pause so the faint event finishes its slide-off before the cry fires.
+    private func playWinnerCry() async {
+        guard let winner else { return }
+        let pokemon = winner == .player ? playerPokemon : opponentPokemon
+        guard let cry = pokemon.latestCry else { return }
+        try? await Task.sleep(for: .milliseconds(350))
+        await AudioPlayer.shared.play(from: cry)
     }
 
     /// Mutate the displayed state for a single event so the HP gauge animates only
@@ -91,6 +116,8 @@ final class BattleViewModel {
             mutate(side, in: &snapshot) { $0.currentHP = max(0, $0.currentHP - amount) }
         case .statusApplied(let side, let status):
             mutate(side, in: &snapshot) { $0.status = status }
+        case .statChanged(let side, let stat, let delta):
+            mutate(side, in: &snapshot) { $0.applyStage(stat, delta: delta) }
         case .used, .missed, .fullyParalyzed, .fainted, .ended:
             break
         }
@@ -156,6 +183,11 @@ final class BattleViewModel {
             return "\(name(of: side)) was inflicted with \(status.displayName)."
         case .statusTick(let side, let status, let amount):
             return "\(name(of: side)) hurt by \(status.displayName) (-\(amount))."
+        case .statChanged(let side, let stat, let delta):
+            let pretty = stat.replacingOccurrences(of: "-", with: " ").capitalized
+            let direction = delta > 0 ? "rose" : "fell"
+            let magnitude = abs(delta) >= 2 ? " sharply" : ""
+            return "\(name(of: side))'s \(pretty)\(magnitude) \(direction)!"
         case .fullyParalyzed(let side):
             return "\(name(of: side)) is fully paralyzed!"
         case .fainted(let side):

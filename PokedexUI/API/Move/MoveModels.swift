@@ -11,10 +11,13 @@ final class MoveDetail: Decodable, @unchecked Sendable {
     var typeName: String = "normal"
     var ailment: String = "none"
     var ailmentChance: Int = 0
+    var statChangeNames: [String] = []
+    var statChangeDeltas: [Int] = []
 
     private enum CodingKeys: String, CodingKey {
         case name, power, accuracy, pp, priority, type, meta
         case damageClass = "damage_class"
+        case statChanges = "stat_changes"
     }
 
     private enum MetaKeys: String, CodingKey {
@@ -41,6 +44,10 @@ final class MoveDetail: Decodable, @unchecked Sendable {
             self.ailment = ailmentRef?.name ?? "none"
             self.ailmentChance = try metaContainer.decodeIfPresent(Int.self, forKey: .ailmentChance) ?? 0
         }
+
+        let statChanges = try c.decodeIfPresent([StatChangeDTO].self, forKey: .statChanges) ?? []
+        self.statChangeNames = statChanges.map { $0.stat.name }
+        self.statChangeDeltas = statChanges.map { $0.change }
     }
 
     init(name: String) {
@@ -49,6 +56,11 @@ final class MoveDetail: Decodable, @unchecked Sendable {
 }
 
 private struct NamedRef: Decodable { let name: String }
+
+private struct StatChangeDTO: Decodable {
+    let change: Int
+    let stat: NamedRef
+}
 
 extension MoveDetail {
     enum DamageClass: String {

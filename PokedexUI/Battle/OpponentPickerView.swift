@@ -7,12 +7,12 @@ struct OpponentPickerView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Query private var allPokemon: [Pokemon]
+    @State private var rows: [Row] = []
 
     init(player: PokemonViewModel, onSelect: @escaping (PokemonViewModel) -> Void) {
         self.player = player
         self.onSelect = onSelect
-        // Filter and sort at the SwiftData layer so we don't materialise a 1k-element
-        // array on every body render.
+        // Filter + sort in SwiftData so we don't pay the cost on every body.
         let playerId = player.id
         _allPokemon = Query(
             filter: #Predicate<Pokemon> { $0.id != playerId },
@@ -30,8 +30,8 @@ struct OpponentPickerView: View {
                     ],
                     spacing: 2
                 ) {
-                    ForEach(allPokemon, id: \.id) { opp in
-                        opponentCard(opp)
+                    ForEach(rows) { row in
+                        OpponentCard(row: row, onTap: select(rowId:))
                     }
                 }
             }
@@ -45,6 +45,17 @@ struct OpponentPickerView: View {
             }
             .applyPokedexStyling(title: "Pick opponent", color: .black)
         }
+        .task(id: allPokemon.count) {
+            // Materialise plain-struct rows once; subsequent body renders never
+            // touch the SwiftData getters.
+            rows = allPokemon.map(Row.init)
+        }
+    }
+
+    /// Convert a row id back into the underlying `Pokemon` and call the parent.
+    private func select(rowId: Int) {
+        guard let match = allPokemon.first(where: { $0.id == rowId }) else { return }
+        onSelect(PokemonViewModel(pokemon: match))
     }
 
     /// Floating capsule glass button anchored at the bottom of the screen.
@@ -68,18 +79,43 @@ struct OpponentPickerView: View {
         .padding(.bottom, 32)
         .padding(.horizontal, 24)
     }
+}
 
-    /// Renders directly from the SwiftData model so LazyVGrid only pays the cost
-    /// for visible cells. PokemonViewModel is only constructed when the user taps.
-    private func opponentCard(_ pokemon: Pokemon) -> some View {
+// MARK: - Row + cell
+
+extension OpponentPickerView {
+    /// Display snapshot — plain value type, no SwiftData getters in body path.
+    struct Row: Identifiable, Hashable {
+        let id: Int
+        let name: String
+        let spriteURL: String
+
+        init(_ pokemon: Pokemon) {
+            self.id = pokemon.id
+            self.name = pokemon.name.capitalized
+            self.spriteURL = pokemon.sprite.front
+        }
+    }
+}
+
+private struct OpponentCard: View, Equatable {
+    let row: OpponentPickerView.Row
+    let onTap: (Int) -> Void
+
+    static func == (lhs: OpponentCard, rhs: OpponentCard) -> Bool {
+        lhs.row == rhs.row
+    }
+
+    var body: some View {
         Button {
-            onSelect(PokemonViewModel(pokemon: pokemon))
+            onTap(row.id)
         } label: {
             VStack(spacing: 4) {
-                spriteWithPlaceholder(url: pokemon.sprite.front)
+                SpritePlaceholder(url: row.spriteURL)
                     .frame(height: 96)
                     .frame(maxWidth: .infinity)
-                Text(pokemon.name.capitalized).font(.pixel12)
+                Text(row.name)
+                    .font(.pixel12)
                     .padding(.bottom, 6)
             }
             .frame(maxWidth: .infinity)
@@ -87,12 +123,17 @@ struct OpponentPickerView: View {
         }
         .buttonStyle(.plain)
     }
+}
 
-    /// Renders the cell layout instantly; image fades in once loaded. Placeholder
-    /// is a circle so the empty state reads as a coin/icon rather than a square hole.
-    @ViewBuilder
-    private func spriteWithPlaceholder(url: String?) -> some View {
-        AsyncImage(url: url.flatMap(URL.init(string:)), transaction: .init(animation: .easeInOut(duration: 0.2))) { phase in
+/// Cell-level placeholder: image fades in when ready; circle gray dot before then.
+private struct SpritePlaceholder: View, Equatable {
+    let url: String
+
+    var body: some View {
+        AsyncImage(
+            url: URL(string: url),
+            transaction: .init(animation: .easeInOut(duration: 0.2))
+        ) { phase in
             switch phase {
             case .success(let image):
                 image.resizable().aspectRatio(contentMode: .fit)

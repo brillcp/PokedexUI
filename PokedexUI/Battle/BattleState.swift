@@ -37,6 +37,7 @@ enum BattleEvent: Sendable {
     case damaged(BattleSide, amount: Int, effectiveness: Double, crit: Bool)
     case statusApplied(BattleSide, BattleStatus)
     case statusTick(BattleSide, BattleStatus, amount: Int)
+    case statChanged(BattleSide, stat: String, delta: Int)
     case fullyParalyzed(BattleSide)
     case fainted(BattleSide)
     case ended(winner: BattleSide?)
@@ -56,6 +57,7 @@ struct BattleCombatant: Sendable {
     let speed: Int
     var currentHP: Int
     var status: BattleStatus
+    var statStages: [String: Int]
     let moves: [MoveDetail]
 
     init(pokemon: PokemonViewModelProtocol, moves: [MoveDetail]) {
@@ -74,6 +76,7 @@ struct BattleCombatant: Sendable {
         self.specialDefense = stats["special-defense"] ?? 50
         self.speed = stats["speed"] ?? 50
         self.status = .none
+        self.statStages = [:]
         self.moves = moves
     }
 
@@ -83,6 +86,19 @@ struct BattleCombatant: Sendable {
     var effectiveSpeed: Int {
         status == .paralysis ? speed / 2 : speed
     }
+
+    func stage(for stat: String) -> Int { statStages[stat] ?? 0 }
+
+    mutating func applyStage(_ stat: String, delta: Int) {
+        let next = max(-6, min(6, stage(for: stat) + delta))
+        statStages[stat] = next
+    }
+}
+
+/// Standard Pokémon stat-stage multiplier: ±1 ≈ 1.5×, ±2 = 2×, capped at ±6.
+func statStageMultiplier(_ stage: Int) -> Double {
+    let s = max(-6, min(6, stage))
+    return s >= 0 ? Double(2 + s) / 2.0 : 2.0 / Double(2 - s)
 }
 
 struct BattleState: Sendable {

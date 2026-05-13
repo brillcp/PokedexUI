@@ -29,7 +29,6 @@ struct BattleView: View {
                 case .none: return nil
                 }
             }
-            .padding(.horizontal, 24)
     }
 
     @ViewBuilder
@@ -52,14 +51,9 @@ struct BattleView: View {
             moveGrid(state: state)
                 .padding(.top, 0)
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 12)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 23)
         .frame(maxHeight: .infinity)
-        .overlay {
-            if let winner = viewModel.winner {
-                endOverlay(winner: winner)
-            }
-        }
     }
 
     /// Classic Gameboy-style layout: opponent top-right with HP top-left,
@@ -80,53 +74,25 @@ struct BattleView: View {
     }
 
     private func sprite(url: String?, side: BattleSide) -> some View {
-        let isAttacking = viewModel.attackingSide == side
-        let isFainted = viewModel.faintedSide == side
-        let lungeDirection: CGFloat = side == .player ? 1 : -1
-        let shakeTick = side == .player ? viewModel.playerShakeTick : viewModel.opponentShakeTick
-
-        return AsyncImage(url: url.flatMap(URL.init(string:))) { image in
-            image.resizable().aspectRatio(contentMode: .fit)
-        } placeholder: {
-            Color(.systemGray4).clipShape(Circle())
-        }
-        .frame(width: 132, height: 132)
-        .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))
-        .offset(x: isAttacking ? lungeDirection * 20 : 0, y: isAttacking ? -10 : 0)
-        .scaleEffect(isFainted ? 0.4 : 1)
-        .opacity(isFainted ? 0 : 1)
-        .animation(.spring(response: 0.35, dampingFraction: 0.5), value: shakeTick)
+        BattlerSprite(
+            url: url,
+            side: side,
+            isAttacking: viewModel.attackingSide == side,
+            isFainted: viewModel.faintedSide == side,
+            hasEntered: viewModel.hasEntered,
+            shakeTick: side == .player ? viewModel.playerShakeTick : viewModel.opponentShakeTick,
+            isWinner: viewModel.winner == side
+        )
     }
 
     private func hpCard(_ c: BattleCombatant) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(c.name)
-                    .font(.pixel14)
-                if c.status != .none {
-                    Text(c.status.displayName)
-                        .font(.pixel10)
-                        .foregroundStyle(statusColor(c.status))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
-                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 4))
-                }
-            }
-            Gauge(value: Double(c.currentHP), in: 0...Double(c.maxHP)) {
-                EmptyView()
-            } currentValueLabel: { EmptyView() }
-            .gaugeStyle(.linearCapacity)
-            .tint(hpTint(current: c.currentHP, max: c.maxHP))
-            .animation(.easeOut(duration: 0.5), value: c.currentHP)
-            Text("\(c.currentHP) / \(c.maxHP)")
-                .font(.pixel12)
-                .foregroundStyle(.secondary)
-                .contentTransition(.numericText(value: Double(c.currentHP)))
-                .animation(.easeOut(duration: 0.5), value: c.currentHP)
-        }
-        .padding(10)
-        .frame(width: 180, alignment: .leading)
-        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 8))
+        HPCard(
+            name: c.name,
+            currentHP: c.currentHP,
+            maxHP: c.maxHP,
+            status: c.status
+        )
+        .equatable()
     }
 
     /// GameBoy-style fixed window — always 8 lines tall, showing the most recent 8.
@@ -167,36 +133,13 @@ struct BattleView: View {
     }
 
     private func moveLabel(_ move: MoveDetail) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(move.displayName).font(.pixel12)
-            HStack(spacing: 8) {
-                Text(move.typeName.uppercased())
-                    .font(.pixel10)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 4)
-                    .background(typeColor(move.typeName))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                if let pp = move.pp {
-                    Text("PP \(pp)").font(.pixel12).foregroundStyle(.secondary)
-                }
-            }
-        }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glassEffect(.clear.interactive(), in: RoundedRectangle(cornerRadius: 8))
-    }
-
-    private func endOverlay(winner: BattleSide) -> some View {
-        let winnerName = winner == .player ? viewModel.playerPokemon.name : viewModel.opponentPokemon.name
-        return VStack(spacing: 16) {
-            Text("\(winnerName) wins!").font(.pixel17)
-            Button("Done") { dismiss() }
-                .buttonStyle(.borderedProminent)
-        }
-        .padding(24)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        MoveLabel(
+            name: move.displayName,
+            typeName: move.typeName,
+            pp: move.pp,
+            typeColor: typeColor(move.typeName)
+        )
+        .equatable()
     }
 
     private func hpTint(current: Int, max: Int) -> Color {
@@ -231,6 +174,150 @@ struct BattleView: View {
         case "dark": return .black
         case "dragon": return .indigo
         default: return .gray
+        }
+    }
+}
+
+// MARK: - Equatable subviews
+// Extracted so SwiftUI's diffing can skip re-rendering them when their inputs
+// haven't changed (e.g. during opponent shake animations the player HP card
+// doesn't need to redraw).
+
+private struct HPCard: View, Equatable {
+    let name: String
+    let currentHP: Int
+    let maxHP: Int
+    let status: BattleStatus
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(name).font(.pixel14)
+                if status != .none {
+                    Text(status.displayName)
+                        .font(.pixel10)
+                        .foregroundStyle(statusColor)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 4)
+                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 4))
+                }
+            }
+            Gauge(value: Double(currentHP), in: 0...Double(maxHP)) {
+                EmptyView()
+            } currentValueLabel: { EmptyView() }
+            .gaugeStyle(.linearCapacity)
+            .tint(hpTint)
+            .animation(.easeOut(duration: 0.5), value: currentHP)
+            Text("\(currentHP) / \(maxHP)")
+                .font(.pixel12)
+                .foregroundStyle(.secondary)
+                .contentTransition(.numericText(value: Double(currentHP)))
+                .animation(.easeOut(duration: 0.5), value: currentHP)
+        }
+        .padding(10)
+        .frame(width: 180, alignment: .leading)
+        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var hpTint: Color {
+        let ratio = Double(currentHP) / Double(maxHP)
+        if ratio > 0.5 { return .green }
+        if ratio > 0.2 { return .yellow }
+        return .red
+    }
+
+    private var statusColor: Color {
+        switch status {
+        case .paralysis: return .yellow
+        case .burn: return .orange
+        case .poison: return .purple
+        case .none: return .clear
+        }
+    }
+}
+
+private struct MoveLabel: View, Equatable {
+    let name: String
+    let typeName: String
+    let pp: Int?
+    let typeColor: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(name).font(.pixel12)
+            HStack(spacing: 8) {
+                Text(typeName.uppercased())
+                    .font(.pixel10)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 4)
+                    .background(typeColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                if let pp {
+                    Text("PP \(pp)").font(.pixel12).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassEffect(.clear.interactive(), in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+// MARK: - Sprite
+
+/// One combatant's sprite. Owns the celebration state so the rotation can
+/// repeat indefinitely after victory without leaking a Timer into the view model.
+private struct BattlerSprite: View {
+    let url: String?
+    let side: BattleSide
+    let isAttacking: Bool
+    let isFainted: Bool
+    let hasEntered: Bool
+    let shakeTick: Int
+    let isWinner: Bool
+
+    @State private var celebratingTilt: Double = 0
+
+    /// Off-screen entry: player from left (negative), opponent from right (positive).
+    /// Faint slide: player flies further off-left, opponent off-right.
+    private var entryOffset: CGFloat {
+        if isFainted {
+            return side == .player ? -600 : 600
+        }
+        return hasEntered ? 0 : (side == .player ? -260 : 260)
+    }
+
+    /// Attack lunge — toward the opponent. Player lunges up-right, opponent down-left.
+    private var lungeOffset: CGSize {
+        guard isAttacking else { return .zero }
+        return side == .player ? CGSize(width: 20, height: -10) : CGSize(width: -20, height: 10)
+    }
+
+    var body: some View {
+        AsyncImage(url: url.flatMap(URL.init(string:))) { image in
+            image.resizable().aspectRatio(contentMode: .fit)
+        } placeholder: {
+            Color(.systemGray4).clipShape(Circle())
+        }
+        .frame(width: 168, height: 168)
+        .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))
+        .rotationEffect(.degrees(celebratingTilt))
+        .offset(
+            x: lungeOffset.width + entryOffset,
+            y: lungeOffset.height
+        )
+        .opacity(isFainted ? 0 : 1)
+        .animation(.spring(response: 0.35, dampingFraction: 0.5), value: shakeTick)
+        .animation(.easeOut(duration: 0.5), value: isFainted)
+        .onChange(of: isWinner) { _, newValue in
+            if newValue {
+                withAnimation(.easeInOut(duration: 0.35).repeatForever(autoreverses: true)) {
+                    celebratingTilt = 12
+                }
+            } else {
+                withAnimation { celebratingTilt = 0 }
+            }
         }
     }
 }

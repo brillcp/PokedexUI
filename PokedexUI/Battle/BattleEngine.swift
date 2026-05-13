@@ -100,6 +100,16 @@ final class BattleEngine {
                 events.append(.statusApplied(side.opposite, ailment))
             }
         }
+
+        // Stat changes (Tail Whip, Growl, Swords Dance, etc.). Negative delta hits
+        // the opponent; positive boosts the user. Good enough for the common cases.
+        for (index, statName) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
+            let delta = move.statChangeDeltas[index]
+            guard delta != 0 else { continue }
+            let target: BattleSide = delta < 0 ? side.opposite : side
+            mutate(target) { $0.applyStage(statName, delta: delta) }
+            events.append(.statChanged(target, stat: statName, delta: delta))
+        }
     }
 
     private func computeDamage(
@@ -110,8 +120,13 @@ final class BattleEngine {
     ) -> (Int, Double, Bool) {
         let level = 50.0
         let isSpecial = move.damageClassKind == .special
-        let atk = isSpecial ? attacker.specialAttack : attacker.attack
-        let def = isSpecial ? defender.specialDefense : defender.defense
+
+        let atkStatName = isSpecial ? "special-attack" : "attack"
+        let defStatName = isSpecial ? "special-defense" : "defense"
+        let atkBase = isSpecial ? attacker.specialAttack : attacker.attack
+        let defBase = isSpecial ? defender.specialDefense : defender.defense
+        let atk = Double(atkBase) * statStageMultiplier(attacker.stage(for: atkStatName))
+        let def = Double(defBase) * statStageMultiplier(defender.stage(for: defStatName))
 
         let stab = attacker.typeNames.contains(move.typeName) ? 1.5 : 1.0
         let typeMult = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
@@ -120,7 +135,7 @@ final class BattleEngine {
         let randVar = Double.random(in: 0.85...1.0)
         let burnPenalty = (attacker.status == .burn && !isSpecial) ? 0.5 : 1.0
 
-        let base = ((2.0 * level / 5.0 + 2.0) * Double(power) * Double(atk) / Double(def)) / 50.0 + 2.0
+        let base = ((2.0 * level / 5.0 + 2.0) * Double(power) * atk / def) / 50.0 + 2.0
         let total = base * stab * typeMult * critMult * randVar * burnPenalty
         let damage = typeMult == 0 ? 0 : max(1, Int(total))
         return (damage, typeMult, crit)

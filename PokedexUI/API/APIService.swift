@@ -87,11 +87,12 @@ enum ParameterKey: String {
 
 // MARK: - Default network service for the PokeAPI
 extension Network.Service {
-    /// The default network service configured for PokeAPI access.
-    ///
-    /// - Returns: A `Network.Service` instance pointing to the PokeAPI base URL.
-    static var `default`: Network.Service {
+    /// Process-wide network service pointing at the PokeAPI base URL.
+    /// `static let` so the URL is parsed once at first access and the same
+    /// `Network.Service` instance is reused everywhere (rather than rebuilt
+    /// on every property access).
+    static let `default`: Network.Service = {
         let url = try! "https://pokeapi.co/api/v2/".asURL()
         return Network.Service(server: .basic(baseURL: url))
-    }
+    }()
 }
