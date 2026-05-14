@@ -1,30 +1,47 @@
 import SwiftUI
 
-/// Protocol for Pokémon view models providing display-ready Pokémon data.
-protocol PokemonViewModelProtocol {
-    /// The Pokémon front sprite image.
-    var frontSprite: String { get }
-    /// The Pokémon back sprite image.
-    var backSprite: String? { get }
-    /// Types associated with the Pokémon.
-    var types: String { get }
-    /// Abilities associated with the Pokémon.
-    var abilities: String { get }
+// MARK: - Focused protocols (Interface Segregation)
+
+/// Minimum surface needed to render a sprite cell — id, name and the two sprite URLs.
+/// Used by grid cells and any view that just needs to identify a pokemon visually.
+protocol IdentifiablePokemon {
+    /// Unique Pokémon identifier (national dex number).
+    var id: Int { get }
     /// Display-ready Pokémon name.
     var name: String { get }
+    /// The Pokémon front sprite image URL.
+    var frontSprite: String { get }
+    /// The Pokémon back sprite image URL.
+    var backSprite: String? { get }
+}
+
+/// Combat-relevant numbers — read by the battle engine and by sort comparators
+/// that key on base stats.
+protocol PokemonStatsProviding {
     /// Statistics for the Pokémon.
     var stats: [Stat] { get }
-    /// Main moves for the Pokémon (first 20, comma-separated).
+    /// Sum of all six base stats.
+    var baseStatTotal: Int { get }
+    /// Lowercase type names (e.g. `["fire", "flying"]`) for effectiveness lookup.
+    var typeNames: [String] { get }
+}
+
+/// Display-formatted strings + species metadata for the detail view, bookmarks,
+/// and search. Anything that exists only to be shown to the user lives here.
+protocol PokemonDisplayData {
+    /// Types as a comma-joined display string.
+    var types: String { get }
+    /// Abilities as a comma-joined display string.
+    var abilities: String { get }
+    /// Up to 10 move names joined for the detail view's Moves row.
     var moves: String { get }
     /// Pokémon height, formatted for display.
     var height: String { get }
     /// Pokémon weight, formatted for display.
     var weight: String { get }
-    /// Unique Pokémon identifier.
-    var id: Int { get }
     /// The battle cry of the pokemon.
     var latestCry: String? { get }
-    /// A boolean value that determine if the Pokémon is bookmarked.
+    /// Whether this Pokémon is currently bookmarked.
     var isBookmarked: Bool { get set }
     /// Precomputed, normalized text used for search matching.
     var searchHaystack: String { get }
@@ -42,14 +59,15 @@ protocol PokemonViewModelProtocol {
     var captureRate: Int { get }
     /// Evolution chain id (last path component) for lazy fetch.
     var evolutionChainId: String? { get }
-    /// Sum of all six base stats.
-    var baseStatTotal: Int { get }
-    /// Lowercase type names (e.g. `["fire", "flying"]`) for effectiveness lookup.
-    var typeNames: [String] { get }
-    /// `true` when this pokemon is flagged legendary or mythical.
+    /// `true` when this pokemon is flagged legendary.
     var isLegendary: Bool { get }
+    /// `true` when this pokemon is flagged mythical.
     var isMythical: Bool { get }
 }
+
+/// Aggregate protocol used where the full Pokémon contract is needed (the
+/// detail view, mostly). Smaller surfaces should use the focused protocols.
+typealias PokemonViewModelProtocol = IdentifiablePokemon & PokemonStatsProviding & PokemonDisplayData
 
 // MARK: -
 /// ViewModel providing formatted and display-ready data for a single Pokémon.
@@ -124,10 +142,6 @@ extension PokemonViewModel: PokemonViewModelProtocol {
     var generationName: String? { pokemon.generationName }
     var genderRate: Int { pokemon.genderRate }
     var captureRate: Int { pokemon.captureRate }
-    var hatchSteps: Int { (pokemon.hatchCounter + 1) * 255 }
-    var eggGroups: [String] {
-        pokemon.eggGroups.map { $0.replacingOccurrences(of: "-", with: " ").capitalized }
-    }
     var evolutionChainId: String? { pokemon.evolutionChainId }
     var baseStatTotal: Int { pokemon.stats.map(\.baseStat).reduce(0, +) }
     var typeNames: [String] { pokemon.types.map { $0.type.name } }

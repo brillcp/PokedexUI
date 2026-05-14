@@ -1,9 +1,8 @@
 import SwiftUI
 
-struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
+struct AsyncSpriteView<ViewModel: IdentifiablePokemon>: View {
     // MARK: Private properties
-    @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
-    @Environment(\.spriteLoader) private var spriteLoader
+    @Environment(\.container) private var container
 
     @State private var sprite: Image?
     @State private var color: Color?
@@ -36,8 +35,8 @@ struct AsyncSpriteView<ViewModel: PokemonViewModelProtocol>: View {
         }
         .aspectRatio(1.0, contentMode: .fit)
         .task(id: viewModel.id) {
-            guard let image = await spriteLoader.spriteImage(from: viewModel.frontSprite),
-                  let uicolor = await imageColorAnalyzer.dominantColor(for: viewModel.id, image: image)
+            guard let image = await container.spriteLoader.spriteImage(from: viewModel.frontSprite),
+                  let uicolor = await container.imageColorAnalyzer.dominantColor(for: viewModel.id, image: image)
             else { return }
 
             let resolved = Color(uiColor: uicolor)

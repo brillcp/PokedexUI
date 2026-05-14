@@ -406,8 +406,9 @@ private struct MockMoveService: MoveServiceProtocol {
                 viewModel: BattleViewModel(
                     player: PokemonViewModel(pokemon: .pikachu),
                     opponent: PokemonViewModel(pokemon: .pikachu),
-                    typeChart: .shared,
-                    moveService: MockMoveService()
+                    typeChart: TypeChartLoader(),
+                    moveService: MockMoveService(),
+                    audioPlayer: AudioPlayer()
                 )
             )
         }

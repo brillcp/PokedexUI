@@ -78,8 +78,6 @@ extension PokemonService {
             pokemon.genderRate = species.genderRate
             pokemon.captureRate = species.captureRate
             pokemon.baseHappiness = species.baseHappiness ?? 0
-            pokemon.hatchCounter = species.hatchCounter ?? 0
-            pokemon.eggGroups = species.eggGroups.map(\.name)
             pokemon.evolutionChainId = species.evolutionChain?.id
             pokemon.isLegendary = species.isLegendary
             pokemon.isMythical = species.isMythical

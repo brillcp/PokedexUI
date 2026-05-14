@@ -20,8 +20,6 @@ final class Pokemon: Decodable, Sendable {
     var genderRate: Int = -1
     var captureRate: Int = 0
     var baseHappiness: Int = 0
-    var hatchCounter: Int = 0
-    var eggGroups: [String] = []
     var evolutionChainId: String? = nil
     var isLegendary: Bool = false
     var isMythical: Bool = false
@@ -49,8 +47,6 @@ final class Pokemon: Decodable, Sendable {
         genderRate: Int = -1,
         captureRate: Int = 0,
         baseHappiness: Int = 0,
-        hatchCounter: Int = 0,
-        eggGroups: [String] = [],
         evolutionChainId: String? = nil,
         isLegendary: Bool = false,
         isMythical: Bool = false
@@ -72,8 +68,6 @@ final class Pokemon: Decodable, Sendable {
         self.genderRate = genderRate
         self.captureRate = captureRate
         self.baseHappiness = baseHappiness
-        self.hatchCounter = hatchCounter
-        self.eggGroups = eggGroups
         self.evolutionChainId = evolutionChainId
         self.isLegendary = isLegendary
         self.isMythical = isMythical

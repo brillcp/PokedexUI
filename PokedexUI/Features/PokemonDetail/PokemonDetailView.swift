@@ -3,11 +3,7 @@ import SwiftData
 
 struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: View {
     // MARK: - Environment Dependencies
-    @Environment(\.hapticFeedback) private var haptic: UIImpactFeedbackGenerator
-    @Environment(\.imageColorAnalyzer) private var imageColorAnalyzer
-    @Environment(\.audioPlayer) private var audioPlayer: AudioPlayer
-    @Environment(\.spriteLoader) private var spriteLoader
-    @Environment(\.typeChart) private var typeChart
+    @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
 
     // MARK: - Data Query
@@ -42,14 +38,14 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         .scrollIndicators(.hidden)
         .task(id: viewModel.pokemon.id) {
             await viewModel.loadSpritesAndColor(
-                withSpriteLoader: spriteLoader,
-                imageColorAnalyzer: imageColorAnalyzer
+                withSpriteLoader: container.spriteLoader,
+                imageColorAnalyzer: container.imageColorAnalyzer
             )
         }
         .task(id: viewModel.pokemon.evolutionChainId) {
             await viewModel.loadEvolutionChain()
         }
-        .task { await typeChart.loadIfNeeded() }
+        .task { await container.typeChart.loadIfNeeded() }
         .onAppear {
             viewModel.updateBookmarkStatus(from: bookmarks)
         }
@@ -67,7 +63,9 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
                     viewModel: BattleViewModel(
                         player: player,
                         opponent: opp,
-                        typeChart: typeChart
+                        typeChart: container.typeChart,
+                        moveService: container.moveService,
+                        audioPlayer: container.audioPlayer
                     )
                 )
             }
@@ -110,7 +108,7 @@ private extension PokemonDetailView {
             GenderRow(rate: viewModel.pokemon.genderRate, textColor: textColor)
             WeaknessGridView(
                 pokemon: viewModel.pokemon,
-                typeChart: typeChart,
+                typeChart: container.typeChart,
                 textColor: textColor
             )
 
@@ -202,7 +200,7 @@ private extension PokemonDetailView {
             Spacer()
             if viewModel.pokemon.latestCry != nil {
                 DetailButton(icon: "speaker.wave.3.fill") {
-                    Task { await viewModel.playSound(with: audioPlayer) }
+                    Task { await viewModel.playSound(with: container.audioPlayer) }
                 }
             }
             if viewModel.pokemon.backSprite != nil {
@@ -218,10 +216,10 @@ private extension PokemonDetailView {
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
-                        viewModel.flipSprite(hapticFeedback: haptic)
+                        viewModel.flipSprite(hapticFeedback: container.haptic)
                     }
                     .onEnded { _ in
-                        viewModel.flipSpriteBack(hapticFeedback: haptic)
+                        viewModel.flipSpriteBack(hapticFeedback: container.haptic)
                     }
             )
     }

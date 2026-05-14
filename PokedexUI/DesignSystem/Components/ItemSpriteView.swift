@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ItemSpriteView: View {
     // MARK: Private properties
-    @Environment(\.spriteLoader) private var spriteLoader
+    @Environment(\.container) private var container
     @State private var image: Image?
 
     // MARK: - Public properties
@@ -32,7 +32,7 @@ struct ItemSpriteView: View {
 private extension ItemSpriteView {
     func loadSprite() async {
         guard let url = spriteURL,
-              let uiImage = await spriteLoader.spriteImage(from: url)
+              let uiImage = await container.spriteLoader.spriteImage(from: url)
         else { return }
         image = Image(uiImage: uiImage)
     }

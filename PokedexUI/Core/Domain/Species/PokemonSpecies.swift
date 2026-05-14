@@ -8,8 +8,6 @@ struct PokemonSpecies: Decodable, Sendable {
     let genderRate: Int
     let captureRate: Int
     let baseHappiness: Int?
-    let hatchCounter: Int?
-    let eggGroups: [APINamed]
     let generation: APINamed?
     let evolutionChain: EvolutionChainRef?
     let isLegendary: Bool
@@ -23,8 +21,6 @@ struct PokemonSpecies: Decodable, Sendable {
         case genderRate = "gender_rate"
         case captureRate = "capture_rate"
         case baseHappiness = "base_happiness"
-        case hatchCounter = "hatch_counter"
-        case eggGroups = "egg_groups"
         case generation
         case evolutionChain = "evolution_chain"
         case isLegendary = "is_legendary"

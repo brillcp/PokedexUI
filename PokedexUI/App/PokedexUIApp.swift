@@ -14,7 +14,7 @@ struct PokedexUIApp: App {
 // MARK: - Root view
 private struct RootView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.typeChart) private var typeChart
+    @Environment(\.container) private var container
 
     var body: some View {
         PokedexView(
@@ -22,8 +22,8 @@ private struct RootView: View {
             itemListViewModel: ItemListViewModel(modelContext: modelContext)
         )
         .task {
-            typeChart.attach(modelContainer: modelContext.container)
-            await typeChart.loadIfNeeded()
+            container.typeChart.attach(modelContainer: modelContext.container)
+            await container.typeChart.loadIfNeeded()
         }
     }
 }

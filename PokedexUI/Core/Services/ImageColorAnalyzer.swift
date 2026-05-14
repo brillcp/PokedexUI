@@ -1,13 +1,7 @@
 import UIKit
 
 actor ImageColorAnalyzer {
-    /// Shared process-wide analyzer so the per-id color cache survives across views
-    /// and is not rebuilt on every environment value access.
-    static let shared = ImageColorAnalyzer()
-
     private var cache = [Int: UIColor]()
-
-    private init() {}
 }
 
 // MARK: - Public functions

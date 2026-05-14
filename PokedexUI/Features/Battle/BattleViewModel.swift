@@ -28,17 +28,20 @@ final class BattleViewModel {
 
     private let typeChart: TypeChartLoader
     private let moveService: MoveServiceProtocol
+    private let audioPlayer: AudioPlayer
 
     init(
         player: PokemonViewModel,
         opponent: PokemonViewModel,
         typeChart: TypeChartLoader,
-        moveService: MoveServiceProtocol = MoveService()
+        moveService: MoveServiceProtocol,
+        audioPlayer: AudioPlayer
     ) {
         self.playerPokemon = player
         self.opponentPokemon = opponent
         self.typeChart = typeChart
         self.moveService = moveService
+        self.audioPlayer = audioPlayer
     }
 
     /// Preflight: ensure the type chart is loaded and hydrate up to 4 damaging moves per side.
@@ -67,7 +70,7 @@ final class BattleViewModel {
             hasEntered = true
         }
         if let cry = opponentPokemon.latestCry {
-            await AudioPlayer.shared.play(from: cry)
+            await audioPlayer.play(from: cry)
         }
     }
 
@@ -107,7 +110,7 @@ final class BattleViewModel {
         let pokemon = winner == .player ? playerPokemon : opponentPokemon
         guard let cry = pokemon.latestCry else { return }
         try? await Task.sleep(for: .milliseconds(350))
-        await AudioPlayer.shared.play(from: cry)
+        await audioPlayer.play(from: cry)
     }
 
     /// Mutate the displayed state for a single event so the HP gauge animates only

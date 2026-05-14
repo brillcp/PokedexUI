@@ -7,9 +7,6 @@ import SwiftData
 @MainActor
 @Observable
 final class TypeChartLoader {
-    /// Process-wide instance. Treated like a singleton in `@Entry` defaults.
-    static let shared = TypeChartLoader()
-
     private let typeService: TypeServiceProtocol
     private var storage: DataStorageReader?
     private var isLoading = false
@@ -17,7 +14,7 @@ final class TypeChartLoader {
     /// Keyed by type name (lowercase). Empty until first load.
     private(set) var chart: [String: TypeDetail] = [:]
 
-    init(typeService: TypeServiceProtocol = TypeService()) {
+    nonisolated init(typeService: TypeServiceProtocol = TypeService()) {
         self.typeService = typeService
     }
 

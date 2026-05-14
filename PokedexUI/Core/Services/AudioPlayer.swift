@@ -2,9 +2,6 @@ import AVFoundation
 
 /// An actor responsible for managing audio playback using AVFoundation.
 actor AudioPlayer {
-    /// Shared process-wide player so the audio session is configured once.
-    static let shared = AudioPlayer()
-
     // MARK: Private properties
     /// The AVFoundation player instance used to control audio playback.
     private var player: AVPlayer?
@@ -18,7 +15,7 @@ actor AudioPlayer {
 
     // MARK: - Init
     /// Initializes a new audio player and configures the audio session for playback.
-    private init() {
+    init() {
         let shared = AVAudioSession.sharedInstance()
         try? shared.setCategory(.playback, mode: .default)
         try? shared.setActive(true)
