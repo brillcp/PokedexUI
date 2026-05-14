@@ -59,6 +59,16 @@
 		D5BA12022E70000000000042 /* BattleState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12012E70000000000041 /* BattleState.swift */; };
 		D5E0000000000000000000C1 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000C2 /* AppContainer.swift */; };
 		D5E0000000000000000000C3 /* AppContainerKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000C4 /* AppContainerKey.swift */; };
+		D5E0000000000000000000D1 /* WeaknessGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D2 /* WeaknessGridView.swift */; };
+		D5E0000000000000000000D3 /* GenderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D4 /* GenderRow.swift */; };
+		D5E0000000000000000000D5 /* EvolutionChainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D6 /* EvolutionChainView.swift */; };
+		D5E0000000000000000000D7 /* DetailRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D8 /* DetailRow.swift */; };
+		D5E0000000000000000000D9 /* DetailViewStyling.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000DA /* DetailViewStyling.swift */; };
+		D5E0000000000000000000E1 /* HPCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E2 /* HPCard.swift */; };
+		D5E0000000000000000000E3 /* MoveLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E4 /* MoveLabel.swift */; };
+		D5E0000000000000000000E5 /* BattlerSprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E6 /* BattlerSprite.swift */; };
+		D5E0000000000000000000E7 /* ShakeEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E8 /* ShakeEffect.swift */; };
+		D5E0000000000000000000E9 /* MockMoveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000EA /* MockMoveService.swift */; };
 		D5BA12042E70000000000044 /* BattleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12032E70000000000043 /* BattleEngine.swift */; };
 		D5BA12062E70000000000046 /* BattleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12052E70000000000045 /* BattleViewModel.swift */; };
 		D5BA12082E70000000000048 /* BattleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12072E70000000000047 /* BattleView.swift */; };
@@ -126,6 +136,16 @@
 		D5BA12012E70000000000041 /* BattleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleState.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000C2 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000C4 /* AppContainerKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerKey.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000D2 /* WeaknessGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaknessGridView.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000D4 /* GenderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenderRow.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000D6 /* EvolutionChainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionChainView.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000D8 /* DetailRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailRow.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000DA /* DetailViewStyling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewStyling.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000E2 /* HPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPCard.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000E4 /* MoveLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveLabel.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000E6 /* BattlerSprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattlerSprite.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000E8 /* ShakeEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeEffect.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000EA /* MockMoveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMoveService.swift; sourceTree = "<group>"; };
 		D5BA12032E70000000000043 /* BattleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleEngine.swift; sourceTree = "<group>"; };
 		D5BA12052E70000000000045 /* BattleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleViewModel.swift; sourceTree = "<group>"; };
 		D5BA12072E70000000000047 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
@@ -388,8 +408,21 @@
 			children = (
 				93F7F577274009B2002CEBB5 /* PokemonDetailView.swift */,
 				D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */,
+				D5E0000000000000000000DB /* Subviews */,
 			);
 			path = PokemonDetail;
+			sourceTree = "<group>";
+		};
+		D5E0000000000000000000DB /* Subviews */ = {
+			isa = PBXGroup;
+			children = (
+				D5E0000000000000000000D2 /* WeaknessGridView.swift */,
+				D5E0000000000000000000D4 /* GenderRow.swift */,
+				D5E0000000000000000000D6 /* EvolutionChainView.swift */,
+				D5E0000000000000000000D8 /* DetailRow.swift */,
+				D5E0000000000000000000DA /* DetailViewStyling.swift */,
+			);
+			path = Subviews;
 			sourceTree = "<group>";
 		};
 		D5E0000000000000000000B6 /* Items */ = {
@@ -428,8 +461,21 @@
 				D5BA12052E70000000000045 /* BattleViewModel.swift */,
 				D5BA12072E70000000000047 /* BattleView.swift */,
 				D5BA12092E70000000000049 /* OpponentPickerView.swift */,
+				D5E0000000000000000000EA /* MockMoveService.swift */,
+				D5E0000000000000000000EB /* Subviews */,
 			);
 			path = Battle;
+			sourceTree = "<group>";
+		};
+		D5E0000000000000000000EB /* Subviews */ = {
+			isa = PBXGroup;
+			children = (
+				D5E0000000000000000000E2 /* HPCard.swift */,
+				D5E0000000000000000000E4 /* MoveLabel.swift */,
+				D5E0000000000000000000E6 /* BattlerSprite.swift */,
+				D5E0000000000000000000E8 /* ShakeEffect.swift */,
+			);
+			path = Subviews;
 			sourceTree = "<group>";
 		};
 		D5E0000000000000000000BA /* DesignSystem */ = {
@@ -599,6 +645,16 @@
 				9396D23A273EBBED00AF0C94 /* PokedexUIApp.swift in Sources */,
 				D5E0000000000000000000C1 /* AppContainer.swift in Sources */,
 				D5E0000000000000000000C3 /* AppContainerKey.swift in Sources */,
+				D5E0000000000000000000D1 /* WeaknessGridView.swift in Sources */,
+				D5E0000000000000000000D3 /* GenderRow.swift in Sources */,
+				D5E0000000000000000000D5 /* EvolutionChainView.swift in Sources */,
+				D5E0000000000000000000D7 /* DetailRow.swift in Sources */,
+				D5E0000000000000000000D9 /* DetailViewStyling.swift in Sources */,
+				D5E0000000000000000000E1 /* HPCard.swift in Sources */,
+				D5E0000000000000000000E3 /* MoveLabel.swift in Sources */,
+				D5E0000000000000000000E5 /* BattlerSprite.swift in Sources */,
+				D5E0000000000000000000E7 /* ShakeEffect.swift in Sources */,
+				D5E0000000000000000000E9 /* MockMoveService.swift in Sources */,
 				D573661D2E217D5700FE4ED0 /* APIService.swift in Sources */,
 				D5329F3B2E29351500DC38B3 /* AudioPlayer.swift in Sources */,
 				D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */,
