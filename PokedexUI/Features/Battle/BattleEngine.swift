@@ -1,14 +1,16 @@
 import Foundation
 
 /// Pure battle logic. Synchronous turn resolver — caller (BattleViewModel)
-/// drives event playback with delays for animation. Main-actor isolated to
-/// match `TypeChartLoader` (which reads its dictionary on the main actor).
+/// drives event playback with delays for animation. Stays on MainActor so
+/// `withAnimation` callbacks fired from `BattleViewModel` see consistent
+/// state, but the engine itself doesn't touch UIKit — the `TypeChart` value
+/// it holds is a pure Sendable snapshot, so lookups are free of actor hops.
 @MainActor
 final class BattleEngine {
     private(set) var state: BattleState
-    private let typeChart: TypeChartLoader
+    private let typeChart: TypeChart
 
-    init(state: BattleState, typeChart: TypeChartLoader) {
+    init(state: BattleState, typeChart: TypeChart) {
         self.state = state
         self.typeChart = typeChart
     }

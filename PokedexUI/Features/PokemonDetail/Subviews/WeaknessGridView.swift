@@ -11,11 +11,11 @@ struct WeaknessGridView: View {
     /// Bucket attacker types by the multiplier they produce against this pokemon.
     private var buckets: [(label: String, types: [String])] {
         let defenders = pokemon.typeNames
-        guard !typeChart.chart.isEmpty else { return [] }
+        guard let chart = typeChart.chart else { return [] }
 
         var rows: [Double: [String]] = [:]
-        for (attackerName, _) in typeChart.chart {
-            let m = typeChart.multiplier(attacking: attackerName, defenders: defenders)
+        for (attackerName, _) in chart.attackers {
+            let m = chart.multiplier(attacking: attackerName, defenders: defenders)
             guard m != 1.0 else { continue }
             rows[m, default: []].append(attackerName)
         }

@@ -22,7 +22,13 @@ OPPONENT PICKING RULES:
 5. Favor recognizable, iconic Pokémon (starters, pseudo-legendaries, popular gen-1) over obscure picks when stats are similar.
 
 OUTPUT RULES:
-- For move picks: return the exact move name from the provided list. Names are kebab-case (e.g. "thunder-shock", "quick-attack").
-- For opponent picks: return the exact id from the provided list. Ids are integers.
+- For move picks: return the integer INDEX of the chosen move from the supplied list (0 for the first row, 1 for the second, etc.). Do not return a name or any other field.
+- For opponent picks: return the exact pokedex id (integer) from the supplied candidate list.
 - Never explain your reasoning. Just return the structured answer.
 - Never invent a move or pokemon that isn't in the input.
+
+INTERPRETING MOVE ROWS:
+- Each move row already includes a pre-computed "×N vs defender" multiplier — use that number directly, do not recompute from the type chart.
+- "×0" means the move has no effect — never pick it.
+- "×2" or higher is super-effective; favour these when accuracy is reasonable.
+- "status" rows are non-damaging utility moves.

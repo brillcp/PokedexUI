@@ -3,16 +3,14 @@ import SwiftData
 
 /// Downloads every move from PokeAPI once and persists each as a `MoveDetail`
 /// row in SwiftData. Move data is effectively static (power/accuracy/type don't
-/// change between Pokemon generations within the same game id), so after the
+/// change between Pokémon generations within the same game id), so after the
 /// first successful run on a device we never hit the network for moves again —
 /// battle preflight becomes a pure local query.
 ///
-/// Mirrors the `TypeChartLoader` pattern: `attach(modelContainer:)` once on app
-/// start, then `prefetchIfNeeded()` to drive the one-time download. Subsequent
-/// app launches see the full cache and early-return without any API call.
-@MainActor
-@Observable
-final class MovePrefetcher {
+/// Background worker — no SwiftUI binding, no main-actor isolation. Runs on
+/// the cooperative thread pool at `.background` priority so it doesn't fight
+/// the pokedex paginated loader for cycles.
+final actor MovePrefetcher {
     private let moveService: MoveServiceProtocol
     private var storage: DataStorageReader?
     private var isLoading = false
@@ -23,7 +21,7 @@ final class MovePrefetcher {
     /// for any names not yet persisted).
     private(set) var isComplete: Bool = false
 
-    nonisolated init(moveService: MoveServiceProtocol = MoveService()) {
+    init(moveService: MoveServiceProtocol = MoveService()) {
         self.moveService = moveService
     }
 

@@ -106,13 +106,12 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
             self.playerPokemon   = player
             self.opponentPokemon = opponent
 
-            // Both move pools fill in parallel. Opponent pool is just a 40-cap
-            // sample, player pool is the same so the picker grid isn't 1000
-            // items long.
+            // Both move pools fill in parallel. Each side gets 40 sampled
+            // moves — player picks 4 by hand, AI narrows the opponent's 40 to
+            // 4 later in `BattleViewModel.prepare()` so the loadout sheet
+            // dismisses immediately on Battle! without holding the player up.
             async let playerMoves   = fetchMoves(for: player,   modelContext: modelContext)
             async let opponentMoves = fetchMoves(for: opponent, modelContext: modelContext)
-            // Player pool ranked strongest-first so the most useful picks
-            // surface at the top of the grid. Player still chooses all 4.
             self.playerMovePool   = (try? await playerMoves).map(Self.rankedByImpact) ?? []
             self.opponentMovePool = (try? await opponentMoves) ?? []
         } catch {

@@ -57,6 +57,7 @@
 		D5BA11242E70000000000014 /* TypeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11232E70000000000013 /* TypeModels.swift */; };
 		D5BA11262E70000000000016 /* TypeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11252E70000000000015 /* TypeService.swift */; };
 		D5BA11282E70000000000018 /* TypeChartLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11272E70000000000017 /* TypeChartLoader.swift */; };
+		D5BA11292E70000000000019 /* TypeChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA112A2E7000000000001A /* TypeChart.swift */; };
 		D5BA11322E70000000000022 /* EvolutionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11312E70000000000021 /* EvolutionRequest.swift */; };
 		D5BA11342E70000000000024 /* EvolutionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11332E70000000000023 /* EvolutionModels.swift */; };
 		D5BA11362E70000000000026 /* EvolutionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11352E70000000000025 /* EvolutionService.swift */; };
@@ -144,6 +145,7 @@
 		D5BA11232E70000000000013 /* TypeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeModels.swift; sourceTree = "<group>"; };
 		D5BA11252E70000000000015 /* TypeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeService.swift; sourceTree = "<group>"; };
 		D5BA11272E70000000000017 /* TypeChartLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeChartLoader.swift; sourceTree = "<group>"; };
+		D5BA112A2E7000000000001A /* TypeChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeChart.swift; sourceTree = "<group>"; };
 		D5BA11312E70000000000021 /* EvolutionRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionRequest.swift; sourceTree = "<group>"; };
 		D5BA11332E70000000000023 /* EvolutionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionModels.swift; sourceTree = "<group>"; };
 		D5BA11352E70000000000025 /* EvolutionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionService.swift; sourceTree = "<group>"; };
@@ -379,6 +381,7 @@
 				D5BA11212E70000000000011 /* TypeRequest.swift */,
 				D5BA11252E70000000000015 /* TypeService.swift */,
 				D5BA11272E70000000000017 /* TypeChartLoader.swift */,
+				D5BA112A2E7000000000001A /* TypeChart.swift */,
 			);
 			path = PokemonType;
 			sourceTree = "<group>";
@@ -669,6 +672,7 @@
 				D5BA11242E70000000000014 /* TypeModels.swift in Sources */,
 				D5BA11262E70000000000016 /* TypeService.swift in Sources */,
 				D5BA11282E70000000000018 /* TypeChartLoader.swift in Sources */,
+				D5BA11292E70000000000019 /* TypeChart.swift in Sources */,
 				D5BA11322E70000000000022 /* EvolutionRequest.swift in Sources */,
 				D5BA11342E70000000000024 /* EvolutionModels.swift in Sources */,
 				D5BA11362E70000000000026 /* EvolutionService.swift in Sources */,

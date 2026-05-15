@@ -32,21 +32,24 @@ struct BattleView: View {
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoadingMoves {
-            ProgressView("Loading moves…")
+        switch viewModel.phase {
+        case .loadingLoadout:
+            ProgressView("Preparing opponent…")
                 .tint(.white)
                 .font(.pixel14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .lineHeight(.loose)
-        } else if let error = viewModel.errorMessage {
-            Text(error)
+        case .error(let message):
+            Text(message)
                 .tint(.white)
                 .font(.pixel14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()
                 .lineHeight(.loose)
-        } else if let state = viewModel.state {
-            battleLayout(state: state)
+        case .ready:
+            if let state = viewModel.state {
+                battleLayout(state: state)
+            }
         }
     }
 

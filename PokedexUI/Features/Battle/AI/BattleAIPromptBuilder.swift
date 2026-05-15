@@ -5,15 +5,20 @@ import Foundation
 /// shape is easy to tweak / inspect in isolation.
 struct BattleAIPromptBuilder {
 
-    /// Compact battle snapshot + move list. The model only sees what's needed
-    /// to make a tactical call — no flavor text, no extraneous IDs.
+    /// Compact battle snapshot + indexed move list. Each move row carries the
+    /// pre-computed type effectiveness multiplier against the defender so the
+    /// model doesn't need to recall the type chart from training — it just
+    /// compares numbers. `effectiveness` is parallel to `moves`.
     func buildMovePrompt(
         attacker: BattleCombatant,
         defender: BattleCombatant,
-        moves: [MoveDetail]
+        moves: [MoveDetail],
+        effectiveness: [Double]
     ) -> String {
         let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double($0.maxHP) * 100) }
-        let movesBlock = moves.map { describe($0) }.joined(separator: "\n")
+        let movesBlock = moves.enumerated().map { idx, move in
+            describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0)
+        }.joined(separator: "\n")
         return """
         Pick the best move for the attacker this turn.
 
@@ -27,24 +32,61 @@ struct BattleAIPromptBuilder {
         - HP: \(hpPct(defender))%
         - Status: \(statusDescription(defender.status))
 
-        Available moves: 
+        Available moves (index: name — details):
         \(movesBlock)
 
-        Return ONLY the exact move name (kebab-case) from the list above.
+        Return ONLY the index (integer) of the chosen move from the list above.
         """
     }
 
-    /// Player + roster summary for opponent selection. Roster is capped at 60
-    /// candidates so the prompt stays under the model's input budget — the
-    /// caller samples randomly from the full pokedex before passing in.
+    /// Loadout selection — fighter + opponent context + full movepool with
+    /// pre-computed effectiveness numbers. AI returns 4 indices from the
+    /// movepool. Used by `BattleAIService.chooseLoadout` at battle start so
+    /// the opponent goes in with a hand-picked 4-move set, just like the
+    /// player.
+    func buildLoadoutPrompt(
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        moves: [MoveDetail],
+        effectiveness: [Double],
+        loadoutSize: Int
+    ) -> String {
+        let movesBlock = moves.enumerated().map { idx, move in
+            describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0)
+        }.joined(separator: "\n")
+        return """
+        Pick \(loadoutSize) moves for \(fighter.name) to bring into a 1v1 battle.
+
+        Fighter: \(fighter.name)
+        - Types: \(fighter.typeNames.joined(separator: ", "))
+
+        Opponent: \(opponent.name)
+        - Types: \(opponent.typeNames.joined(separator: ", "))
+
+        Full movepool (index: name — details):
+        \(movesBlock)
+
+        Return exactly \(loadoutSize) DISTINCT indices (integers) from the list above — the moves the fighter should carry into battle. Prefer a balanced set: at least one super-effective damaging move when possible, no duplicates of the same type, mix damaging and utility if it helps.
+        """
+    }
+
+    /// Player + roster summary for opponent selection. Player types are passed
+    /// in explicitly (the picker view forwards them) so the model can match a
+    /// challenger to the actual matchup, not just recall the player's typing
+    /// from training. Candidate roster is capped at 60 to stay under the
+    /// input token budget.
     func buildOpponentPrompt(
         player: PokemonSummary,
+        playerTypes: [String],
         candidates: [PokemonSummary]
     ) -> String {
         let capped = candidates.prefix(60)
         let roster = capped.map { "- \($0.id): \($0.name)" }.joined(separator: "\n")
+        let typeLine = playerTypes.isEmpty
+            ? ""
+            : " (types: \(playerTypes.joined(separator: ", ")))"
         return """
-        Pick a worthy opponent for \(player.name) (id \(player.id)) from this list.
+        Pick a worthy opponent for \(player.name) (id \(player.id))\(typeLine) from this list.
 
         Candidates:
         \(roster)
@@ -55,10 +97,26 @@ struct BattleAIPromptBuilder {
 
     // MARK: - Helpers
 
-    private func describe(_ move: MoveDetail) -> String {
+    /// Render one move row. Damaging moves include the pre-computed
+    /// effectiveness multiplier vs the defender's typing.
+    private func describe(_ move: MoveDetail, index: Int, effectiveness: Double) -> String {
         let power = move.power.map { "\($0)" } ?? "—"
         let accuracy = move.accuracy.map { "\($0)%" } ?? "100%"
-        return "- \(move.name): \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy)"
+        let effectivenessText: String
+        if move.power == nil || (move.power ?? 0) == 0 {
+            // Status / non-damaging — no useful effectiveness number to print.
+            effectivenessText = "status"
+        } else {
+            effectivenessText = "×\(format(effectiveness)) vs defender"
+        }
+        return "\(index): \(move.name) — \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)"
+    }
+
+    private func format(_ multiplier: Double) -> String {
+        if multiplier == multiplier.rounded() {
+            return String(Int(multiplier))
+        }
+        return String(format: "%.2f", multiplier)
     }
 
     private func statusDescription(_ status: BattleStatus) -> String {
@@ -68,5 +126,15 @@ struct BattleAIPromptBuilder {
         case .burn: return "burned (-1/16 HP/turn, physical halved)"
         case .poison: return "poisoned (-1/8 HP/turn)"
         }
+    }
+}
+
+private extension Array {
+    /// Out-of-bounds-safe lookup. Used as a defensive guard when iterating
+    /// the moves array next to a parallel `effectiveness` array — if the
+    /// caller ever passes mismatched lengths we degrade to neutral instead
+    /// of crashing.
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

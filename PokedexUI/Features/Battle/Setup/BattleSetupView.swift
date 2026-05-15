@@ -186,7 +186,7 @@ struct BattleSetupView: View {
     /// at a glance whether they out-type the opponent.
     private var typeMatchup: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("TYPE MATCHUP")
+            Text("Type matchup")
                 .font(.pixel12)
                 .foregroundStyle(.secondary)
 
@@ -252,7 +252,7 @@ struct BattleSetupView: View {
     private var movePicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("PICK \(viewModel.maxSelections) MOVES")
+                Text("Pick \(viewModel.maxSelections) moves")
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
                 Spacer()

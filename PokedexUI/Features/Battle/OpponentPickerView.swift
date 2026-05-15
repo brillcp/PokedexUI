@@ -12,6 +12,10 @@ import SwiftData
 /// view, which then pushes `BattleView` on its own nav stack.
 struct OpponentPickerView: View {
     let player: PokemonSummary
+    /// Player's type names (e.g. ["grass", "poison"]) — passed straight into
+    /// the AI prompt for smart-pick so the model picks against the actual
+    /// matchup instead of relying on training recall.
+    let playerTypes: [String]
     let onStart: (BattleLaunch) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -24,8 +28,13 @@ struct OpponentPickerView: View {
     /// When non-nil, pushes `BattleSetupView` onto this view's nav stack.
     @State private var setupOpponent: PokemonSummary?
 
-    init(player: PokemonSummary, onStart: @escaping (BattleLaunch) -> Void) {
+    init(
+        player: PokemonSummary,
+        playerTypes: [String] = [],
+        onStart: @escaping (BattleLaunch) -> Void
+    ) {
         self.player = player
+        self.playerTypes = playerTypes
         self.onStart = onStart
         // Exclude the player from the candidate list. Sort by id (pokedex order).
         let playerId = player.id
@@ -139,6 +148,7 @@ struct OpponentPickerView: View {
             let candidates = Array(allPokemon.shuffled().prefix(60))
             let pick = await container.battleAI.chooseOpponent(
                 for: player,
+                playerTypes: playerTypes,
                 candidates: candidates
             )
             isAIThinking = false

@@ -40,7 +40,6 @@ struct DetailRow: View {
 struct DetailRowStat: View {
     let title: String
     let value: Int
-    let color: Color?
     let textColor: Color
 
     private var abbreviatedTitle: String {

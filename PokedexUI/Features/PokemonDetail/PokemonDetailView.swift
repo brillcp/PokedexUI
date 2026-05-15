@@ -27,7 +27,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
                 spriteImage()
                 loadedSection()
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .scrollIndicators(.hidden)
         .task(id: viewModel.summary.id) {
@@ -49,7 +49,13 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         }
         .task { await container.typeChart.loadIfNeeded() }
         .sheet(isPresented: $showOpponentPicker) {
-            OpponentPickerView(player: viewModel.summary) { launch in
+            OpponentPickerView(
+                player: viewModel.summary,
+                // Types may be `nil` if the player tapped Fight before the
+                // detail hydration landed — empty array is a safe fallback,
+                // the AI service degrades to random in that case anyway.
+                playerTypes: viewModel.pokemon?.typeNames ?? []
+            ) { launch in
                 // Picker sheet has dismissed itself; we just push battle on
                 // the detail view's nav stack.
                 showOpponentPicker = false
@@ -255,12 +261,11 @@ private extension PokemonDetailView {
                 DetailRowStat(
                     title: stat.stat.name,
                     value: stat.baseStat,
-                    color: viewModel.color,
                     textColor: textColor
                 )
             }
             HStack {
-                Text("TOTAL")
+                Text("Total")
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text("\(pokemon.baseStatTotal)")
