@@ -1,6 +1,12 @@
 import Networking
 
+/// Network surface for the `/evolution-chain` PokeAPI endpoint. Backed by an
+/// actor with an in-memory chain-id memo (most pokemon share a chain with
+/// 1-2 others, so once one detail view in the chain opens, the rest are
+/// instant).
 protocol EvolutionServiceProtocol: Sendable {
+    /// Fetch the chain by id (the trailing path component of
+    /// `species.evolutionChain.url`).
     func requestChain(id: String) async throws -> EvolutionChain
 }
 

@@ -1,9 +1,15 @@
 import Foundation
 
+/// `/evolution-chain/{id}` payload. Root of a recursive evolution tree
+/// (Pichu → Pikachu → Raichu, etc.). PokedexUI flattens this into a linear
+/// stage list for the detail-view evolution row.
 struct EvolutionChain: Decodable, Sendable {
     let chain: EvolutionLink
 }
 
+/// One node in the evolution tree. Each link points at one species and
+/// carries any number of `evolvesTo` children with the trigger details
+/// (level, item, friendship, etc.).
 struct EvolutionLink: Decodable, Sendable {
     let species: SpeciesRef
     let evolvesTo: [EvolutionLink]
@@ -16,6 +22,9 @@ struct EvolutionLink: Decodable, Sendable {
     }
 }
 
+/// Trigger metadata for an evolution edge. PokeAPI exposes many fields; we
+/// pull the most common ones (level, item, time of day, friendship) and let
+/// the UI pick whichever is most descriptive.
 struct EvolutionDetail: Decodable, Sendable {
     let minLevel: Int?
     let trigger: SpeciesRef?
@@ -34,6 +43,8 @@ struct EvolutionDetail: Decodable, Sendable {
     }
 }
 
+/// Name + URL reference to a species. `id` parses the trailing path
+/// component of `url` so callers can map a stage back to a `PokemonSummary`.
 struct SpeciesRef: Decodable, Sendable, Hashable {
     let name: String
     let url: String?
@@ -49,6 +60,8 @@ struct SpeciesRef: Decodable, Sendable, Hashable {
 
 // MARK: - Flattened stage view
 extension EvolutionChain {
+    /// Flattened evolution stage: one species plus the trigger that produced
+    /// it (nil for the first stage). Used directly by `EvolutionChainView`.
     struct Stage: Identifiable {
         let species: SpeciesRef
         let trigger: EvolutionDetail?

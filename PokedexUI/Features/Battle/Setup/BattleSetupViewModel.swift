@@ -42,6 +42,10 @@ protocol BattleSetupViewModelProtocol {
 
 // MARK: - Implementation
 
+/// Live implementation of `BattleSetupViewModelProtocol`. Hydrates both
+/// pokemon, samples each side's movepool, and kicks off the AI loadout pick
+/// in a detached background task so the player can browse + pick their own
+/// 4 moves while the model thinks.
 @Observable
 final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     let playerSummary:   PokemonSummary

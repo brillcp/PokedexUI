@@ -1,5 +1,7 @@
 import SwiftData
 
+/// One individual item from PokeAPI (Pokéball, Potion, TM, etc.). Stores
+/// the localized display name + sprite + category reference + effect list.
 @Model
 final class ItemDetail: Decodable {
     @Attribute(.unique) var id: Int
@@ -43,6 +45,9 @@ extension ItemDetail {
 }
 
 // MARK: -
+
+/// Item category bucket (e.g. "Standard balls", "Healing", "Berries"). Holds
+/// the localized title + the list of `ItemDetail`s inside that category.
 @Model
 final class ItemData {
     var title: String
@@ -63,6 +68,9 @@ extension ItemData {
 }
 
 // MARK: -
+
+/// Optional default sprite URL for an item. Items without official sprites
+/// (rare) decode to `nil`.
 @Model
 final class ItemSprite: Decodable {
     var `default`: String?
@@ -82,6 +90,10 @@ final class ItemSprite: Decodable {
 }
 
 // MARK: -
+
+/// Short-form effect text for an item ("Restores 20 HP", etc.). PokeAPI
+/// ships one effect per language; we keep the raw short text and a
+/// pre-formatted `prettyEffect` for display.
 @Model
 final class Effect: Decodable {
     var effect: String

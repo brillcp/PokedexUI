@@ -1,5 +1,8 @@
 import SwiftData
 
+/// `/type/{id}` damage relations for one of the 18 elemental types. Persisted
+/// as a `@Model` and read by `TypeChartLoader`, which snapshots it into a
+/// value-type `TypeChart` for off-main lookups.
 @Model
 final class TypeDetail: Decodable, @unchecked Sendable {
     @Attribute(.unique) var name: String

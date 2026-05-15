@@ -50,6 +50,11 @@ protocol BattleAIServiceProtocol: Sendable {
     ) async -> [MoveDetail]
 }
 
+/// Live `FoundationModels`-backed implementation. Owns one shared
+/// `LanguageModelSession` per battle so the model retains conversation
+/// memory across turns. Every public call degrades to a deterministic
+/// fallback (random pick, top-4-by-power heuristic) if Apple Intelligence
+/// isn't available on the device, the session is busy, or decoding fails.
 actor BattleAIService: BattleAIServiceProtocol {
     private let session: LanguageModelSession
     private let model: SystemLanguageModel

@@ -24,6 +24,7 @@ protocol PokemonServiceProtocol {
 
 // MARK: - Concrete implementation
 
+/// Default `Networking`-backed implementation.
 final class PokemonService: PokemonServiceProtocol {
     private let networkService: Network.Service
 

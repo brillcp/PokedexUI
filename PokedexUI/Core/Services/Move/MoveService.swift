@@ -1,7 +1,12 @@
 import Networking
 
+/// Network surface for the `/move` PokeAPI endpoints. Used by both the
+/// battle prep flow (which samples a per-pokemon movepool) and the
+/// `MovePrefetcher` (which bulk-downloads all ~937 moves at app start).
 protocol MoveServiceProtocol: Sendable {
+    /// Fetch one fully-resolved move by name.
     func requestMove(named name: String) async throws -> MoveDetail
+    /// Fetch a batch of moves in parallel. Used by the battle preflight.
     func requestMoves(named names: [String]) async throws -> [MoveDetail]
     /// Pulls every move name from PokeAPI in a single list call. Used by the
     /// prefetcher at app start so subsequent battle preflights are pure
@@ -9,6 +14,7 @@ protocol MoveServiceProtocol: Sendable {
     func requestAllMoveNames() async throws -> [String]
 }
 
+/// Default `Networking`-backed implementation.
 final class MoveService: MoveServiceProtocol {
     private let networkService: Network.Service
 
