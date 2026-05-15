@@ -101,8 +101,8 @@ extension Pokemon {
             height: 4,
             cries: Cries(latest: nil),
             sprite: Sprite(
-                front: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
-                back: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/25.png"
+                front: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png",
+                back: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/6.png"
             ),
             abilities: [
                 Ability(ability: APIItem(name: "static", url: "")),

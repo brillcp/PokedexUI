@@ -120,7 +120,7 @@ private extension BattleSetupView {
     var matchupRow: some View {
         HStack(alignment: .top, spacing: 8) {
             if let player = viewModel.playerPokemon {
-                fighterCard(pokemon: player, summary: viewModel.playerSummary, isPlayer: true)
+                fighterCard(pokemon: player, summary: viewModel.playerSummary)
             }
             VStack {
                 Spacer()
@@ -128,13 +128,13 @@ private extension BattleSetupView {
                 Spacer()
             }
             if let opponent = viewModel.opponentPokemon {
-                fighterCard(pokemon: opponent, summary: viewModel.opponentSummary, isPlayer: false)
+                fighterCard(pokemon: opponent, summary: viewModel.opponentSummary)
             }
         }
     }
 
-    func fighterCard(pokemon: PokemonViewModel, summary: PokemonSummary, isPlayer: Bool) -> some View {
-        VStack(spacing: 8) {
+    func fighterCard(pokemon: PokemonViewModel, summary: PokemonSummary) -> some View {
+        VStack(spacing: 12) {
             AsyncImage(url: URL(string: summary.frontSprite)) { phase in
                 switch phase {
                 case .success(let img): img.resizable().aspectRatio(contentMode: .fit)
@@ -160,8 +160,8 @@ private extension BattleSetupView {
         }
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
-        .background(.white.opacity(isPlayer ? 0.08 : 0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(.white.opacity(0.04))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 
     /// Compact base-stat readout: HP / ATK / DEF on row 1, SPA / SPD / SPE on row 2.
@@ -221,7 +221,7 @@ private extension BattleSetupView {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.white.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 
     func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {

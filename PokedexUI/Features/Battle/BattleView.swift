@@ -50,16 +50,15 @@ private extension BattleView {
                 .lineHeight(.loose)
         } else if let state = viewModel.state {
             battleLayout(state: state)
+                .padding(.horizontal)
         }
     }
 
     func battleLayout(state: BattleState) -> some View {
         VStack(spacing: 12) {
-            Spacer(minLength: 0)
+            Spacer()
             arena(state: state)
-                .padding(.horizontal, 16)
-            logFeed
-                .padding(.horizontal, 16)
+            logFeed.padding(.top, 24)
             moveGrid(state: state)
         }
         .frame(maxHeight: .infinity)
@@ -69,15 +68,17 @@ private extension BattleView {
     /// Classic Gameboy-style layout: opponent top-right with HP top-left,
     /// player bottom-left (back sprite) with HP bottom-right.
     func arena(state: BattleState) -> some View {
-        VStack(spacing: -28) {
+        VStack {
             HStack(alignment: .top) {
                 hpCard(state.opponent, side: .opponent)
-                Spacer(minLength: 12)
+                Spacer(minLength: 28)
                 sprite(url: state.opponent.frontSpriteURL, side: .opponent)
+                    .padding(.horizontal)
             }
             HStack(alignment: .bottom) {
                 sprite(url: playerSpriteURL(state: state), side: .player)
-                Spacer(minLength: 12)
+                    .padding(.horizontal)
+                Spacer(minLength: 28)
                 hpCard(state.player, side: .player)
             }
         }
@@ -107,7 +108,7 @@ private extension BattleView {
     /// sprite it represents (opponent sprite is below its card, player sprite
     /// is above its card).
     func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: side == .opponent ? .leading : .trailing, spacing: 8) {
             if side == .opponent {
                 typeChips(c.typeNames)
             }
@@ -145,8 +146,6 @@ private extension BattleView {
         let lineCount = 5
         let lineHeight: CGFloat = 16
         let thinking = viewModel.aiThinking
-        // Reserve one slot for the "…" thinking indicator when active so the
-        // real log entries still get the remaining lines.
         let realCapacity = thinking ? lineCount - 1 : lineCount
         let logCount = viewModel.log.count
         let firstVisible = max(0, logCount - realCapacity)
@@ -180,13 +179,8 @@ private extension BattleView {
     }
 
     func moveGrid(state: BattleState) -> some View {
-        // Move grid is locked until the engine is online; typically already
-        // built in VM init, but the type-chart slow-path can leave it briefly
-        // nil on first app run.
         let disabled = viewModel.engine == nil || viewModel.isResolvingTurn || viewModel.winner != nil
         let spacing: CGFloat = 12
-        // Player has exactly 4 hand-picked moves (set during loadout), so the
-        // grid is a static 2×2 with no scrolling needed.
         let columns = [
             GridItem(.flexible(), spacing: spacing),
             GridItem(.flexible(), spacing: spacing)
@@ -198,12 +192,11 @@ private extension BattleView {
                 } label: {
                     MoveCell(move: move, mode: .battle)
                         .equatable()
-                        .glassEffect(.clear.interactive(), in: RoundedRectangle(cornerRadius: 8))
+                        .glassEffect(.clear.interactive(), in: RoundedRectangle(cornerRadius: 4))
                 }
                 .disabled(disabled)
             }
         }
-        .padding(.horizontal, 16)
         .disabled(disabled)
         .opacity(disabled ? 0.35 : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
@@ -234,7 +227,12 @@ private extension BattleView {
                 viewModel: BattleViewModel(
                     player: PokemonViewModel(pokemon: .pikachu),
                     opponent: PokemonViewModel(pokemon: .pikachu),
-                    playerMoves: [],
+                    playerMoves: [
+                        .init(name: "move"),
+                        .init(name: "move2"),
+                        .init(name: "move3"),
+                        .init(name: "move4")
+                    ],
                     opponentMoves: [],
                     typeChart: TypeChartLoader(),
                     audioPlayer: AudioPlayer(),

@@ -14,12 +14,7 @@ struct HPCard: View, Equatable {
             HStack {
                 Text(name).font(.pixel14)
                 if status != .none {
-                    Text(status.displayName)
-                        .font(.pixel9)
-                        .foregroundStyle(statusColor)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 4)
-                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 4))
+                    Chip(status.displayName, style: .custom(background: statusColor.opacity(0.4), foreground: statusColor))
                 }
             }
             Gauge(value: Double(currentHP), in: 0...Double(maxHP)) {
@@ -36,8 +31,7 @@ struct HPCard: View, Equatable {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 12)
-        .frame(width: 180, alignment: .leading)
-        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 8))
+        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 4))
     }
 
     private var hpTint: Color {

@@ -19,9 +19,9 @@ struct BattlerSprite: View {
     /// Faint slide: player flies further off-left, opponent off-right.
     private var entryOffset: CGFloat {
         if isFainted {
-            return side == .player ? -600 : 600
+            return side == .player ? -200 : 200
         }
-        return hasEntered ? 0 : (side == .player ? -260 : 260)
+        return hasEntered ? 0 : (side == .player ? -200 : 200)
     }
 
     /// Attack lunge toward the opponent. Player lunges up-right, opponent down-left.
@@ -38,7 +38,8 @@ struct BattlerSprite: View {
         } placeholder: {
             Color(.systemGray4).clipShape(Circle())
         }
-        .frame(width: 168, height: 168)
+        .frame(width: 120, height: 148)
+//        .padding()
         .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))
         .rotationEffect(.degrees(celebratingTilt))
         .offset(

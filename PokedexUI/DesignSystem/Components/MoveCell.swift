@@ -29,7 +29,7 @@ struct MoveCell: View, Equatable {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .overlay(overlay)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 
     // MARK: - Sections
@@ -89,7 +89,7 @@ struct MoveCell: View, Equatable {
             EmptyView()
         case .loadout(let selected):
             let accent = Color.pokedexRed ?? .red
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 4)
                 .stroke(selected ? accent.opacity(0.8) : .clear, lineWidth: 1)
         }
     }

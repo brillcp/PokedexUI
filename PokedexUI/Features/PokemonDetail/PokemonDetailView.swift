@@ -183,7 +183,7 @@ private extension PokemonDetailView {
 
     func capturePercentText(for pokemon: PokemonViewModelProtocol) -> String {
         let pct = Int(round(Double(pokemon.captureRate) / 255.0 * 100.0))
-        return "\(pokemon.captureRate) (\(pct)%)"
+        return "\(pct)%"
     }
 
     /// "Types" row built with type-tinted chips instead of a plain string.
