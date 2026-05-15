@@ -1,5 +1,7 @@
 import Foundation
 
+/// Which combatant a battle event applies to. The opposite side is the
+/// natural target for damage, status, and stat-change events.
 enum BattleSide: Hashable, Sendable {
     case player
     case opponent
@@ -7,6 +9,9 @@ enum BattleSide: Hashable, Sendable {
     var opposite: BattleSide { self == .player ? .opponent : .player }
 }
 
+/// MVP status ailment set: paralysis, burn, poison. Sleep/freeze/confusion
+/// are deliberately deferred. `displayName` is the 3-letter badge shown on
+/// the HP card.
 enum BattleStatus: String, Sendable {
     case none
     case paralysis
@@ -23,6 +28,9 @@ enum BattleStatus: String, Sendable {
     }
 }
 
+/// Engine state machine. Transitions: `.selectingMove → .resolving → .ended`
+/// (or back to `.selectingMove` for the next round). Drives whether the move
+/// grid accepts taps.
 enum BattlePhase: Sendable {
     case selectingMove
     case resolving
@@ -43,6 +51,10 @@ enum BattleEvent: Sendable {
     case ended(winner: BattleSide?)
 }
 
+/// One side of a fight: identity + stats + mutable in-battle state (current
+/// HP, status ailment, stat stages). Built from a `PokemonViewModel` plus a
+/// chosen movepool; the engine mutates `currentHP`, `status`, and
+/// `statStages` as the round resolves.
 struct BattleCombatant: Sendable {
     let id: Int
     let name: String
@@ -101,6 +113,10 @@ func statStageMultiplier(_ stage: Int) -> Double {
     return s >= 0 ? Double(2 + s) / 2.0 : 2.0 / Double(2 - s)
 }
 
+/// Snapshot of an in-flight battle. `BattleEngine` owns the canonical state;
+/// `BattleViewModel` keeps a `state` copy that mutates one event at a time so
+/// SwiftUI animates each step in sequence rather than jumping to the final
+/// frame.
 struct BattleState: Sendable {
     var player: BattleCombatant
     var opponent: BattleCombatant

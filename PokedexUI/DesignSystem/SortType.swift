@@ -15,6 +15,9 @@ enum SortType: Hashable {
     static let allCases: [Self] = [.number, .name]
 }
 
+/// Subset of the six base stats available as sort keys. Kept small because
+/// the pokedex grid only sorts on summary-derivable fields; the full stats
+/// surface is available on the detail view.
 enum Stats: String, CaseIterable {
     case hp, attack, defense, speed
 

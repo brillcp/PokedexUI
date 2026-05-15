@@ -1,5 +1,9 @@
 import SwiftData
 
+/// Fully resolved per-move record: power, accuracy, type, damage class,
+/// status ailment, stat-change effects. Battle resolution + AI prompts both
+/// read these fields directly. Persisted as a `@Model` and filled either by
+/// `MovePrefetcher` (bulk) or `MoveService.requestMove(named:)` (on-demand).
 @Model
 final class MoveDetail: Decodable, @unchecked Sendable {
     @Attribute(.unique) var name: String
@@ -63,6 +67,8 @@ private struct StatChangeDTO: Decodable {
 }
 
 extension MoveDetail {
+    /// How the move's damage is computed. Physical uses atk vs def, special
+    /// uses sp.atk vs sp.def, status deals no damage.
     enum DamageClass: String {
         case physical, special, status
     }

@@ -19,6 +19,10 @@ struct Perspective3D: ViewModifier {
 }
 
 // MARK: - Fade in modifier
+
+/// Fades the modified view in on appear, and re-fades any time `value`
+/// changes. Generic over the equatable trigger so callers can key the
+/// re-fade on anything (id, selection, model count, etc.).
 struct FadeInViewModifier<Value: Equatable>: ViewModifier {
     let value: Value
     let duration: Double

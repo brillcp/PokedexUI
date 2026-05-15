@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// Grid cell that loads a pokemon sprite asynchronously, fades it in, and
+/// optionally overlays the id + name (3-column grid layout shows the overlay,
+/// 4-column hides it to save space). Generic over `IdentifiablePokemon` so
+/// the same cell renders summaries, full pokemon, or evolution stages.
 struct AsyncSpriteView<ViewModel: IdentifiablePokemon>: View {
     // MARK: Private properties
     @Environment(\.container) private var container
@@ -51,6 +55,9 @@ struct AsyncSpriteView<ViewModel: IdentifiablePokemon>: View {
 
 // MARK: - Private UI components
 private extension AsyncSpriteView {
+    /// Id pill (top-right) + name (bottom-left) overlaid on the sprite when
+    /// the parent grid asks for it. Foreground color flips to black on
+    /// light-colored sprite backgrounds for contrast.
     struct CardOverlay: View {
         let id: Int
         let name: String

@@ -1,5 +1,7 @@
 import Foundation
 
+/// Top-level TabView selection for the root pokedex screen. Each case maps
+/// to one tab with a title and SF Symbol icon.
 enum Tabs: Int {
     case pokedex, items, favourites, search
 }

@@ -9,6 +9,8 @@ struct MoveCell: View, Equatable {
     let move: MoveDetail
     let mode: Mode
 
+    /// Switches the trailing metadata + selection styling. Battle cells show
+    /// PP; loadout cells show power/accuracy and render a selected outline.
     enum Mode: Equatable {
         /// In-battle move button. Shows PP, no selection state.
         case battle

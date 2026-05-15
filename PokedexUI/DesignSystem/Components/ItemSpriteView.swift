@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Small circular sprite used by item rows. Loads asynchronously via the
+/// shared `SpriteLoader` actor; renders a gray circle placeholder until the
+/// image lands.
 struct ItemSpriteView: View {
     // MARK: Private properties
     @Environment(\.container) private var container

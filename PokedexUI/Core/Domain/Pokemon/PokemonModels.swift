@@ -1,5 +1,8 @@
 import SwiftData
 
+/// Full hydrated pokemon record. Backs the detail view, the battle screen,
+/// and any other surface that needs stats, sprites, moves, or species
+/// flavor. Cached forever on first fetch since pokemon data is immutable.
 @Model
 final class Pokemon: Decodable, Sendable {
     @Attribute(.unique) var id: Int
@@ -132,6 +135,9 @@ extension Pokemon {
 }
 
 // MARK: - SwiftData models
+
+/// Ability slot on a `Pokemon`. Wraps an `APIItem` reference (name + URL)
+/// to the canonical ability record on PokeAPI.
 @Model
 final class Ability: Decodable {
     var ability: APIItem
@@ -153,6 +159,7 @@ final class Ability: Decodable {
     }
 }
 
+/// Default front + optional back sprite URLs.
 @Model
 final class Sprite: Decodable {
     var front: String
@@ -175,6 +182,9 @@ final class Sprite: Decodable {
     }
 }
 
+/// Move slot in a pokemon's full movepool. Stores only the name reference;
+/// the per-move `MoveDetail` (power, accuracy, type) is resolved separately
+/// via `MoveService` / `MovePrefetcher`.
 @Model
 final class Move: Decodable {
     var move: APIItem
@@ -196,6 +206,8 @@ final class Move: Decodable {
     }
 }
 
+/// Audio cry URLs. PokeAPI exposes both a legacy and a latest variant;
+/// PokedexUI plays `latest` if present.
 @Model
 final class Cries: Decodable {
     var latest: String?
@@ -214,6 +226,8 @@ final class Cries: Decodable {
     }
 }
 
+/// One of a pokemon's 1 or 2 elemental types. Wraps an `APIItem` so the type
+/// name aligns with the `TypeChart` keys used by the damage formula.
 @Model
 final class Type: Decodable {
     var type: APIItem
@@ -235,6 +249,9 @@ final class Type: Decodable {
     }
 }
 
+/// One of the six base stats (HP, attack, defense, sp.atk, sp.def, speed)
+/// with its raw integer value. Used by the battle engine + stats UI on the
+/// detail view.
 @Model
 final class Stat: Decodable {
     var baseStat: Int

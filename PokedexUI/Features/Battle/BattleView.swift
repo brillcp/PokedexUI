@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// Gameboy-styled turn-based battle screen. Renders the arena (sprites + HP
+/// cards), a scrolling event log, and a 2x2 move grid. The view itself owns
+/// no battle logic; it animates events produced by `BattleViewModel` +
+/// `BattleEngine`.
 struct BattleView: View {
     @State var viewModel: BattleViewModel
 

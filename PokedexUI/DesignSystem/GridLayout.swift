@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// Column count for the pokedex grid. The user toggles between 3 and 4
+/// columns from the toolbar; the rawValue doubles as the column count for
+/// `LazyVGrid`. `icon` shows the current layout, `otherIcon` shows what
+/// tapping the toolbar button will switch to.
 enum GridLayout: Int {
     case three = 3, four
 }

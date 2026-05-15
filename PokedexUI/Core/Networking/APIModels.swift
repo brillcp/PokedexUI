@@ -1,5 +1,8 @@
 import SwiftData
 
+/// Generic `{ name, url }` row returned by every paginated PokeAPI list
+/// endpoint. Persisted as a `@Model` so list responses can be cached even
+/// before the per-item detail is fetched.
 @Model
 final class APIItem: Decodable {
     var name: String
@@ -21,6 +24,8 @@ final class APIItem: Decodable {
     }
 }
 
+/// Paginated PokeAPI list envelope. Used by every endpoint that returns
+/// `{ count, results }`.
 struct APIResponse: Decodable {
     /// Total number of items the endpoint can return. Used by paginated
     /// flows to know when to stop requesting more pages.

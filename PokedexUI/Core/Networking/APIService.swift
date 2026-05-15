@@ -80,6 +80,10 @@ extension APIService {
 }
 
 // MARK: - Parameter keys
+
+/// Centralised query-parameter keys used by paginated PokeAPI endpoints.
+/// Each `Requestable` reads these `rawValue`s when building its parameters
+/// so the key names stay consistent across services.
 enum ParameterKey: String {
     case offset
     case limit
