@@ -119,7 +119,7 @@ private extension PokemonDetailView {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundStyle(textColor)
                     .background(textColor.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .clipShape(RoundedRectangle.card)
             }
             typesRow(pokemon: pokemon)
             DetailRow(title: "Height", subtitle: pokemon.height)

@@ -24,16 +24,8 @@ struct BattleSetupView: View {
 
     var body: some View {
         content
+            .applyPokedexStyling(title: "Loadout", color: .darkGrey)
             .foregroundStyle(.white)
-            .background(Color.darkGrey.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Loadout").font(.pixel17)
-                }
-            }
-            .toolbarBackground(Color.darkGrey ?? .black, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .task { await viewModel.prepare(modelContext: modelContext) }
     }
 }
@@ -160,8 +152,8 @@ private extension BattleSetupView {
         }
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
-        .background(.white.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .background(Color.cardBackground)
+        .clipShape(RoundedRectangle.card)
     }
 
     /// Compact base-stat readout: HP / ATK / DEF on row 1, SPA / SPD / SPE on row 2.
@@ -220,8 +212,8 @@ private extension BattleSetupView {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .background(Color.cardBackground)
+        .clipShape(RoundedRectangle.card)
     }
 
     func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
@@ -304,10 +296,6 @@ private extension BattleSetupView {
     // MARK: - Battle button
 
     var battleButton: some View {
-        // Two visible labels: "Pick N more" while player hasn't picked 4 yet,
-        // "Battle" once they have. The AI loadout is hidden plumbing: if it's
-        // still in flight, the button stays disabled but doesn't surface the
-        // reason; the wait is usually under a second.
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
         let label = remaining > 0 ? "Pick \(remaining) more" : "Battle"
         return PrimaryCapsuleButton(
@@ -320,4 +308,37 @@ private extension BattleSetupView {
         .padding(.bottom, 24)
         .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }
+}
+
+#Preview {
+    let player   = PokemonSummary(id: 25, name: "Pikachu")
+    let opponent = PokemonSummary(id: 6,  name: "Charizard")
+    let vm = BattleSetupViewModel(
+        player: player,
+        opponent: opponent,
+        pokemonService: PokemonService(),
+        moveService: MockMoveService(),
+        aiService: BattleAIService(),
+        typeChart: TypeChartLoader()
+    )
+    // Pre-populate so the preview shows the loadout screen directly
+    // without waiting on the network.
+    let pikachuVM = PokemonViewModel(pokemon: .pikachu)
+    vm.playerPokemon   = pikachuVM
+    vm.opponentPokemon = pikachuVM
+    let mockMoves = ["thunderbolt", "thunder-wave", "quick-attack", "iron-tail", "volt-tackle", "slam"]
+    vm.playerMovePool = mockMoves.map { name in
+        let m = MoveDetail(name: name)
+        m.power       = name == "thunder-wave" ? nil : 80
+        m.accuracy    = 100
+        m.pp          = 15
+        m.priority    = 0
+        m.typeName    = "electric"
+        m.damageClass = "special"
+        return m
+    }
+    return NavigationStack {
+        BattleSetupView(viewModel: vm, onStart: { _ in })
+    }
+    .colorScheme(.dark)
 }

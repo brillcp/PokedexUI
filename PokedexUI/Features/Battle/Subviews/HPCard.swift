@@ -31,7 +31,7 @@ struct HPCard: View, Equatable {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 12)
-        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 4))
+        .glassEffect(.clear, in: RoundedRectangle.card)
     }
 
     private var hpTint: Color {

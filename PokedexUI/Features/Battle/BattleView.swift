@@ -9,18 +9,8 @@ struct BattleView: View {
 
     var body: some View {
         content
+            .applyPokedexStyling(title: "\(viewModel.playerPokemon.name) vs \(viewModel.opponentPokemon.name)", color: .darkGrey)
             .foregroundStyle(.white)
-            .background(Color.darkGrey.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("\(viewModel.playerPokemon.name) vs \(viewModel.opponentPokemon.name)")
-                        .font(.pixel17)
-                        .foregroundStyle(.white)
-                }
-            }
-            .toolbarBackground(Color.darkGrey ?? .black, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .task { await viewModel.prepare() }
             .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.attackTick)
             .sensoryFeedback(.success, trigger: viewModel.opponentShakeTick)
@@ -58,7 +48,7 @@ private extension BattleView {
         VStack(spacing: 12) {
             Spacer()
             arena(state: state)
-            logFeed.padding(.top, 24)
+            logFeed.padding(.top, 16.0)
             moveGrid(state: state)
         }
         .frame(maxHeight: .infinity)
@@ -68,7 +58,7 @@ private extension BattleView {
     /// Classic Gameboy-style layout: opponent top-right with HP top-left,
     /// player bottom-left (back sprite) with HP bottom-right.
     func arena(state: BattleState) -> some View {
-        VStack {
+        VStack(spacing: 48.0) {
             HStack(alignment: .top) {
                 hpCard(state.opponent, side: .opponent)
                 Spacer(minLength: 28)
@@ -192,13 +182,13 @@ private extension BattleView {
                 } label: {
                     MoveCell(move: move, mode: .battle)
                         .equatable()
-                        .glassEffect(.clear.interactive(), in: RoundedRectangle(cornerRadius: 4))
+                        .glassEffect(.clear.interactive(), in: RoundedRectangle.card)
                 }
                 .disabled(disabled)
             }
         }
         .disabled(disabled)
-        .opacity(disabled ? 0.35 : 1)
+        .opacity(disabled ? 0.5 : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }
 
@@ -240,6 +230,7 @@ private extension BattleView {
                 )
             )
         }
+        .applyPokedexStyling(title: "Battle", color: .darkGrey)
     }
     .colorScheme(.dark)
 }

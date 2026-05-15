@@ -67,7 +67,7 @@ struct OpponentPickerView: View {
                     Button(role: .cancel) { dismiss() }
                 }
             }
-            .applyPokedexStyling(title: "Pick opponent", color: .black)
+            .applyPokedexStyling(title: "Pick opponent", color: .darkGrey)
             .navigationDestination(item: $setupOpponent) { opp in
                 BattleSetupView(
                     viewModel: BattleSetupViewModel(
@@ -191,7 +191,7 @@ private struct OpponentCard: View, Equatable {
                     .padding(.bottom, 14)
             }
             .frame(maxWidth: .infinity)
-            .background(.white.opacity(0.04))
+            .background(Color.cardBackground)
         }
         .buttonStyle(.plain)
     }

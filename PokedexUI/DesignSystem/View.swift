@@ -13,8 +13,7 @@ extension View {
             }
             .toolbarBackground(color ?? .red, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .background(Color.darkGrey)
-            .ignoresSafeArea(edges: .bottom)
+            .background(Color.darkGrey?.ignoresSafeArea())
             .contentMargins(.bottom, 88.0)
     }
 

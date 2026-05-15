@@ -29,7 +29,7 @@ struct MoveCell: View, Equatable {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .overlay(overlay)
-        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .clipShape(RoundedRectangle.card)
     }
 
     // MARK: - Sections
@@ -78,7 +78,7 @@ struct MoveCell: View, Equatable {
             return AnyShapeStyle(Color.clear)
         case .loadout(let selected):
             let accent = Color.pokedexRed ?? .red
-            return AnyShapeStyle(selected ? accent.opacity(0.4) : Color.white.opacity(0.04))
+            return AnyShapeStyle(selected ? accent.opacity(0.4) : Color.cardBackground)
         }
     }
 
@@ -89,7 +89,7 @@ struct MoveCell: View, Equatable {
             EmptyView()
         case .loadout(let selected):
             let accent = Color.pokedexRed ?? .red
-            RoundedRectangle(cornerRadius: 4)
+            RoundedRectangle.card
                 .stroke(selected ? accent.opacity(0.8) : .clear, lineWidth: 1)
         }
     }

@@ -27,8 +27,8 @@ struct Chip: View {
             .padding(.top, size.verticalPadding + 2)
             .padding(.bottom, size.verticalPadding)
             .foregroundStyle(style.foreground)
-            .background(style.background)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .background(style.background.opacity(0.7))
+            .clipShape(RoundedRectangle.chip)
     }
 }
 
