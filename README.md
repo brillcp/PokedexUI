@@ -10,57 +10,13 @@
 
 # PokedexUI
 
-PokedexUI is a SwiftUI showcase app for **Apple's on-device FoundationModels framework**, wrapped around the full [PokeAPI](https://pokeapi.co) dataset. It started as a clean reference implementation of MVVM, actor concurrency, and SwiftData persistence, and has grown into a working turn-based **Pokémon battle simulator** where the opponent's moves and loadout are picked by Apple Intelligence in real time.
+PokedexUI is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokémon battle mode driven by **Apple's on-device FoundationModels framework**. Browse the dex, dig into a pokemon, pick a fight.
+
+It's meant as a reference codebase. If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI integration), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every type has a doc comment explaining why it exists.
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
 <img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/451ad765-9be9-4643-afc2-6baccf661e91" />
-
----
-
-# Battle System ⚔️
-
-The battle screen is a turn-based 1v1 simulator built on top of the real PokeAPI move and type data. Both sides commit to 4 hand-picked moves before the fight starts, then trade turns until one side faints. The Gen-V damage formula drives every hit (level 50, STAB, type effectiveness, crit roll, accuracy roll, burn penalty), and status effects (paralysis, burn, poison) tick at end-of-turn.
-
-The opponent is driven entirely by **Apple's `FoundationModels` framework**, running fully on-device.
-
-## What the AI does
-
-PokedexUI uses `SystemLanguageModel.default` in three places:
-
-1. **Opponent picking** ("Smart pick" button in the picker sheet)
-   The model receives the player's name and types plus a roster of 60 candidate pokemon and returns a `pokedex id` representing a worthy matchup.
-2. **Loadout selection** (background task during the loadout screen)
-   The model receives the opponent's typing, the player's typing, and a 40-move sample of the opponent's full movepool with pre-computed type-effectiveness multipliers. It returns 4 zero-based indices — the moves the opponent brings into battle.
-3. **Per-turn move selection** (every time the player commits a move)
-   The model receives both combatants' current HP, status, and types, plus the opponent's 4 chosen moves with effectiveness multipliers, and returns the index of the move to play.
-
-All three calls share one `LanguageModelSession` instance per battle (so the model has conversation memory across turns) and degrade gracefully to deterministic heuristics if Apple Intelligence isn't available on the device, the session is busy, or the model returns garbage. **The battle UI never blocks waiting on a model response.**
-
-## How the prompts are built
-
-`BattleAIPromptBuilder` constructs each prompt as a compact text snapshot. The model never has to recall the type chart from training: every damaging move row carries a pre-computed `×N vs defender` multiplier, so the model just compares numbers. Status moves are flagged explicitly. The system prompt lives in [`BattleAIInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIInstructions.md) and is loaded once when the service initializes.
-
-Structured output uses Apple's `@Generable` macro:
-
-```swift
-@Generable(description: "The opponent's chosen move for this turn.")
-struct MoveChoice {
-    @Guide(description: "Zero-based index of the chosen move in the provided list.")
-    let index: Int
-}
-```
-
-No JSON parsing, no string matching, no typo failures. The model returns a strongly-typed Swift struct.
-
-## Why on-device?
-
-- **Zero latency to the network** — every inference happens locally.
-- **Free** — no API tokens, no rate limits.
-- **Private** — battle state never leaves the device.
-- **Available offline** — the app stays playable once the PokeAPI data is cached.
-
-This is the kind of feature `FoundationModels` was built for: small, structured, latency-sensitive decisions on top of well-defined data.
 
 ---
 
@@ -163,7 +119,53 @@ Five `@Model` types, all deduped on a unique key:
 - `TypeDetail` (name-unique): damage relations for the 18 elemental types
 - `ItemData` (id-unique): item catalogue
 
-The pokedex grid renders from `PokemonSummary` only — full `Pokemon` rows are hydrated lazily on tap and cached forever, since Pokémon data is immutable.
+The pokedex grid renders from `PokemonSummary` only; full `Pokemon` rows are loaded lazily on tap and cached forever, since Pokémon data is immutable.
+
+---
+
+# Battle System ⚔️
+
+The battle screen is a turn-based 1v1 simulator built on top of the real PokeAPI move and type data. Both sides commit to 4 hand-picked moves before the fight starts, then trade turns until one side faints. The Gen-V damage formula drives every hit (level 50, STAB, type effectiveness, crit roll, accuracy roll, burn penalty), and status effects (paralysis, burn, poison) tick at end-of-turn.
+
+The opponent is driven entirely by **Apple's `FoundationModels` framework**, running fully on-device.
+
+## What the AI does
+
+PokedexUI uses `SystemLanguageModel.default` in three places:
+
+1. **Opponent picking** ("Smart pick" button in the picker sheet)
+   The model receives the player's name and types plus a roster of 60 candidate pokemon and returns a `pokedex id` representing a worthy matchup.
+2. **Loadout selection** (background task during the loadout screen)
+   The model receives the opponent's typing, the player's typing, and a 40-move sample of the opponent's full movepool with pre-computed type-effectiveness multipliers. It returns 4 zero-based indices — the moves the opponent brings into battle.
+3. **Per-turn move selection** (every time the player commits a move)
+   The model receives both combatants' current HP, status, and types, plus the opponent's 4 chosen moves with effectiveness multipliers, and returns the index of the move to play.
+
+All three calls share one `LanguageModelSession` instance per battle (so the model has conversation memory across turns) and degrade gracefully to deterministic heuristics if Apple Intelligence isn't available on the device, the session is busy, or the model returns garbage. **The battle UI never blocks waiting on a model response.**
+
+## How the prompts are built
+
+`BattleAIPromptBuilder` constructs each prompt as a compact text snapshot. The model never has to recall the type chart from training: every damaging move row carries a pre-computed `×N vs defender` multiplier, so the model just compares numbers. Status moves are flagged explicitly. The system prompt lives in [`BattleAIInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIInstructions.md) and is loaded once when the service initializes.
+
+Structured output uses Apple's `@Generable` macro:
+
+```swift
+@Generable(description: "The opponent's chosen move for this turn.")
+struct MoveChoice {
+    @Guide(description: "Zero-based index of the chosen move in the provided list.")
+    let index: Int
+}
+```
+
+No JSON parsing, no string matching, no typo failures. The model returns a strongly-typed Swift struct.
+
+## Why on-device?
+
+- **Zero latency to the network** — every inference happens locally.
+- **Free** — no API tokens, no rate limits.
+- **Private** — battle state never leaves the device.
+- **Available offline** — the app stays playable once the PokeAPI data is cached.
+
+This is the kind of feature `FoundationModels` was built for: small, structured, latency-sensitive decisions on top of well-defined data.
 
 ---
 
