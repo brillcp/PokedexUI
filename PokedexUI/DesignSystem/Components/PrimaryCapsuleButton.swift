@@ -22,7 +22,7 @@ struct PrimaryCapsuleButton: View {
             .foregroundStyle(.white)
         }
         .glassEffect(.clear.tint(.pokedexRed?.opacity(0.8)).interactive(), in: Capsule())
-        .opacity(isEnabled ? 1 : 0.4)
+        .opacity(isEnabled ? 1 : 0.6)
         .disabled(!isEnabled)
     }
 }
