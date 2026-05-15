@@ -100,7 +100,7 @@ private extension PokemonDetailView {
                 actionButtons(pokemon: pokemon)
                 loadedContent(pokemon: pokemon)
             }
-            .transition(.opacity)
+            .transition(.opacity.combined(with: .offset(y: 20)))
         }
     }
 

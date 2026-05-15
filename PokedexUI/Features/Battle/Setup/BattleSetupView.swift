@@ -37,30 +37,41 @@ struct BattleSetupView: View {
             .task { await viewModel.prepare(modelContext: modelContext) }
     }
 
-    /// Build the launch payload and bubble it up. The picker sheet handles
-    /// its own dismissal.
+    /// Build the launch payload and bubble it up. Both sides commit to 4
+    /// moves before this fires — `canStart` guards both player + AI readiness.
     private func startBattle() {
         guard let player = viewModel.playerPokemon,
-              let opponent = viewModel.opponentPokemon
+              let opponent = viewModel.opponentPokemon,
+              let opponentMoves = viewModel.opponentLoadout
         else { return }
         let launch = BattleLaunch(
             player: player,
             opponent: opponent,
             playerMoves: viewModel.playerMoves(),
-            opponentMoves: viewModel.opponentMovePool
+            opponentMoves: opponentMoves
         )
         onStart(launch)
     }
 
     @ViewBuilder
     private var content: some View {
-        if let error = viewModel.errorMessage {
-            errorState(error)
-        } else if !viewModel.isReady {
-            loadingState
-        } else {
-            loadout
+        // Cross-fade between the three branches. `isReady` flips once both
+        // sides are hydrated + move pools filled, which is the main transition
+        // the player sees (spinner → grid).
+        Group {
+            if let error = viewModel.errorMessage {
+                errorState(error)
+                    .transition(.opacity)
+            } else if !viewModel.isReady {
+                loadingState
+                    .transition(.opacity)
+            } else {
+                loadout
+                    .transition(.opacity)
+            }
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.isReady)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.errorMessage)
     }
 
     // MARK: - States
@@ -289,12 +300,18 @@ struct BattleSetupView: View {
     // MARK: - Battle button
 
     private var battleButton: some View {
-        Button {
+        // Two visible labels: "Pick N more" while player hasn't picked 4 yet,
+        // "Battle" once they have. The AI loadout is hidden plumbing — if it's
+        // still in flight, the button stays disabled but doesn't surface the
+        // reason; the wait is usually under a second.
+        let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
+        let label = remaining > 0 ? "Pick \(remaining) more" : "Battle"
+        return Button {
             startBattle()
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "bolt.fill")
-                Text("Battle")
+                Text(label)
             }
             .font(.pixel17)
             .frame(maxWidth: .infinity)
@@ -306,5 +323,6 @@ struct BattleSetupView: View {
         .padding(.bottom, 24)
         .opacity(viewModel.canStart ? 1 : 0.4)
         .disabled(!viewModel.canStart)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }
 }

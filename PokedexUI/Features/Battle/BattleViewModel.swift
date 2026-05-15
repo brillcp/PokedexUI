@@ -1,41 +1,31 @@
 import SwiftUI
 
-/// Drives `BattleView`. Takes fully-hydrated combatants + the player's
-/// finalised move list from `BattleSetupViewModel`. The opponent's 40 sampled
-/// moves come in unfiltered; the AI's 4-move loadout pick happens here, after
-/// the view appears, so the battle screen shows immediately with a "preparing
-/// opponent…" state instead of holding the loadout sheet open.
-///
-/// Lifecycle stages exposed via `phase`:
-///   - `loadingLoadout` — AI is narrowing 40 → 4 moves for the opponent
-///   - `ready` — state + engine built, entrance animation in flight, accepting taps
-///   - `error` — preflight failure, surfaces an error message
+/// Drives `BattleView`. Takes fully-hydrated combatants + both sides'
+/// finalised 4-move loadouts from `BattleSetupViewModel` — by the time we get
+/// here, all preflight (hydration, move sampling, AI loadout pick) is done.
+/// `prepare()` just snapshots the type chart, builds engine state, and plays
+/// the entrance animation.
 @MainActor
 @Observable
 final class BattleViewModel {
-    enum Phase: Sendable {
-        case loadingLoadout
-        case ready
-        case error(String)
-    }
-
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
-    /// Player's 4 hand-picked moves from the loadout screen — known up front.
+    /// Player's 4 hand-picked moves.
     let playerMoves:     [MoveDetail]
+    /// Opponent's 4 AI-picked moves.
+    let opponentMoves:   [MoveDetail]
 
-    /// Opponent's full 40-move sample. The AI narrows this to 4 in `prepare()`.
-    let opponentMovePool: [MoveDetail]
-    /// Final 4-move set chosen by the AI. Empty until `phase` flips to `.ready`.
-    var opponentMoves:    [MoveDetail] = []
-
-    var phase: Phase = .loadingLoadout
     var engine: BattleEngine?
     var state:  BattleState?
     var log:    [String] = []
     var isResolvingTurn  = false
+    /// `true` while the AI is deciding the opponent's next move. Drives a
+    /// "…" placeholder line in the battle log so the player sees activity
+    /// during the round-trip.
+    var aiThinking: Bool = false
     var winner: BattleSide?
     var lastEvent: BattleEvent?
+    var errorMessage: String?
 
     // Animation cues — each driven by event playback.
     var attackingSide:    BattleSide?
@@ -60,49 +50,47 @@ final class BattleViewModel {
         player: PokemonViewModel,
         opponent: PokemonViewModel,
         playerMoves: [MoveDetail],
-        opponentMoves opponentMovePool: [MoveDetail],
+        opponentMoves: [MoveDetail],
         typeChart: TypeChartLoader,
         audioPlayer: AudioPlayer,
         aiService: BattleAIServiceProtocol
     ) {
-        self.playerPokemon    = player
-        self.opponentPokemon  = opponent
-        self.playerMoves      = playerMoves
-        self.opponentMovePool = opponentMovePool
-        self.typeChartLoader  = typeChart
-        self.audioPlayer      = audioPlayer
-        self.aiService        = aiService
+        self.playerPokemon   = player
+        self.opponentPokemon = opponent
+        self.playerMoves     = playerMoves
+        self.opponentMoves   = opponentMoves
+        self.typeChartLoader = typeChart
+        self.audioPlayer     = audioPlayer
+        self.aiService       = aiService
+        // Build the visible state immediately so the arena (HP cards, sprites,
+        // log) renders on the very first frame. The engine — which actually
+        // resolves rounds — only comes online once the type chart is
+        // available; until then the move grid is disabled at the view level
+        // via `engine == nil`.
+        let p = BattleCombatant(pokemon: player,   moves: playerMoves)
+        let o = BattleCombatant(pokemon: opponent, moves: opponentMoves)
+        self.state = BattleState(player: p, opponent: o)
+        // Engine fast-path: if the chart is already loaded (almost always, it
+        // hydrates eagerly at app launch), wire the engine right here so the
+        // move grid is tappable from frame 1.
+        if let chart = typeChart.chart {
+            self.typeChart = chart
+            self.engine = BattleEngine(state: state!, typeChart: chart)
+        }
     }
 
-    /// Prepares the battle on appear:
-    /// 1. Ensure the type chart is loaded (idempotent — usually a no-op).
-    /// 2. Ask the AI to narrow 40 opponent moves to 4. AI service falls back
-    ///    to top-4-by-power if the model is unavailable.
-    /// 3. Build the engine + entrance animation.
     func prepare() async {
-        await typeChartLoader.loadIfNeeded()
-        guard let chart = typeChartLoader.chart else {
-            phase = .error("Couldn't load type chart.")
-            return
+        if engine == nil {
+            // Slow-path: type chart wasn't loaded at init time. Wait for it,
+            // then bring the engine online.
+            await typeChartLoader.loadIfNeeded()
+            guard let chart = typeChartLoader.chart, let state else {
+                errorMessage = "Couldn't load type chart."
+                return
+            }
+            self.typeChart = chart
+            self.engine = BattleEngine(state: state, typeChart: chart)
         }
-        self.typeChart = chart
-
-        let playerSeat   = BattleCombatant(pokemon: playerPokemon, moves: playerMoves)
-        let opponentSeat = BattleCombatant(pokemon: opponentPokemon, moves: [])
-        let opponent4 = await aiService.chooseLoadout(
-            for: opponentSeat,
-            against: playerSeat,
-            moves: opponentMovePool,
-            typeChart: chart
-        )
-        self.opponentMoves = opponent4
-
-        let playerFinal   = BattleCombatant(pokemon: playerPokemon,   moves: playerMoves)
-        let opponentFinal = BattleCombatant(pokemon: opponentPokemon, moves: opponent4)
-        let state = BattleState(player: playerFinal, opponent: opponentFinal)
-        self.state = state
-        self.engine = BattleEngine(state: state, typeChart: chart)
-        self.phase = .ready
         await playEntrance()
     }
 
@@ -128,6 +116,9 @@ final class BattleViewModel {
         else { return }
         attackTick += 1
         isResolvingTurn = true
+        withAnimation(.easeInOut(duration: 0.15)) {
+            aiThinking = true
+        }
 
         // Ask the on-device AI for the opponent's move. Service falls back to
         // a random pick automatically if Apple Intelligence is unavailable or
@@ -138,6 +129,9 @@ final class BattleViewModel {
             moves: snapshot.opponent.moves,
             typeChart: typeChart
         )
+        withAnimation(.easeInOut(duration: 0.15)) {
+            aiThinking = false
+        }
         let events = engine.resolveRound(playerMove: move, opponentMove: opponentMove)
         for event in events {
             lastEvent = event

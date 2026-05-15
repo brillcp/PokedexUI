@@ -74,7 +74,9 @@ struct OpponentPickerView: View {
                         player: player,
                         opponent: opp,
                         pokemonService: container.pokemonService,
-                        moveService: container.moveService
+                        moveService: container.moveService,
+                        aiService: container.battleAI,
+                        typeChart: container.typeChart
                     ),
                     onStart: { launch in
                         // Sheet collapses; detail view picks up the launch

@@ -32,24 +32,18 @@ struct BattleView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch viewModel.phase {
-        case .loadingLoadout:
-            ProgressView("Preparing opponent…")
-                .tint(.white)
-                .font(.pixel14)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .lineHeight(.loose)
-        case .error(let message):
-            Text(message)
+        // VM builds the visible state in init, so the arena renders from frame
+        // 1. The move grid disables itself if the engine isn't online yet
+        // (rare — type chart is eager-loaded at app launch).
+        if let error = viewModel.errorMessage {
+            Text(error)
                 .tint(.white)
                 .font(.pixel14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()
                 .lineHeight(.loose)
-        case .ready:
-            if let state = viewModel.state {
-                battleLayout(state: state)
-            }
+        } else if let state = viewModel.state {
+            battleLayout(state: state)
         }
     }
 
@@ -143,12 +137,21 @@ struct BattleView: View {
     private var logFeed: some View {
         let lineCount = 5
         let lineHeight: CGFloat = 16
+        let thinking = viewModel.aiThinking
+        // Reserve one slot for the "…" thinking indicator when active so the
+        // real log entries still get the remaining lines.
+        let realCapacity = thinking ? lineCount - 1 : lineCount
         let logCount = viewModel.log.count
-        let firstVisible = max(0, logCount - lineCount)
-        let visible: [(id: Int, text: String)] = (firstVisible..<logCount).map { ($0, viewModel.log[$0]) }
-        let placeholderCount = max(0, lineCount - visible.count)
+        let firstVisible = max(0, logCount - realCapacity)
+        var rows: [(id: Int, text: String)] = (firstVisible..<logCount).map { ($0, viewModel.log[$0]) }
+        let placeholderCount = max(0, realCapacity - rows.count)
         let placeholders: [(id: Int, text: String)] = (0..<placeholderCount).map { (-($0 + 1), "") }
-        let rows = placeholders + visible
+        rows = placeholders + rows
+        // Stable id for the thinking row — distinct from log indices and
+        // placeholders so SwiftUI animates it in/out cleanly.
+        if thinking {
+            rows.append((-9999, "..."))
+        }
         return VStack(alignment: .leading, spacing: 4) {
             ForEach(rows, id: \.id) { row in
                 Text(row.text)
@@ -166,10 +169,14 @@ struct BattleView: View {
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .animation(.easeOut(duration: 0.25), value: logCount)
+        .animation(.easeOut(duration: 0.25), value: thinking)
     }
 
     private func moveGrid(state: BattleState) -> some View {
-        let disabled = viewModel.isResolvingTurn || viewModel.winner != nil
+        // Move grid is locked until the engine is online — typically already
+        // built in VM init, but the type-chart slow-path can leave it briefly
+        // nil on first app run.
+        let disabled = viewModel.engine == nil || viewModel.isResolvingTurn || viewModel.winner != nil
         let spacing: CGFloat = 12
         // Player has exactly 4 hand-picked moves (set during loadout), so the
         // grid is a static 2×2 — no scrolling needed.

@@ -2,39 +2,39 @@ import Foundation
 import SwiftData
 import SwiftUI
 
-/// Pre-battle prep screen. Hydrates both pokemon (cache-first), samples the
-/// opponent's movepool, surfaces the player's movepool for hand-picking, and
-/// emits a ready-to-go `BattleViewModel` once the player has chosen 4 moves.
+/// Pre-battle prep screen. Hydrates both pokemon (cache-first), samples each
+/// side's movepool, surfaces the player's pool for hand-picking, and kicks off
+/// the AI's loadout pick in a background task so it runs in parallel with the
+/// player browsing. `canStart` requires both: player chose 4 AND AI returned 4.
 ///
 /// Conceptually this is the "loadout" step canonical Pokémon battles have —
-/// no random movesets, the player picks what they bring into the fight.
+/// no random movesets, both sides commit to 4 moves before battling.
 @MainActor
 protocol BattleSetupViewModelProtocol {
     var playerSummary:   PokemonSummary { get }
     var opponentSummary: PokemonSummary { get }
     var playerPokemon:   PokemonViewModel? { get }
     var opponentPokemon: PokemonViewModel? { get }
-    /// Hydrated movepool the player picks from (up to 40 sampled from the
-    /// pokemon's full set so the grid stays browsable).
+    /// Hydrated movepool the player picks from (up to 40 sampled).
     var playerMovePool:  [MoveDetail] { get }
-    /// Opponent's sampled movepool — handed straight to `BattleViewModel` once
-    /// the player commits. The user never sees this list.
-    var opponentMovePool: [MoveDetail] { get }
+    /// Opponent's AI-picked 4-move loadout. `nil` while the AI is thinking,
+    /// non-nil once ready. View checks this to enable the Battle button.
+    var opponentLoadout: [MoveDetail]? { get }
     /// Names of the 4 currently-selected player moves.
     var selectedMoveNames: Set<String> { get }
     /// True once both sides are hydrated + move pools are filled.
     var isReady: Bool { get }
-    /// Maximum allowed picks. Surfacing the constant lets the view show
-    /// "0/4" without hard-coding the same number twice.
+    /// Maximum allowed picks.
     var maxSelections: Int { get }
     /// Set after a fatal preflight error (network down + cache miss).
     var errorMessage: String? { get }
 
-    /// Hydrate both sides, fetch move pools. Cache-first.
+    /// Hydrate both sides, fetch move pools, kick off AI loadout. Cache-first.
     func prepare(modelContext: ModelContext) async
     /// Toggle a player move's selection. Caps at `maxSelections`.
     func toggle(_ move: MoveDetail)
-    /// `true` once `maxSelections` moves are selected.
+    /// `true` once `maxSelections` moves are selected AND the AI has finished
+    /// picking its 4 moves.
     var canStart: Bool { get }
     /// Player's chosen moves in selection order.
     func playerMoves() -> [MoveDetail]
@@ -51,7 +51,7 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     var playerPokemon:    PokemonViewModel?
     var opponentPokemon:  PokemonViewModel?
     var playerMovePool:   [MoveDetail] = []
-    var opponentMovePool: [MoveDetail] = []
+    var opponentLoadout:  [MoveDetail]?
     var selectedMoveNames: Set<String> = []
     /// Ordered list of selected names so `playerMoves()` returns them in pick
     /// order (matches what the player sees on the grid as they tap).
@@ -60,24 +60,33 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
 
     private let pokemonService: PokemonServiceProtocol
     private let moveService:    MoveServiceProtocol
+    private let aiService:      BattleAIServiceProtocol
+    private let typeChartLoader: TypeChartLoader
 
     init(
         player: PokemonSummary,
         opponent: PokemonSummary,
         pokemonService: PokemonServiceProtocol,
-        moveService: MoveServiceProtocol
+        moveService: MoveServiceProtocol,
+        aiService: BattleAIServiceProtocol,
+        typeChart: TypeChartLoader
     ) {
         self.playerSummary  = player
         self.opponentSummary = opponent
         self.pokemonService = pokemonService
         self.moveService    = moveService
+        self.aiService      = aiService
+        self.typeChartLoader = typeChart
     }
 
     var isReady: Bool {
         playerPokemon != nil && opponentPokemon != nil && !playerMovePool.isEmpty
     }
 
-    var canStart: Bool { selectedMoveNames.count == maxSelections }
+    /// Player has 4 picks AND opponent loadout is ready.
+    var canStart: Bool {
+        selectedMoveNames.count == maxSelections && opponentLoadout != nil
+    }
 
     func toggle(_ move: MoveDetail) {
         if selectedMoveNames.contains(move.name) {
@@ -106,14 +115,36 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
             self.playerPokemon   = player
             self.opponentPokemon = opponent
 
-            // Both move pools fill in parallel. Each side gets 40 sampled
-            // moves — player picks 4 by hand, AI narrows the opponent's 40 to
-            // 4 later in `BattleViewModel.prepare()` so the loadout sheet
-            // dismisses immediately on Battle! without holding the player up.
+            // Both 40-move samples in parallel. Player pool ranked
+            // strongest-first so the most useful picks surface at the top.
             async let playerMoves   = fetchMoves(for: player,   modelContext: modelContext)
             async let opponentMoves = fetchMoves(for: opponent, modelContext: modelContext)
-            self.playerMovePool   = (try? await playerMoves).map(Self.rankedByImpact) ?? []
-            self.opponentMovePool = (try? await opponentMoves) ?? []
+            self.playerMovePool = (try? await playerMoves).map(Self.rankedByImpact) ?? []
+            let opponentPool    = (try? await opponentMoves) ?? []
+
+            // Kick off the AI loadout pick in a detached background task —
+            // player can browse + pick their own 4 while the model thinks.
+            // Battle button stays disabled until `opponentLoadout` is non-nil.
+            await typeChartLoader.loadIfNeeded()
+            let chart = typeChartLoader.chart ?? TypeChart(rows: [])
+            // Snapshot the combatants on main (PokemonViewModel.stats reads
+            // @Model fields). `BattleCombatant` is Sendable so the Task can
+            // pass it through freely.
+            let fighter = BattleCombatant(pokemon: opponent, moves: [])
+            let foe     = BattleCombatant(pokemon: player,   moves: [])
+            Task { [aiService, opponentPool, chart, fighter, foe] in
+                let picks = await aiService.chooseLoadout(
+                    for: fighter,
+                    against: foe,
+                    moves: opponentPool,
+                    typeChart: chart
+                )
+                await MainActor.run {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        self.opponentLoadout = picks
+                    }
+                }
+            }
         } catch {
             self.errorMessage = "Couldn't load battle: \(error.localizedDescription)"
         }
@@ -179,5 +210,4 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
         )
         return capped.compactMap { merged[$0] }
     }
-
 }
