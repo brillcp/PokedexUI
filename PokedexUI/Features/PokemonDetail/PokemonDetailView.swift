@@ -32,18 +32,16 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         }
         .scrollIndicators(.hidden)
         .task(id: viewModel.summary.id) {
-            await viewModel.loadFullDetails(context: modelContext)
+            await viewModel.loadFullDetails(
+                context: modelContext,
+                spriteLoader: container.spriteLoader
+            )
         }
         .task(id: viewModel.summary.id) {
             await viewModel.loadSpritesAndColor(
                 withSpriteLoader: container.spriteLoader,
                 imageColorAnalyzer: container.imageColorAnalyzer
             )
-        }
-        .task(id: viewModel.pokemon?.id) {
-            // Back sprite URL only exists on the full Pokemon row, so wait
-            // for hydration to land before kicking off this load.
-            await viewModel.loadBackSprite(withSpriteLoader: container.spriteLoader)
         }
         .task(id: viewModel.pokemon?.evolutionChainId) {
             await viewModel.loadEvolutionChain()

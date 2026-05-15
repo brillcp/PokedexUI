@@ -25,14 +25,14 @@ protocol PokemonDetailViewModelProtocol {
     /// Linear evolution chain. Empty until `loadEvolutionChain` runs.
     var evolutionStages: [EvolutionChain.Stage] { get }
 
-    /// Fetch full pokemon detail (cache-first via SwiftData, then network).
-    func loadFullDetails(context: ModelContext) async
+    /// Fetch full pokemon detail (cache-first via SwiftData, then network),
+    /// then load the back sprite Image. Both land before `pokemon` is
+    /// published so the body fades in with the flip button already armed.
+    func loadFullDetails(context: ModelContext, spriteLoader: SpriteLoader) async
     /// Resolve the front sprite UIImage and (if not seeded from
     /// `summary.colorHex` in init) the dominant color from it.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async
-    /// Resolve the back sprite UIImage once `pokemon` is hydrated.
-    func loadBackSprite(withSpriteLoader spriteLoader: SpriteLoader) async
     /// Fetch the evolution chain via the API (no-op if absent or already loaded).
     func loadEvolutionChain() async
     /// Toggle the `isBookmarked` flag on the underlying summary row.
@@ -83,30 +83,45 @@ final class PokemonDetailViewModel {
 // MARK: - PokemonDetailViewModelProtocol
 
 extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
-    /// Cache-first hydration. Returns early when already loaded so re-entering
-    /// the detail view is instant.
-    func loadFullDetails(context: ModelContext) async {
+    /// Cache-first hydration. Loads the full `Pokemon` row, then sequentially
+    /// loads the back sprite image, then publishes both atomically by setting
+    /// `pokemon` last — so SwiftUI sees a single state transition and the
+    /// detail body + flip button fade in together. Returns early when already
+    /// loaded so re-entering the detail view is instant.
+    func loadFullDetails(context: ModelContext, spriteLoader: SpriteLoader) async {
         guard pokemon == nil else { return }
         isLoadingDetails = true
         defer { isLoadingDetails = false }
 
-        // 1. Cache: look up `Pokemon` by id in SwiftData.
+        // 1. Cache lookup, falling back to network on miss.
         let id = summary.id
         let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
+        let fetched: Pokemon
         if let cached = try? context.fetch(descriptor).first {
-            pokemon = PokemonViewModel(pokemon: cached)
-            return
+            fetched = cached
+        } else {
+            do {
+                fetched = try await pokemonService.requestFullPokemon(id: id)
+                context.insert(fetched)
+                try? context.save()
+            } catch {
+                print("Detail load failed for #\(id): \(error)")
+                return
+            }
         }
 
-        // 2. Network: pull species + variety pokemon, merge, persist for next time.
-        do {
-            let fetched = try await pokemonService.requestFullPokemon(id: id)
-            context.insert(fetched)
-            try? context.save()
-            pokemon = PokemonViewModel(pokemon: fetched)
-        } catch {
-            print("Detail load failed for #\(id): \(error)")
+        // 2. Load the back sprite Image up-front so the flip button is armed
+        // the moment the body becomes visible. Front sprite is loaded on a
+        // parallel `.task` — that path already started before this method.
+        let viewModelForVM = PokemonViewModel(pokemon: fetched)
+        if let backURL = viewModelForVM.backSprite,
+           let backImage = await spriteLoader.spriteImage(from: backURL) {
+            self.backSprite = Image(uiImage: backImage)
         }
+
+        // 3. Publish atomically — single setter flips SwiftUI body to the
+        // "loaded" branch with everything (back sprite, color, content) ready.
+        self.pokemon = viewModelForVM
     }
 
     func loadEvolutionChain() async {
@@ -136,18 +151,7 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         }
     }
 
-    /// Back sprite loads separately: the URL only exists on the full `Pokemon`
-    /// row, so this runs after `loadFullDetails` resolves. View triggers it
-    /// via a `.task(id: pokemon?.id)` once hydration lands.
-    func loadBackSprite(withSpriteLoader spriteLoader: SpriteLoader) async {
-        guard backSprite == nil,
-              let backURL = pokemon?.backSprite,
-              let backImage = await spriteLoader.spriteImage(from: backURL)
-        else { return }
-        backSprite = Image(uiImage: backImage)
-    }
-
-    func toggleBookmark(in context: ModelContext) {
+func toggleBookmark(in context: ModelContext) {
         summary.isBookmarked.toggle()
         isBookmarked = summary.isBookmarked
         try? context.save()
