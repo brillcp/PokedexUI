@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Drives `BattleView`. Takes fully-hydrated combatants + both sides'
-/// finalised 4-move loadouts from `BattleSetupViewModel` — by the time we get
+/// Drives `BattleView`. Takes fully-hydrated combatants and both sides'
+/// finalised 4-move loadouts from `BattleSetupViewModel`. By the time we get
 /// here, all preflight (hydration, move sampling, AI loadout pick) is done.
-/// `prepare()` just snapshots the type chart, builds engine state, and plays
-/// the entrance animation.
+/// `prepare()` snapshots the type chart, builds engine state, and plays the
+/// entrance animation.
 @MainActor
 @Observable
 final class BattleViewModel {
@@ -27,12 +27,12 @@ final class BattleViewModel {
     var lastEvent: BattleEvent?
     var errorMessage: String?
 
-    // Animation cues — each driven by event playback.
+    // Animation cues. Each is driven by event playback.
     var attackingSide:    BattleSide?
     var faintedSide:      BattleSide?
     var playerShakeTick:  Int = 0
     var opponentShakeTick: Int = 0
-    /// Increments when the player commits a move — drives the attack-confirm haptic.
+    /// Increments when the player commits a move. Drives the attack-confirm haptic.
     var attackTick: Int = 0
     /// `false` while sprites are off-stage on first appear. Flipped to `true`
     /// shortly after `prepare` finishes so SwiftUI can animate them in.
@@ -42,8 +42,8 @@ final class BattleViewModel {
     private let audioPlayer:     AudioPlayer
     private let aiService:       BattleAIServiceProtocol
     /// Captured Sendable snapshot of the type chart. Set once `prepare()`
-    /// resolves the loader. AI service reads this off-main on every turn —
-    /// no actor hops.
+    /// resolves the loader. AI service reads this off-main on every turn,
+    /// with no actor hops.
     private var typeChart: TypeChart?
 
     init(
@@ -63,8 +63,8 @@ final class BattleViewModel {
         self.audioPlayer     = audioPlayer
         self.aiService       = aiService
         // Build the visible state immediately so the arena (HP cards, sprites,
-        // log) renders on the very first frame. The engine — which actually
-        // resolves rounds — only comes online once the type chart is
+        // log) renders on the very first frame. The engine, which actually
+        // resolves rounds, only comes online once the type chart is
         // available; until then the move grid is disabled at the view level
         // via `engine == nil`.
         let p = BattleCombatant(pokemon: player,   moves: playerMoves)
@@ -122,7 +122,7 @@ final class BattleViewModel {
 
         // Ask the on-device AI for the opponent's move. Service falls back to
         // a random pick automatically if Apple Intelligence is unavailable or
-        // the model returns garbage — so this always returns a legal move.
+        // the model returns garbage, so this always returns a legal move.
         let opponentMove = await aiService.chooseMove(
             attacker: snapshot.opponent,
             defender: snapshot.player,
@@ -222,7 +222,7 @@ final class BattleViewModel {
             return "\(name(of: side))'s attack missed."
         case .damaged(let side, let amount, let effectiveness, let crit):
             var line = "\(name(of: side)) took \(amount) dmg"
-            if crit { line += " — critical hit!" }
+            if crit { line += " (critical hit!)" }
             if effectiveness >= 2 { line += " (super effective)" }
             else if effectiveness == 0 { line = "It had no effect on \(name(of: side))!" }
             else if effectiveness < 1 { line += " (not very effective)" }

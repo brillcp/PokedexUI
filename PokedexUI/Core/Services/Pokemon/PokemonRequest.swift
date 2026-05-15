@@ -2,12 +2,13 @@ import Networking
 
 /// PokeAPI requests this service exposes.
 enum PokemonRequest: Requestable {
-    /// Paginated `/pokemon?limit&offset` summary list — returns name + url for
-    /// each pokemon. The grid reads only this; full details are pulled lazily.
+    /// Paginated `/pokemon?limit&offset` summary list: returns name and url
+    /// for each pokemon. The grid reads only this; full details are pulled
+    /// lazily.
     case pokemonPage(offset: Int, limit: Int)
     /// Full `/pokemon/{id}` payload, used to hydrate one pokemon on tap.
     case details(String)
-    /// `/pokemon-species/{id}` — habitat, flavor text, evolution chain ref,
+    /// `/pokemon-species/{id}`: habitat, flavor text, evolution chain ref,
     /// genus, gender rate, etc. Merged into `Pokemon` on hydration.
     case species(String)
 

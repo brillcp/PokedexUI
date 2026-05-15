@@ -51,8 +51,8 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             OpponentPickerView(
                 player: viewModel.summary,
                 // Types may be `nil` if the player tapped Fight before the
-                // detail hydration landed — empty array is a safe fallback,
-                // the AI service degrades to random in that case anyway.
+                // detail hydration landed; empty array is a safe fallback,
+                // and the AI service degrades to random in that case anyway.
                 playerTypes: viewModel.pokemon?.typeNames ?? []
             ) { launch in
                 // Picker sheet has dismissed itself; we just push battle on
@@ -89,7 +89,7 @@ private extension PokemonDetailView {
         viewModel.color?.isLight ?? false ? .black : .white
     }
 
-    /// Everything below the sprite — action buttons + content — fades in
+    /// Everything below the sprite (action buttons + content) fades in
     /// together once the lazy pokemon hydration call resolves. Sprite stays
     /// visible from frame one (driven by `viewModel.summary`).
     @ViewBuilder

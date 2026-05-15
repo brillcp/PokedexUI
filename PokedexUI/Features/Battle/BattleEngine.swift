@@ -1,10 +1,11 @@
 import Foundation
 
-/// Pure battle logic. Synchronous turn resolver — caller (BattleViewModel)
-/// drives event playback with delays for animation. Stays on MainActor so
-/// `withAnimation` callbacks fired from `BattleViewModel` see consistent
-/// state, but the engine itself doesn't touch UIKit — the `TypeChart` value
-/// it holds is a pure Sendable snapshot, so lookups are free of actor hops.
+/// Pure battle logic. Synchronous turn resolver: the caller
+/// (`BattleViewModel`) drives event playback with delays for animation. Stays
+/// on `MainActor` so `withAnimation` callbacks fired from `BattleViewModel`
+/// see consistent state, but the engine itself doesn't touch UIKit; the
+/// `TypeChart` value it holds is a Sendable snapshot, so lookups are free of
+/// actor hops.
 @MainActor
 final class BattleEngine {
     private(set) var state: BattleState
@@ -16,7 +17,7 @@ final class BattleEngine {
     }
 
     /// Resolve one round given both sides' chosen moves. The opponent's move
-    /// is picked by the caller (BattleViewModel) — typically via
+    /// is picked by the caller (`BattleViewModel`), typically via
     /// `BattleAIService`, falling back to random. Returns the ordered list of
     /// events to animate.
     func resolveRound(playerMove: MoveDetail, opponentMove: MoveDetail) -> [BattleEvent] {

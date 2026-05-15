@@ -10,9 +10,9 @@ struct MoveCell: View, Equatable {
     let mode: Mode
 
     enum Mode: Equatable {
-        /// In-battle move button — shows PP, no selection state.
+        /// In-battle move button. Shows PP, no selection state.
         case battle
-        /// Loadout picker cell — shows PWR/ACC, draws a selected outline +
+        /// Loadout picker cell. Shows PWR/ACC, draws a selected outline and
         /// fill when `selected` is true.
         case loadout(selected: Bool)
     }
@@ -56,10 +56,10 @@ struct MoveCell: View, Equatable {
                         .foregroundStyle(.secondary)
                 }
             case .loadout:
-                Text("PWR\n\(move.power.map(String.init) ?? "—")")
+                Text("PWR\n\(move.power.map(String.init) ?? "-")")
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
-                Text("ACC\n\(move.accuracy.map { "\($0)%" } ?? "—")")
+                Text("ACC\n\(move.accuracy.map { "\($0)%" } ?? "-")")
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
             }
@@ -71,8 +71,8 @@ struct MoveCell: View, Equatable {
     private var background: AnyShapeStyle {
         switch mode {
         case .battle:
-            // The battle grid sits on the dark battle stage — no inner fill,
-            // glass effect comes from the parent.
+            // The battle grid sits on the dark battle stage with no inner
+            // fill; the glass effect comes from the parent.
             return AnyShapeStyle(Color.clear)
         case .loadout(let selected):
             let accent = Color.pokedexRed ?? .red

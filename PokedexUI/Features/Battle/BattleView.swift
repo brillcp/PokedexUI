@@ -34,7 +34,7 @@ struct BattleView: View {
     private var content: some View {
         // VM builds the visible state in init, so the arena renders from frame
         // 1. The move grid disables itself if the engine isn't online yet
-        // (rare — type chart is eager-loaded at app launch).
+        // (rare; the type chart is eager-loaded at app launch).
         if let error = viewModel.errorMessage {
             Text(error)
                 .tint(.white)
@@ -97,7 +97,7 @@ struct BattleView: View {
     }
 
     /// HP card with type chips. Opponent shows chips ABOVE the glass card,
-    /// player shows them BELOW — so each side's "id badge" sits next to the
+    /// player shows them BELOW, so each side's "id badge" sits next to the
     /// sprite it represents (opponent sprite is below its card, player sprite
     /// is above its card).
     private func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
@@ -129,11 +129,12 @@ struct BattleView: View {
         }
     }
 
-    /// GameBoy-style fixed window — always 5 lines tall, showing the most recent 5.
-    /// Each real entry carries a stable identity (its absolute index in `log`)
-    /// so a fresh line gets `.transition(.move + .opacity)` instead of swapping
-    /// in place. Placeholders use negative ids — also stable — and animate out
-    /// from the top as real lines push them off-screen.
+    /// GameBoy-style fixed window: always 5 lines tall, showing the most
+    /// recent 5. Each real entry carries a stable identity (its absolute
+    /// index in `log`) so a fresh line gets `.transition(.move + .opacity)`
+    /// instead of swapping in place. Placeholders use negative ids (also
+    /// stable) and animate out from the top as real lines push them
+    /// off-screen.
     private var logFeed: some View {
         let lineCount = 5
         let lineHeight: CGFloat = 16
@@ -147,7 +148,7 @@ struct BattleView: View {
         let placeholderCount = max(0, realCapacity - rows.count)
         let placeholders: [(id: Int, text: String)] = (0..<placeholderCount).map { (-($0 + 1), "") }
         rows = placeholders + rows
-        // Stable id for the thinking row — distinct from log indices and
+        // Stable id for the thinking row, distinct from log indices and
         // placeholders so SwiftUI animates it in/out cleanly.
         if thinking {
             rows.append((-9999, "..."))
@@ -173,13 +174,13 @@ struct BattleView: View {
     }
 
     private func moveGrid(state: BattleState) -> some View {
-        // Move grid is locked until the engine is online — typically already
+        // Move grid is locked until the engine is online; typically already
         // built in VM init, but the type-chart slow-path can leave it briefly
         // nil on first app run.
         let disabled = viewModel.engine == nil || viewModel.isResolvingTurn || viewModel.winner != nil
         let spacing: CGFloat = 12
         // Player has exactly 4 hand-picked moves (set during loadout), so the
-        // grid is a static 2×2 — no scrolling needed.
+        // grid is a static 2×2 with no scrolling needed.
         let columns = [
             GridItem(.flexible(), spacing: spacing),
             GridItem(.flexible(), spacing: spacing)

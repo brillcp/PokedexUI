@@ -2,9 +2,9 @@ import Foundation
 import SwiftData
 
 /// Loads the 18 type damage relations once per app install. Snapshots the
-/// SwiftData rows into a Sendable `TypeChart` value the moment they land —
+/// SwiftData rows into a Sendable `TypeChart` value the moment they land, so
 /// downstream consumers (`BattleAIService`, `BattleEngine`, AI prompt builder)
-/// then read that value off-main without any actor hop.
+/// can read that value off-main without any actor hop.
 ///
 /// Stays `@MainActor @Observable` because SwiftUI views (`WeaknessGridView`)
 /// still bind to its `chart` property directly. Off-main consumers grab
@@ -16,7 +16,7 @@ final class TypeChartLoader {
     private var storage: DataStorageReader?
     private var isLoading = false
 
-    /// Sendable snapshot. `nil` until the first successful load — views guard
+    /// Sendable snapshot. `nil` until the first successful load; views guard
     /// on this and render nothing until populated.
     private(set) var chart: TypeChart?
 
@@ -48,7 +48,7 @@ final class TypeChartLoader {
             chart = TypeChart(rows: types)
             try await storage?.store(types)
         } catch {
-            print("TypeChartLoader: failed to load — \(error)")
+            print("TypeChartLoader: failed to load: \(error)")
         }
     }
 

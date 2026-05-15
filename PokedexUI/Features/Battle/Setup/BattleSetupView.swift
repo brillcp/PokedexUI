@@ -4,7 +4,7 @@ import SwiftData
 /// Loadout / matchup screen pushed onto the opponent-picker's navigation
 /// stack inside the picker sheet. Player sees both pokemon side-by-side, a
 /// type matchup summary, and a movepool grid to pick 4 moves. Tapping
-/// "Battle!" emits a `BattleLaunch` upstream — the picker sheet receives it,
+/// "Battle!" emits a `BattleLaunch` upstream; the picker sheet receives it,
 /// dismisses itself, and the detail view pushes `BattleView` on its own
 /// nav stack. Net result: one back tap from battle returns to detail.
 struct BattleSetupView: View {
@@ -38,7 +38,7 @@ struct BattleSetupView: View {
     }
 
     /// Build the launch payload and bubble it up. Both sides commit to 4
-    /// moves before this fires — `canStart` guards both player + AI readiness.
+    /// moves before this fires; `canStart` guards both player + AI readiness.
     private func startBattle() {
         guard let player = viewModel.playerPokemon,
               let opponent = viewModel.opponentPokemon,
@@ -161,7 +161,7 @@ struct BattleSetupView: View {
     }
 
     /// Compact base-stat readout: HP / ATK / DEF on row 1, SPA / SPD / SPE on row 2.
-    /// Numbers only — full bars belong on the detail view.
+    /// Numbers only; full bars belong on the detail view.
     private func statGrid(pokemon: PokemonViewModel) -> some View {
         let byName = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
         let entries: [(String, Int)] = [
@@ -301,7 +301,7 @@ struct BattleSetupView: View {
 
     private var battleButton: some View {
         // Two visible labels: "Pick N more" while player hasn't picked 4 yet,
-        // "Battle" once they have. The AI loadout is hidden plumbing — if it's
+        // "Battle" once they have. The AI loadout is hidden plumbing: if it's
         // still in flight, the button stays disabled but doesn't surface the
         // reason; the wait is usually under a second.
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count

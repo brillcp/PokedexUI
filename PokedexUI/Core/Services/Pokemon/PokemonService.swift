@@ -11,11 +11,11 @@ struct PokemonPage: Sendable {
 /// Public surface for Pokémon data: cheap paginated summary fetches for the
 /// grid, plus an on-demand "hydrate one" call for the detail/battle views.
 protocol PokemonServiceProtocol {
-    /// Fetches one page (~200 items) of `/pokemon`. Cheap — single network
+    /// Fetches one page (~200 items) of `/pokemon`. Cheap: single network
     /// call, no per-pokemon detail requests. Drives the pokedex grid.
     func requestPokemonPage(offset: Int, limit: Int) async throws -> PokemonPage
 
-    /// Fully hydrates a single pokemon by id — fetches the species, resolves
+    /// Fully hydrates a single pokemon by id: fetches the species, resolves
     /// the default variety, fetches the variety's `/pokemon/{id}`, and merges
     /// species-only fields (habitat, flavor text, evolution chain, genus,
     /// gender rate, capture rate, …) onto the returned `Pokemon`.
@@ -68,7 +68,7 @@ final class PokemonService: PokemonServiceProtocol {
     /// Build a `PokemonSummary` from a list-endpoint result. Returns `nil`
     /// when the URL doesn't carry a numeric trailing path component (defensive
     /// against malformed responses) or when the id refers to a non-species
-    /// alt form (ids ≥ 10000 — mega/alolan/galarian/gmax variants which have
+    /// alt form (ids ≥ 10000: mega/alolan/galarian/gmax variants which have
     /// no `/pokemon-species/{id}` page and 404 on detail hydration).
     private static func makeSummary(from item: APIItem) -> PokemonSummary? {
         guard let url = URL(string: item.url),

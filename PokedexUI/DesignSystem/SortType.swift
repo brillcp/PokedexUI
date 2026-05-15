@@ -2,7 +2,7 @@ import Foundation
 
 /// Sort options exposed in the pokedex toolbar menu.
 ///
-/// Only fields available on `PokemonSummary` (id + name) are shipped today —
+/// Only fields available on `PokemonSummary` (id + name) are shipped today .
 /// height/weight/stat sorts need fully-hydrated `Pokemon` rows we don't load
 /// up front anymore, so they're commented out of `allCases` until we re-add
 /// a background hydration pass.

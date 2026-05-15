@@ -9,7 +9,7 @@ import SwiftUI
 /// well under a second instead of waiting for all ~1300 pokemon to land.
 @MainActor
 protocol PokedexViewModelProtocol {
-    /// The grid's current data — populated progressively as pages arrive.
+    /// The grid's current data; populated progressively as pages arrive.
     var summaries: [PokemonSummary] { get }
     /// `true` while a page fetch is in-flight.
     var isLoading: Bool { get }

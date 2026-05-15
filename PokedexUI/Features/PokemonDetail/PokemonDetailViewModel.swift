@@ -6,7 +6,7 @@ import SwiftData
 /// (set after the lazy hydration call returns).
 @MainActor
 protocol PokemonDetailViewModelProtocol {
-    /// Always present — drives the sprite + title before any network call lands.
+    /// Always present: drives the sprite + title before any network call lands.
     var summary: PokemonSummary { get }
     /// `nil` until the lazy fetch resolves. The detail body fades in once set.
     var pokemon: PokemonViewModelProtocol? { get }
@@ -85,7 +85,7 @@ final class PokemonDetailViewModel {
 extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     /// Cache-first hydration. Loads the full `Pokemon` row, then sequentially
     /// loads the back sprite image, then publishes both atomically by setting
-    /// `pokemon` last — so SwiftUI sees a single state transition and the
+    /// `pokemon` last, so SwiftUI sees a single state transition and the
     /// detail body + flip button fade in together. Returns early when already
     /// loaded so re-entering the detail view is instant.
     func loadFullDetails(context: ModelContext, spriteLoader: SpriteLoader) async {
@@ -111,15 +111,15 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         }
 
         // 2. Load the back sprite Image up-front so the flip button is armed
-        // the moment the body becomes visible. Front sprite is loaded on a
-        // parallel `.task` — that path already started before this method.
+        // the moment the body becomes visible. The front sprite is loaded on
+        // a parallel `.task`; that path already started before this method.
         let viewModelForVM = PokemonViewModel(pokemon: fetched)
         if let backURL = viewModelForVM.backSprite,
            let backImage = await spriteLoader.spriteImage(from: backURL) {
             self.backSprite = Image(uiImage: backImage)
         }
 
-        // 3. Publish atomically — single setter flips SwiftUI body to the
+        // 3. Publish atomically: a single setter flips SwiftUI body to the
         // "loaded" branch with everything (back sprite, color, content) ready.
         self.pokemon = viewModelForVM
     }
@@ -140,7 +140,7 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     /// from `summary.colorHex` (filled by `SpriteColorPrefetcher` at app
     /// start), so this call usually just loads the sprite image. On the rare
     /// case the prefetcher hasn't reached this pokemon yet, the analyzer runs
-    /// to display a color in this session — the prefetcher persists it later.
+    /// to display a color in this session; the prefetcher persists it later.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async {
         guard let image = await spriteLoader.spriteImage(from: summary.frontSprite) else { return }

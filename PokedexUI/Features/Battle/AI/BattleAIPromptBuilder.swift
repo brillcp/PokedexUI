@@ -7,7 +7,7 @@ struct BattleAIPromptBuilder {
 
     /// Compact battle snapshot + indexed move list. Each move row carries the
     /// pre-computed type effectiveness multiplier against the defender so the
-    /// model doesn't need to recall the type chart from training — it just
+    /// model doesn't need to recall the type chart from training; it just
     /// compares numbers. `effectiveness` is parallel to `moves`.
     func buildMovePrompt(
         attacker: BattleCombatant,
@@ -32,14 +32,14 @@ struct BattleAIPromptBuilder {
         - HP: \(hpPct(defender))%
         - Status: \(statusDescription(defender.status))
 
-        Available moves (index: name — details):
+        Available moves (index: name. details):
         \(movesBlock)
 
         Return ONLY the index (integer) of the chosen move from the list above.
         """
     }
 
-    /// Loadout selection — fighter + opponent context + full movepool with
+    /// Loadout selection: fighter + opponent context + full movepool with
     /// pre-computed effectiveness numbers. AI returns 4 indices from the
     /// movepool. Used by `BattleAIService.chooseLoadout` at battle start so
     /// the opponent goes in with a hand-picked 4-move set, just like the
@@ -63,10 +63,10 @@ struct BattleAIPromptBuilder {
         Opponent: \(opponent.name)
         - Types: \(opponent.typeNames.joined(separator: ", "))
 
-        Full movepool (index: name — details):
+        Full movepool (index: name. details):
         \(movesBlock)
 
-        Return exactly \(loadoutSize) DISTINCT indices (integers) from the list above — the moves the fighter should carry into battle. Prefer a balanced set: at least one super-effective damaging move when possible, no duplicates of the same type, mix damaging and utility if it helps.
+        Return exactly \(loadoutSize) DISTINCT indices (integers) from the list above. the moves the fighter should carry into battle. Prefer a balanced set: at least one super-effective damaging move when possible, no duplicates of the same type, mix damaging and utility if it helps.
         """
     }
 
@@ -100,16 +100,16 @@ struct BattleAIPromptBuilder {
     /// Render one move row. Damaging moves include the pre-computed
     /// effectiveness multiplier vs the defender's typing.
     private func describe(_ move: MoveDetail, index: Int, effectiveness: Double) -> String {
-        let power = move.power.map { "\($0)" } ?? "—"
+        let power = move.power.map { "\($0)" } ?? "-"
         let accuracy = move.accuracy.map { "\($0)%" } ?? "100%"
         let effectivenessText: String
         if move.power == nil || (move.power ?? 0) == 0 {
-            // Status / non-damaging — no useful effectiveness number to print.
+            // Status / non-damaging move: no useful effectiveness number to print.
             effectivenessText = "status"
         } else {
             effectivenessText = "×\(format(effectiveness)) vs defender"
         }
-        return "\(index): \(move.name) — \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)"
+        return "\(index): \(move.name). \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)"
     }
 
     private func format(_ multiplier: Double) -> String {
@@ -131,7 +131,7 @@ struct BattleAIPromptBuilder {
 
 private extension Array {
     /// Out-of-bounds-safe lookup. Used as a defensive guard when iterating
-    /// the moves array next to a parallel `effectiveness` array — if the
+    /// the moves array next to a parallel `effectiveness` array: if the
     /// caller ever passes mismatched lengths we degrade to neutral instead
     /// of crashing.
     subscript(safe index: Int) -> Element? {

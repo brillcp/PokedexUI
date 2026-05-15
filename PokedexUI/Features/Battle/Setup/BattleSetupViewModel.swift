@@ -7,7 +7,7 @@ import SwiftUI
 /// the AI's loadout pick in a background task so it runs in parallel with the
 /// player browsing. `canStart` requires both: player chose 4 AND AI returned 4.
 ///
-/// Conceptually this is the "loadout" step canonical Pokémon battles have —
+/// Conceptually this is the "loadout" step canonical Pokémon battles have .
 /// no random movesets, both sides commit to 4 moves before battling.
 @MainActor
 protocol BattleSetupViewModelProtocol {
@@ -122,7 +122,7 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
             self.playerMovePool = (try? await playerMoves).map(Self.rankedByImpact) ?? []
             let opponentPool    = (try? await opponentMoves) ?? []
 
-            // Kick off the AI loadout pick in a detached background task —
+            // Kick off the AI loadout pick in a detached background task .
             // player can browse + pick their own 4 while the model thinks.
             // Battle button stays disabled until `opponentLoadout` is non-nil.
             await typeChartLoader.loadIfNeeded()
@@ -152,7 +152,7 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
 
     /// Sort movepool so the most useful damaging moves bubble to the top of
     /// the picker grid. Damaging moves before status, then higher power, then
-    /// higher accuracy. Player still makes every pick consciously — this only
+    /// higher accuracy. Player still makes every pick consciously; this only
     /// changes presentation order.
     private static func rankedByImpact(_ moves: [MoveDetail]) -> [MoveDetail] {
         moves.sorted { lhs, rhs in

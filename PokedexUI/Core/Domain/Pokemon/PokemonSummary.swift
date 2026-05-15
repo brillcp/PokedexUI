@@ -1,7 +1,7 @@
 import SwiftData
 
-/// Lightweight pokedex grid row — just enough fields to render a cell
-/// (id + name + a deterministic sprite URL). Full details live in
+/// Lightweight pokedex grid row: just enough fields to render a cell
+/// (id, name, and a deterministic sprite URL). Full details live in
 /// `Pokemon` and are fetched lazily on detail/battle tap.
 ///
 /// Pokedex order is national-dex id ascending.
@@ -11,7 +11,7 @@ final class PokemonSummary {
     var name: String
     var isBookmarked: Bool = false
     /// Cached dominant sprite color (6-char hex, e.g. "ffcb05"). Set after the
-    /// first detail-view open per pokemon — lets the next visit render the
+    /// first detail-view open per pokemon. Lets the next visit render the
     /// gradient background on frame 1 instead of waiting for the image color
     /// analyzer to crunch the sprite again.
     var colorHex: String? = nil
@@ -31,7 +31,7 @@ extension PokemonSummary: IdentifiablePokemon {
         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(id).png"
     }
 
-    /// Summaries don't carry a back sprite — the grid never shows one.
+    /// Summaries don't carry a back sprite; the grid never shows one.
     var backSprite: String? { nil }
 }
 

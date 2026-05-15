@@ -2,12 +2,12 @@ import Foundation
 import SwiftData
 
 /// Downloads every move from PokeAPI once and persists each as a `MoveDetail`
-/// row in SwiftData. Move data is effectively static (power/accuracy/type don't
-/// change between Pokémon generations within the same game id), so after the
-/// first successful run on a device we never hit the network for moves again —
-/// battle preflight becomes a pure local query.
+/// row in SwiftData. Move data is effectively static (power, accuracy, and
+/// type don't change between Pokémon generations within the same game id),
+/// so after the first successful run on a device we never hit the network
+/// for moves again; battle preflight becomes a pure local query.
 ///
-/// Background worker — no SwiftUI binding, no main-actor isolation. Runs on
+/// Background worker: no SwiftUI binding, no main-actor isolation. Runs on
 /// the cooperative thread pool at `.background` priority so it doesn't fight
 /// the pokedex paginated loader for cycles.
 final actor MovePrefetcher {
@@ -16,9 +16,9 @@ final actor MovePrefetcher {
     private var isLoading = false
 
     /// `true` once every known move name has a persisted `MoveDetail` row.
-    /// Surfaced for UI ("Battle ready" badge etc.) if needed later — battles
-    /// don't actually wait on this flag (they fall back to per-move fetches
-    /// for any names not yet persisted).
+    /// Surfaced for UI ("Battle ready" badge etc.) if needed later. Battles
+    /// don't actually wait on this flag; they fall back to per-move fetches
+    /// for any names not yet persisted.
     private(set) var isComplete: Bool = false
 
     init(moveService: MoveServiceProtocol = MoveService()) {
@@ -32,7 +32,7 @@ final actor MovePrefetcher {
         }
     }
 
-    /// One-shot prefetch. Safe to call repeatedly — the first invocation drives
+    /// One-shot prefetch. Safe to call repeatedly: the first invocation drives
     /// the download, subsequent calls early-return.
     ///
     /// Flow:
@@ -74,7 +74,7 @@ final actor MovePrefetcher {
             }
             isComplete = true
         } catch {
-            print("MovePrefetcher: prefetch failed — \(error)")
+            print("MovePrefetcher: prefetch failed: \(error)")
         }
     }
 }

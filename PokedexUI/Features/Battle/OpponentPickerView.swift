@@ -7,12 +7,12 @@ import SwiftData
 /// been hydrated yet.
 ///
 /// The picker owns its own `NavigationStack` so tapping an opponent pushes
-/// `BattleSetupView` on top — system back returns to the picker, "Battle!"
+/// `BattleSetupView` on top. System back returns to the picker; "Battle!"
 /// dismisses the whole sheet and bubbles the launch payload up to the detail
 /// view, which then pushes `BattleView` on its own nav stack.
 struct OpponentPickerView: View {
     let player: PokemonSummary
-    /// Player's type names (e.g. ["grass", "poison"]) — passed straight into
+    /// Player's type names (e.g. ["grass", "poison"]). Passed straight into
     /// the AI prompt for smart-pick so the model picks against the actual
     /// matchup instead of relying on training recall.
     let playerTypes: [String]
@@ -22,7 +22,7 @@ struct OpponentPickerView: View {
     @Environment(\.container) private var container
     @Query private var allPokemon: [PokemonSummary]
     @State private var rows: [Row] = []
-    /// `true` while the AI service is picking — disables both bottom buttons
+    /// `true` while the AI service is picking. Disables both bottom buttons
     /// so Random can't race the model response.
     @State private var isAIThinking = false
     /// When non-nil, pushes `BattleSetupView` onto this view's nav stack.
@@ -106,7 +106,9 @@ struct OpponentPickerView: View {
     /// can't race the AI mid-pick.
     private var pickerButtons: some View {
         HStack(spacing: 12) {
-            capsuleButton(icon: "die.face.5.fill", title: "Random", action: pickRandom)
+            if !isAIThinking {
+                capsuleButton(icon: "die.face.5.fill", title: "Random", action: pickRandom)
+            }
             capsuleButton(
                 icon: isAIThinking ? "hourglass" : "sparkles",
                 title: isAIThinking ? "Thinking" : "Smart pick",
@@ -115,7 +117,7 @@ struct OpponentPickerView: View {
         }
         .disabled(isAIThinking)
         .opacity(isAIThinking ? 0.6 : 1)
-        .animation(.easeInOut(duration: 0.15), value: isAIThinking)
+        .animation(.bouncy(duration: 0.25), value: isAIThinking)
         .padding(.bottom, 32)
         .padding(.horizontal, 24)
     }
@@ -142,8 +144,8 @@ struct OpponentPickerView: View {
     }
 
     /// Sample a smaller candidate pool first (the AI prompt has a token
-    /// budget — feeding it 1025 names is wasteful), then hand off to the AI.
-    /// Service has internal fallback to a random pick on model failure.
+    /// budget, so feeding it 1025 names is wasteful), then hand off to the AI.
+    /// The service has an internal fallback to a random pick on model failure.
     private func pickSmart() {
         isAIThinking = true
         Task {
@@ -162,7 +164,7 @@ struct OpponentPickerView: View {
 // MARK: - Row + cell
 
 extension OpponentPickerView {
-    /// Display snapshot — plain value type, no SwiftData getters in body path.
+    /// Display snapshot. Plain value type, no SwiftData getters in body path.
     struct Row: Identifiable, Hashable {
         let id: Int
         let name: String

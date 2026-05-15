@@ -3,7 +3,7 @@ import SwiftData
 
 /// Search works against the live `PokemonSummary` query (so it never goes
 /// stale as pagination fills the store). The view model owns only the query
-/// string and the filter logic — the SwiftData corpus is passed in by the
+/// string and the filter logic; the SwiftData corpus is passed in by the
 /// view on each `updateFiltered(in:)` call.
 @MainActor
 protocol SearchViewModelProtocol {

@@ -55,7 +55,7 @@ extension EvolutionChain {
         var id: String { species.name }
     }
 
-    /// Linear flattening — picks the first branch at each fork. Sufficient for
+    /// Linear flattening: picks the first branch at each fork. Sufficient for
     /// most pokemon; branched evolutions (eevee, wurmple) will only show one path.
     var stages: [Stage] {
         var out: [Stage] = [Stage(species: chain.species, trigger: nil)]

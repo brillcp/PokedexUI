@@ -30,7 +30,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
             }
         }
         .onChange(of: corpus.count) { _, _ in
-            // Pagination just added more summaries — re-run the current query
+            // Pagination just added more summaries, so re-run the current query
             // against the larger corpus so new matches appear without a typing pause.
             viewModel.updateFiltered(in: corpus)
         }

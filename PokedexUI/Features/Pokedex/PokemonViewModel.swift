@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Focused protocols (Interface Segregation)
 
-/// Minimum surface needed to render a sprite cell — id, name and the two sprite URLs.
+/// Minimum surface needed to render a sprite cell: id, name and the two sprite URLs.
 /// Used by grid cells and any view that just needs to identify a pokemon visually.
 protocol IdentifiablePokemon {
     /// Unique Pokémon identifier (national dex number).
@@ -15,7 +15,7 @@ protocol IdentifiablePokemon {
     var backSprite: String? { get }
 }
 
-/// Combat-relevant numbers — read by the battle engine and by sort comparators
+/// Combat-relevant numbers: read by the battle engine and by sort comparators
 /// that key on base stats.
 protocol PokemonStatsProviding {
     /// Statistics for the Pokémon.

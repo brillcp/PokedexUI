@@ -27,12 +27,12 @@ struct HPCard: View, Equatable {
             } currentValueLabel: { EmptyView() }
             .gaugeStyle(.linearCapacity)
             .tint(hpTint)
-            .animation(.easeOut(duration: 0.5), value: currentHP)
+            .animation(.easeOut(duration: 0.4), value: currentHP)
             Text("\(currentHP) / \(maxHP)")
                 .font(.pixel12)
                 .foregroundStyle(.secondary)
                 .contentTransition(.numericText(value: Double(currentHP)))
-                .animation(.easeOut(duration: 0.5), value: currentHP)
+                .animation(.easeOut(duration: 0.4), value: currentHP)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 12)

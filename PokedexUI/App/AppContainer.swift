@@ -6,7 +6,7 @@ import SwiftUI
 /// without touching call sites.
 ///
 /// This is the single answer to the **Dependency Inversion** + **easy
-/// testing** claims in the README — every layer below `App/` depends on
+/// testing** claims in the README: every layer below `App/` depends on
 /// abstractions (protocols) and gets them via the container, never via
 /// `static let shared` lookups.
 @MainActor
@@ -58,7 +58,7 @@ final class AppContainer {
         self.haptic             = haptic
         self.battleAI           = battleAI
         // Reuse the same SpriteLoader + ImageColorAnalyzer instances so the
-        // prefetcher shares caches with the rest of the app — sprites pulled
+        // prefetcher shares caches with the rest of the app: sprites pulled
         // by AsyncSpriteView during scrolling are free for the analyzer pass.
         self.spriteColorPrefetcher = spriteColorPrefetcher
             ?? SpriteColorPrefetcher(

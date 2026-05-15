@@ -9,7 +9,7 @@ protocol EvolutionServiceProtocol: Sendable {
 /// the first opens, the rest never hit the network.
 final actor EvolutionService: EvolutionServiceProtocol {
     /// Process-wide instance so every detail view model resolves against the
-    /// same cache by default. AppContainer also holds it — both paths land
+    /// same cache by default. AppContainer also holds it; both paths land
     /// here.
     static let shared = EvolutionService()
 

@@ -12,7 +12,7 @@ import FoundationModels
 /// back to deterministic heuristics (random move / random opponent) so the
 /// battle UI never blocks waiting on the model.
 ///
-/// Inspired by Borealis' `AuroraPredictionService` — same `LanguageModelSession`
+/// Inspired by Borealis' `AuroraPredictionService`: same `LanguageModelSession`
 /// pattern with instructions loaded from a markdown file and a `@Generable`
 /// output struct for structured decoding.
 protocol BattleAIServiceProtocol: Sendable {
@@ -38,7 +38,7 @@ protocol BattleAIServiceProtocol: Sendable {
     ) async -> PokemonSummary
 
     /// Pick 4 moves for the opponent from its full movepool, knowing who it's
-    /// fighting. Symmetric with the player's hand-picked loadout — both sides
+    /// fighting. Symmetric with the player's hand-picked loadout: both sides
     /// commit to 4 moves before the battle starts. AI uses type matchup, base
     /// stats, and move synergy to choose. Falls back to top-4-by-power on any
     /// model failure.
@@ -68,7 +68,7 @@ actor BattleAIService: BattleAIServiceProtocol {
         moves: [MoveDetail],
         typeChart: TypeChart
     ) async -> MoveDetail {
-        // Belt and braces — caller already ensures non-empty, but if they don't
+        // Belt and braces: caller already ensures non-empty, but if they don't
         // we have no random fallback either, so propagate via a sentinel move.
         guard let firstMove = moves.first else {
             return MoveDetail(name: "tackle")
@@ -78,7 +78,7 @@ actor BattleAIService: BattleAIServiceProtocol {
             return moves.randomElement() ?? firstMove
         }
 
-        // Pure value lookup — no actor hop. Caller passes a Sendable snapshot.
+        // Pure value lookup with no actor hop. Caller passes a Sendable snapshot.
         let effectiveness = moves.map {
             typeChart.multiplier(attacking: $0.typeName, defenders: defender.typeNames)
         }
@@ -114,7 +114,7 @@ actor BattleAIService: BattleAIServiceProtocol {
     ) async -> PokemonSummary {
         let filtered = candidates.filter { $0.id != player.id }
         guard let fallback = filtered.randomElement() else {
-            // No other pokemon — caller shouldn't allow this but be safe.
+            // No other pokemon; caller shouldn't allow this but be safe.
             return player
         }
 
@@ -146,13 +146,13 @@ actor BattleAIService: BattleAIServiceProtocol {
     ) async -> [MoveDetail] {
         let loadoutSize = 4
         // Deterministic fallback used when the model is unavailable or returns
-        // garbage — top-4 by power, tiebreak accuracy, damaging moves first.
+        // garbage: top-4 by power, tiebreak accuracy, damaging moves first.
         let fallback = Self.heuristicLoadout(from: moves, count: loadoutSize)
 
         guard moves.count > loadoutSize else { return moves }
         guard isAvailable, !session.isResponding else { return fallback }
 
-        // Pure value lookup — no actor hop.
+        // Pure value lookup, no actor hop.
         let effectiveness = moves.map {
             typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames)
         }
@@ -237,7 +237,7 @@ actor BattleAIService: BattleAIServiceProtocol {
 
     @Generable(description: "Four-move loadout picked from the supplied movepool.")
     struct LoadoutChoice {
-        @Guide(description: "Exactly 4 zero-based indices into the provided move list — the moves the fighter brings into battle.")
+        @Guide(description: "Exactly 4 zero-based indices into the provided move list. the moves the fighter brings into battle.")
         let indices: [Int]
     }
 }

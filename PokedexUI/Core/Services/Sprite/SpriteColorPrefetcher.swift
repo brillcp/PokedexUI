@@ -5,13 +5,13 @@ import UIKit
 /// Walks every `PokemonSummary` missing a `colorHex`, downloads its front
 /// sprite, runs the image color analyzer, and persists the dominant hex back
 /// onto the summary row. Runs once at app start after the pokedex grid's
-/// pagination loop completes — by the time the user taps any pokemon, the
+/// pagination loop completes, so by the time the user taps any pokemon the
 /// detail view's gradient color is already on disk so it renders frame 1
 /// with no black flash.
 ///
 /// Throttled to 6 concurrent pipelines so we don't saturate the network or
 /// the GPU during pixel sampling. SpriteLoader's underlying `URLCache` makes
-/// repeated runs free — sprites the user already scrolled past in the grid
+/// repeated runs free: sprites the user already scrolled past in the grid
 /// are warm.
 final actor SpriteColorPrefetcher {
     private let spriteLoader: SpriteLoader
@@ -34,7 +34,7 @@ final actor SpriteColorPrefetcher {
 
     /// One-shot prefetch. Iterates the summaries currently in SwiftData,
     /// processes any without a `colorHex`, persists results in batches so a
-    /// crash mid-flight isn't a total loss. Safe to call multiple times —
+    /// crash mid-flight isn't a total loss. Safe to call multiple times;
     /// guarded by `isRunning` + `isComplete`.
     func prefetchIfNeeded() async {
         guard !isRunning, !isComplete else { return }
@@ -83,7 +83,7 @@ final actor SpriteColorPrefetcher {
             }
             isComplete = true
         } catch {
-            print("SpriteColorPrefetcher: failed — \(error)")
+            print("SpriteColorPrefetcher: failed: \(error)")
         }
     }
 

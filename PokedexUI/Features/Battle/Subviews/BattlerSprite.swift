@@ -24,7 +24,7 @@ struct BattlerSprite: View {
         return hasEntered ? 0 : (side == .player ? -260 : 260)
     }
 
-    /// Attack lunge — toward the opponent. Player lunges up-right, opponent down-left.
+    /// Attack lunge toward the opponent. Player lunges up-right, opponent down-left.
     private var lungeOffset: CGSize {
         guard isAttacking else { return .zero }
         return side == .player
@@ -50,8 +50,8 @@ struct BattlerSprite: View {
         .animation(.easeOut(duration: 0.5), value: isFainted)
         .onChange(of: isWinner) { _, newValue in
             if newValue {
-                withAnimation(.easeInOut(duration: 0.35).repeatForever(autoreverses: true)) {
-                    celebratingTilt = 12
+                withAnimation(.bouncy(duration: 0.35).repeatForever(autoreverses: true)) {
+                    celebratingTilt = 10
                 }
             } else {
                 withAnimation { celebratingTilt = 0 }

@@ -39,7 +39,7 @@ actor DataStorageReader {
     }
 
     /// Deletes every persisted object of the given type and saves the context.
-    /// Swallows the case where the entity is not in the current schema — that
+    /// Swallows the case where the entity is not in the current schema; that
     /// only happens after a migration mismatch and there is nothing to delete.
     /// - Parameter type: The `PersistentModel` type to purge from storage.
     func clear<M: PersistentModel>(_ type: M.Type) {
@@ -53,7 +53,7 @@ actor DataStorageReader {
     }
 
     /// Deletes persisted objects of the given type that match the supplied
-    /// predicate. Used for one-off cleanups (e.g. purging alt-form pokemon
+    /// supplied predicate. Used for one-off cleanups (e.g. purging alt-form pokemon
     /// with id ≥ 10000 that were persisted under an earlier paging rule).
     func delete<M: PersistentModel>(matching predicate: Predicate<M>) throws {
         let context = modelContext
