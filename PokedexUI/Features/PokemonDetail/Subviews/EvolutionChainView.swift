@@ -15,9 +15,6 @@ struct EvolutionChainView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Evolution")
                     .foregroundStyle(.secondary)
-                // Full-width row: each stage gets an equal share of the available
-                // space (≈ screen/3 when there are 3 stages, screen/2 for 2).
-                // Arrows size to their content and sit between the equal columns.
                 HStack(alignment: .center, spacing: 0) {
                     ForEach(Array(stages.enumerated()), id: \.offset) { index, stage in
                         stageCell(stage)
@@ -47,7 +44,7 @@ struct EvolutionChainView: View {
                     } placeholder: {
                         Color(.systemGray4).clipShape(Circle())
                     }
-                    .frame(width: 64, height: 64)
+                    .frame(width: 72, height: 72)
                 }
                 Text(stage.species.name.capitalized)
                     .font(.pixel12)
@@ -64,14 +61,13 @@ struct EvolutionChainView: View {
     private func arrow(for detail: EvolutionDetail?) -> some View {
         VStack(spacing: 2) {
             Image(systemName: "arrow.right")
-                .font(.pixel14)
-                .foregroundStyle(textColor.opacity(0.7))
+                .font(.pixel12)
             if let label = label(for: detail) {
                 Text(label)
-                    .font(.pixel12)
-                    .foregroundStyle(textColor.opacity(0.7))
+                    .font(.pixel9)
             }
         }
+        .foregroundStyle(.secondary)
     }
 
     /// Pick the most descriptive label for an evolution trigger: level first,

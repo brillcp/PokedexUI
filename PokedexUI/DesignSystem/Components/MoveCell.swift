@@ -46,7 +46,7 @@ struct MoveCell: View, Equatable {
     }
 
     private var footer: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 12) {
             Chip(move.typeName.uppercased(), style: .custom(background: TypeColor.color(for: move.typeName)))
             switch mode {
             case .battle:
@@ -56,10 +56,10 @@ struct MoveCell: View, Equatable {
                         .foregroundStyle(.secondary)
                 }
             case .loadout:
-                Text("PWR \(move.power.map(String.init) ?? "—")")
+                Text("PWR\n\(move.power.map(String.init) ?? "—")")
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
-                Text("ACC \(move.accuracy.map { "\($0)%" } ?? "—")")
+                Text("ACC\n\(move.accuracy.map { "\($0)%" } ?? "—")")
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
             }

@@ -55,7 +55,7 @@ struct OpponentPickerView: View {
             .overlay(alignment: .bottom) { pickerButtons }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", role: .cancel) { dismiss() }
+                    Button(role: .cancel) { dismiss() }
                 }
             }
             .applyPokedexStyling(title: "Pick opponent", color: .black)

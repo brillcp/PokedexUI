@@ -29,7 +29,7 @@ struct BattleSetupView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("LOADOUT").font(.pixel17)
+                    Text("Loadout").font(.pixel17)
                 }
             }
             .toolbarBackground(Color.darkGrey ?? .black, for: .navigationBar)
@@ -134,7 +134,10 @@ struct BattleSetupView: View {
 
             HStack(spacing: 4) {
                 ForEach(pokemon.typeNames, id: \.self) { type in
-                    Chip(type.uppercased())
+                    Chip(
+                        type.uppercased(),
+                        style: .custom(background: TypeColor.color(for: type))
+                    )
                 }
             }
 
@@ -291,7 +294,7 @@ struct BattleSetupView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "bolt.fill")
-                Text("BATTLE")
+                Text("Battle")
             }
             .font(.pixel17)
             .frame(maxWidth: .infinity)
