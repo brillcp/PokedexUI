@@ -92,9 +92,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
                 if !fresh.isEmpty {
                     try await storageReader.store(fresh)
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        summaries.append(contentsOf: fresh)
-                    }
+                    summaries.append(contentsOf: fresh)
                     loadedCount = summaries.count
                 }
 

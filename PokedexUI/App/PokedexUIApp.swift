@@ -39,5 +39,9 @@ private struct RootView: View {
             container.movePrefetcher.attach(modelContainer: modelContext.container)
             await container.movePrefetcher.prefetchIfNeeded()
         }
+        .task(priority: .background) {
+            await container.spriteColorPrefetcher.attach(modelContainer: modelContext.container)
+            await container.spriteColorPrefetcher.prefetchIfNeeded()
+        }
     }
 }

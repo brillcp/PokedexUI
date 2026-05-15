@@ -60,4 +60,21 @@ actor DataStorageReader {
         try context.delete(model: M.self, where: predicate)
         try context.save()
     }
+
+    /// Batch-write computed color hexes onto `PokemonSummary` rows by id.
+    /// Used by `SpriteColorPrefetcher` to backfill colors in chunks without
+    /// pulling the @Model graph across actors.
+    func applyColorHexes(_ updates: [(Int, String)]) throws {
+        let context = modelContext
+        let ids = Set(updates.map { $0.0 })
+        let descriptor = FetchDescriptor<PokemonSummary>(
+            predicate: #Predicate { ids.contains($0.id) }
+        )
+        let summaries = try context.fetch(descriptor)
+        let byId = Dictionary(uniqueKeysWithValues: summaries.map { ($0.id, $0) })
+        for (id, hex) in updates {
+            byId[id]?.colorHex = hex
+        }
+        try context.save()
+    }
 }

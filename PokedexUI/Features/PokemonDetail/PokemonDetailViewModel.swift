@@ -27,7 +27,8 @@ protocol PokemonDetailViewModelProtocol {
 
     /// Fetch full pokemon detail (cache-first via SwiftData, then network).
     func loadFullDetails(context: ModelContext) async
-    /// Resolve the front sprite UIImage and the dominant color from it.
+    /// Resolve the front sprite UIImage and (if not seeded from
+    /// `summary.colorHex` in init) the dominant color from it.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async
     /// Resolve the back sprite UIImage once `pokemon` is hydrated.
@@ -70,6 +71,12 @@ final class PokemonDetailViewModel {
         self.isBookmarked = summary.isBookmarked
         self.pokemonService = pokemonService
         self.evolutionService = evolutionService
+        // Seed the gradient color from the persisted hex if we've already
+        // analyzed this sprite once. Frame-1 background instead of black-flash
+        // while the image color analyzer crunches.
+        if let hex = summary.colorHex {
+            self.color = Color(hex: hex)
+        }
     }
 }
 
@@ -87,9 +94,7 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         let id = summary.id
         let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
         if let cached = try? context.fetch(descriptor).first {
-            withAnimation(.easeIn(duration: 0.25)) {
-                self.pokemon = PokemonViewModel(pokemon: cached)
-            }
+            pokemon = PokemonViewModel(pokemon: cached)
             return
         }
 
@@ -98,9 +103,7 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
             let fetched = try await pokemonService.requestFullPokemon(id: id)
             context.insert(fetched)
             try? context.save()
-            withAnimation(.easeIn(duration: 0.25)) {
-                self.pokemon = PokemonViewModel(pokemon: fetched)
-            }
+            pokemon = PokemonViewModel(pokemon: fetched)
         } catch {
             print("Detail load failed for #\(id): \(error)")
         }
@@ -118,16 +121,19 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         }
     }
 
-    /// Front sprite + dominant color: drives the header from frame one, so
-    /// we only need `summary.frontSprite` (URL derived from id).
+    /// Front sprite + dominant color. The color is normally seeded in `init`
+    /// from `summary.colorHex` (filled by `SpriteColorPrefetcher` at app
+    /// start), so this call usually just loads the sprite image. On the rare
+    /// case the prefetcher hasn't reached this pokemon yet, the analyzer runs
+    /// to display a color in this session — the prefetcher persists it later.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async {
-        guard let image = await spriteLoader.spriteImage(from: summary.frontSprite),
-              let uicolor = await imageColorAnalyzer.dominantColor(for: summary.id, image: image)
-        else { return }
-
-        color = Color(uiColor: uicolor)
+        guard let image = await spriteLoader.spriteImage(from: summary.frontSprite) else { return }
         frontSprite = Image(uiImage: image)
+        if color == nil,
+           let uicolor = await imageColorAnalyzer.dominantColor(for: summary.id, image: image) {
+            color = Color(uiColor: uicolor)
+        }
     }
 
     /// Back sprite loads separately: the URL only exists on the full `Pokemon`

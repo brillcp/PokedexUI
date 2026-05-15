@@ -10,11 +10,17 @@ final class PokemonSummary {
     @Attribute(.unique) var id: Int
     var name: String
     var isBookmarked: Bool = false
+    /// Cached dominant sprite color (6-char hex, e.g. "ffcb05"). Set after the
+    /// first detail-view open per pokemon — lets the next visit render the
+    /// gradient background on frame 1 instead of waiting for the image color
+    /// analyzer to crunch the sprite again.
+    var colorHex: String? = nil
 
-    init(id: Int, name: String, isBookmarked: Bool = false) {
+    init(id: Int, name: String, isBookmarked: Bool = false, colorHex: String? = nil) {
         self.id = id
         self.name = name
         self.isBookmarked = isBookmarked
+        self.colorHex = colorHex
     }
 }
 

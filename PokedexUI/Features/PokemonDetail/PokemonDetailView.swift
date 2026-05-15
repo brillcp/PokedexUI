@@ -27,6 +27,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
                 spriteImage()
                 loadedSection()
             }
+            .animation(.linear(duration: 0.25), value: viewModel.isLoadingDetails)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .scrollIndicators(.hidden)
@@ -100,7 +101,6 @@ private extension PokemonDetailView {
                 actionButtons(pokemon: pokemon)
                 loadedContent(pokemon: pokemon)
             }
-            .transition(.opacity.combined(with: .offset(y: 20)))
         }
     }
 
@@ -148,6 +148,7 @@ private extension PokemonDetailView {
         .padding(.horizontal, 24)
         .foregroundStyle(textColor)
         .lineHeight(.loose)
+        .transition(.scale)
     }
 
     /// Top header: genus + generation badge.
@@ -225,10 +226,7 @@ private extension PokemonDetailView {
                     Task { await viewModel.playSound(with: container.audioPlayer) }
                 }
             }
-            // Only expose the flip toggle once the back image is actually
-            // loaded — otherwise tapping flips to a nil sprite which looks
-            // like a freeze.
-            if pokemon.backSprite != nil && viewModel.backSprite != nil {
+            if viewModel.backSprite != nil {
                 flipButton()
             }
         }
