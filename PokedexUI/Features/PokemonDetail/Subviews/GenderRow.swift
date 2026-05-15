@@ -20,10 +20,10 @@ struct GenderRow: View {
                     GeometryReader { proxy in
                         HStack(spacing: 0) {
                             Rectangle()
-                                .fill(Color.blue.opacity(0.7))
+                                .fill(.blue)
                                 .frame(width: proxy.size.width * male)
                             Rectangle()
-                                .fill(Color.pink.opacity(0.8))
+                                .fill(.pink)
                                 .frame(width: proxy.size.width * female)
                         }
                         .clipShape(Capsule())

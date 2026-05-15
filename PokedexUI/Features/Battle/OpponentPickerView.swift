@@ -133,7 +133,7 @@ struct OpponentPickerView: View {
             .padding(.vertical, 14)
             .foregroundStyle(.white)
         }
-        .glassEffect(.clear.tint(.pokedexRed?.opacity(0.7)).interactive(), in: Capsule())
+        .glassEffect(.clear.tint(.pokedexRed).interactive(), in: Capsule())
     }
 
     private func pickRandom() {

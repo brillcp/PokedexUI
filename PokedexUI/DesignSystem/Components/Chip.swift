@@ -55,7 +55,7 @@ extension Chip {
             switch self {
             case .neutral: return .white.opacity(0.15)
             case .accent:  return .white.opacity(0.1)
-            case .primary: return Color.pokedexRed?.opacity(0.7) ?? .red
+            case .primary: return Color.pokedexRed ?? .red
             case .success: return .green.opacity(0.4)
             case .danger:  return .red.opacity(0.4)
             case .custom(let bg, _): return bg
