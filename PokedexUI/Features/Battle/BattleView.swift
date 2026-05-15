@@ -30,11 +30,13 @@ struct BattleView: View {
             }
     }
 
+}
+
+// MARK: - Layout
+
+private extension BattleView {
     @ViewBuilder
-    private var content: some View {
-        // VM builds the visible state in init, so the arena renders from frame
-        // 1. The move grid disables itself if the engine isn't online yet
-        // (rare; the type chart is eager-loaded at app launch).
+    var content: some View {
         if let error = viewModel.errorMessage {
             Text(error)
                 .tint(.white)
@@ -47,7 +49,7 @@ struct BattleView: View {
         }
     }
 
-    private func battleLayout(state: BattleState) -> some View {
+    func battleLayout(state: BattleState) -> some View {
         VStack(spacing: 12) {
             Spacer(minLength: 0)
             arena(state: state)
@@ -62,7 +64,7 @@ struct BattleView: View {
 
     /// Classic Gameboy-style layout: opponent top-right with HP top-left,
     /// player bottom-left (back sprite) with HP bottom-right.
-    private func arena(state: BattleState) -> some View {
+    func arena(state: BattleState) -> some View {
         VStack(spacing: -28) {
             HStack(alignment: .top) {
                 hpCard(state.opponent, side: .opponent)
@@ -77,14 +79,14 @@ struct BattleView: View {
         }
     }
 
-    private func playerSpriteURL(state: BattleState) -> String? {
+    func playerSpriteURL(state: BattleState) -> String? {
         if viewModel.winner == .player {
             return state.player.frontSpriteURL
         }
         return state.player.backSpriteURL ?? state.player.frontSpriteURL
     }
 
-    private func sprite(url: String?, side: BattleSide) -> some View {
+    func sprite(url: String?, side: BattleSide) -> some View {
         BattlerSprite(
             url: url,
             side: side,
@@ -100,7 +102,7 @@ struct BattleView: View {
     /// player shows them BELOW, so each side's "id badge" sits next to the
     /// sprite it represents (opponent sprite is below its card, player sprite
     /// is above its card).
-    private func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
+    func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             if side == .opponent {
                 typeChips(c.typeNames)
@@ -118,7 +120,7 @@ struct BattleView: View {
         }
     }
 
-    private func typeChips(_ types: [String]) -> some View {
+    func typeChips(_ types: [String]) -> some View {
         HStack(spacing: 4) {
             ForEach(types, id: \.self) { type in
                 Chip(
@@ -135,7 +137,7 @@ struct BattleView: View {
     /// instead of swapping in place. Placeholders use negative ids (also
     /// stable) and animate out from the top as real lines push them
     /// off-screen.
-    private var logFeed: some View {
+    var logFeed: some View {
         let lineCount = 5
         let lineHeight: CGFloat = 16
         let thinking = viewModel.aiThinking
@@ -173,7 +175,7 @@ struct BattleView: View {
         .animation(.easeOut(duration: 0.25), value: thinking)
     }
 
-    private func moveGrid(state: BattleState) -> some View {
+    func moveGrid(state: BattleState) -> some View {
         // Move grid is locked until the engine is online; typically already
         // built in VM init, but the type-chart slow-path can leave it briefly
         // nil on first app run.
@@ -203,14 +205,14 @@ struct BattleView: View {
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }
 
-    private func hpTint(current: Int, max: Int) -> Color {
+    func hpTint(current: Int, max: Int) -> Color {
         let ratio = Double(current) / Double(max)
         if ratio > 0.5 { return .green }
         if ratio > 0.2 { return .yellow }
         return .red
     }
 
-    private func statusColor(_ status: BattleStatus) -> Color {
+    func statusColor(_ status: BattleStatus) -> Color {
         switch status {
         case .paralysis: return .yellow
         case .burn: return .orange

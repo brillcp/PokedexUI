@@ -36,10 +36,14 @@ struct BattleSetupView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .task { await viewModel.prepare(modelContext: modelContext) }
     }
+}
 
+// MARK: - Actions
+
+private extension BattleSetupView {
     /// Build the launch payload and bubble it up. Both sides commit to 4
     /// moves before this fires; `canStart` guards both player + AI readiness.
-    private func startBattle() {
+    func startBattle() {
         guard let player = viewModel.playerPokemon,
               let opponent = viewModel.opponentPokemon,
               let opponentMoves = viewModel.opponentLoadout
@@ -54,7 +58,7 @@ struct BattleSetupView: View {
     }
 
     @ViewBuilder
-    private var content: some View {
+    var content: some View {
         // Cross-fade between the three branches. `isReady` flips once both
         // sides are hydrated + move pools filled, which is the main transition
         // the player sees (spinner → grid).
@@ -76,14 +80,14 @@ struct BattleSetupView: View {
 
     // MARK: - States
 
-    private var loadingState: some View {
+    var loadingState: some View {
         ProgressView("Preparing battle…")
             .tint(.white)
             .font(.pixel14)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func errorState(_ message: String) -> some View {
+    func errorState(_ message: String) -> some View {
         Text(message)
             .font(.pixel14)
             .padding()
@@ -92,7 +96,7 @@ struct BattleSetupView: View {
 
     // MARK: - Loadout
 
-    private var loadout: some View {
+    var loadout: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 24) {
                 matchupRow
@@ -113,7 +117,7 @@ struct BattleSetupView: View {
     /// Two pokemon cards side-by-side with a "VS" badge between. Each card
     /// shows sprite, name, types, and the six base stats compressed into a
     /// 3×2 grid so they fit alongside each other on phone widths.
-    private var matchupRow: some View {
+    var matchupRow: some View {
         HStack(alignment: .top, spacing: 8) {
             if let player = viewModel.playerPokemon {
                 fighterCard(pokemon: player, summary: viewModel.playerSummary, isPlayer: true)
@@ -129,7 +133,7 @@ struct BattleSetupView: View {
         }
     }
 
-    private func fighterCard(pokemon: PokemonViewModel, summary: PokemonSummary, isPlayer: Bool) -> some View {
+    func fighterCard(pokemon: PokemonViewModel, summary: PokemonSummary, isPlayer: Bool) -> some View {
         VStack(spacing: 8) {
             AsyncImage(url: URL(string: summary.frontSprite)) { phase in
                 switch phase {
@@ -162,7 +166,7 @@ struct BattleSetupView: View {
 
     /// Compact base-stat readout: HP / ATK / DEF on row 1, SPA / SPD / SPE on row 2.
     /// Numbers only; full bars belong on the detail view.
-    private func statGrid(pokemon: PokemonViewModel) -> some View {
+    func statGrid(pokemon: PokemonViewModel) -> some View {
         let byName = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
         let entries: [(String, Int)] = [
             ("HP",  byName["hp"] ?? 0),
@@ -195,7 +199,7 @@ struct BattleSetupView: View {
 
     /// Symmetric "your offense × their defense" + reverse arrows. Player sees
     /// at a glance whether they out-type the opponent.
-    private var typeMatchup: some View {
+    var typeMatchup: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Type matchup")
                 .font(.pixel12)
@@ -220,7 +224,7 @@ struct BattleSetupView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    private func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
+    func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
         let multipliers = fromTypes.map { container.typeChart.multiplier(attacking: $0, defenders: toTypes) }
         let best = multipliers.max() ?? 1
         let label = effectivenessLabel(best)
@@ -239,7 +243,7 @@ struct BattleSetupView: View {
         .font(.pixel12)
     }
 
-    private func effectivenessChipStyle(_ mult: Double) -> Chip.Style {
+    func effectivenessChipStyle(_ mult: Double) -> Chip.Style {
         switch mult {
         case 0: return .custom(background: .black.opacity(0.5))
         case let m where m >= 2: return .success
@@ -248,7 +252,7 @@ struct BattleSetupView: View {
         }
     }
 
-    private func effectivenessLabel(_ mult: Double) -> String {
+    func effectivenessLabel(_ mult: Double) -> String {
         switch mult {
         case 0: return "×0"
         case let m where m >= 2: return "×\(Int(m))"
@@ -260,7 +264,7 @@ struct BattleSetupView: View {
 
     // MARK: - Move picker
 
-    private var movePicker: some View {
+    var movePicker: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Pick \(viewModel.maxSelections) moves")
@@ -282,7 +286,7 @@ struct BattleSetupView: View {
         }
     }
 
-    private func moveCard(_ move: MoveDetail) -> some View {
+    func moveCard(_ move: MoveDetail) -> some View {
         let selected = viewModel.selectedMoveNames.contains(move.name)
         let atCap = !selected && viewModel.selectedMoveNames.count >= viewModel.maxSelections
         return Button {
@@ -299,7 +303,7 @@ struct BattleSetupView: View {
 
     // MARK: - Battle button
 
-    private var battleButton: some View {
+    var battleButton: some View {
         // Two visible labels: "Pick N more" while player hasn't picked 4 yet,
         // "Battle" once they have. The AI loadout is hidden plumbing: if it's
         // still in flight, the button stays disabled but doesn't surface the

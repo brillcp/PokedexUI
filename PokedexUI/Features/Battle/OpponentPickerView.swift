@@ -94,17 +94,16 @@ struct OpponentPickerView: View {
         }
     }
 
-    /// Convert a row id back into the underlying summary and push setup.
-    private func select(rowId: Int) {
-        guard let match = allPokemon.first(where: { $0.id == rowId }) else { return }
-        setupOpponent = match
-    }
+}
 
+// MARK: - Subviews + actions
+
+private extension OpponentPickerView {
     /// Floating capsule glass buttons anchored at the bottom: dice for a
     /// pure-random pick, sparkles to ask the on-device AI for a "worthy"
     /// opponent. Both buttons disable while the model is thinking so Random
     /// can't race the AI mid-pick.
-    private var pickerButtons: some View {
+    var pickerButtons: some View {
         HStack(spacing: 12) {
             if !isAIThinking {
                 capsuleButton(icon: "die.face.5.fill", title: "Random", action: pickRandom)
@@ -122,7 +121,7 @@ struct OpponentPickerView: View {
         .padding(.horizontal, 24)
     }
 
-    private func capsuleButton(icon: String, title: String, action: @escaping () -> Void) -> some View {
+    func capsuleButton(icon: String, title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: icon)
@@ -138,7 +137,13 @@ struct OpponentPickerView: View {
         .glassEffect(.clear.tint(.pokedexRed).interactive(), in: Capsule())
     }
 
-    private func pickRandom() {
+    /// Convert a row id back into the underlying summary and push setup.
+    func select(rowId: Int) {
+        guard let match = allPokemon.first(where: { $0.id == rowId }) else { return }
+        setupOpponent = match
+    }
+
+    func pickRandom() {
         guard let pick = allPokemon.randomElement() else { return }
         setupOpponent = pick
     }
@@ -146,7 +151,7 @@ struct OpponentPickerView: View {
     /// Sample a smaller candidate pool first (the AI prompt has a token
     /// budget, so feeding it 1025 names is wasteful), then hand off to the AI.
     /// The service has an internal fallback to a random pick on model failure.
-    private func pickSmart() {
+    func pickSmart() {
         isAIThinking = true
         Task {
             let candidates = Array(allPokemon.shuffled().prefix(60))

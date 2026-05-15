@@ -30,8 +30,12 @@ struct EvolutionChainView: View {
             .frame(maxWidth: .infinity)
         }
     }
+}
 
-    private func stageCell(_ stage: EvolutionChain.Stage) -> some View {
+// MARK: - Subviews + helpers
+
+private extension EvolutionChainView {
+    func stageCell(_ stage: EvolutionChain.Stage) -> some View {
         Button {
             if let id = stage.species.id {
                 onSelect(id)
@@ -58,7 +62,7 @@ struct EvolutionChainView: View {
         .disabled(stage.species.id == nil)
     }
 
-    private func arrow(for detail: EvolutionDetail?) -> some View {
+    func arrow(for detail: EvolutionDetail?) -> some View {
         VStack(spacing: 2) {
             Image(systemName: "arrow.right")
                 .font(.pixel12)
@@ -72,7 +76,7 @@ struct EvolutionChainView: View {
 
     /// Pick the most descriptive label for an evolution trigger: level first,
     /// then item, then named trigger (stripped of `level-up`), then friendship.
-    private func label(for detail: EvolutionDetail?) -> String? {
+    func label(for detail: EvolutionDetail?) -> String? {
         guard let detail else { return nil }
         if let level = detail.minLevel {
             return "Lv \(level)"
