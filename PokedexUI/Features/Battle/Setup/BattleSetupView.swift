@@ -310,23 +310,14 @@ private extension BattleSetupView {
         // reason; the wait is usually under a second.
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
         let label = remaining > 0 ? "Pick \(remaining) more" : "Battle"
-        return Button {
-            startBattle()
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "bolt.fill")
-                Text(label)
-            }
-            .font(.pixel17)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .foregroundStyle(.white)
-        }
-        .glassEffect(.clear.tint(.pokedexRed?.opacity(0.8)).interactive(), in: Capsule())
+        return PrimaryCapsuleButton(
+            icon: "bolt.fill",
+            title: label,
+            isEnabled: viewModel.canStart,
+            action: startBattle
+        )
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
-        .opacity(viewModel.canStart ? 1 : 0.4)
-        .disabled(!viewModel.canStart)
         .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }
 }

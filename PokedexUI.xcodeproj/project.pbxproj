@@ -71,6 +71,7 @@
 		D5BA130E2E70000000000307 /* BattleLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA130F2E70000000000308 /* BattleLaunch.swift */; };
 		D5BA14002E70000000000401 /* Chip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14012E70000000000402 /* Chip.swift */; };
 		D5BA14022E70000000000403 /* MoveCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14032E70000000000404 /* MoveCell.swift */; };
+		D5BA14062E70000000000408 /* PrimaryCapsuleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14072E70000000000409 /* PrimaryCapsuleButton.swift */; };
 		D5BA14042E70000000000405 /* TypeColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14052E70000000000406 /* TypeColor.swift */; };
 		D5BA15002E70000000000501 /* SpriteColorPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA15012E70000000000502 /* SpriteColorPrefetcher.swift */; };
 		D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */; };
@@ -160,6 +161,7 @@
 		D5BA130F2E70000000000308 /* BattleLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleLaunch.swift; sourceTree = "<group>"; };
 		D5BA14012E70000000000402 /* Chip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chip.swift; sourceTree = "<group>"; };
 		D5BA14032E70000000000404 /* MoveCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveCell.swift; sourceTree = "<group>"; };
+		D5BA14072E70000000000409 /* PrimaryCapsuleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryCapsuleButton.swift; sourceTree = "<group>"; };
 		D5BA14052E70000000000406 /* TypeColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeColor.swift; sourceTree = "<group>"; };
 		D5BA15012E70000000000502 /* SpriteColorPrefetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorPrefetcher.swift; sourceTree = "<group>"; };
 		D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonDetailViewModel.swift; sourceTree = "<group>"; };
@@ -549,6 +551,7 @@
 				D5F6494C2E30FA82004FBD18 /* ItemSpriteView.swift */,
 				D5BA14012E70000000000402 /* Chip.swift */,
 				D5BA14032E70000000000404 /* MoveCell.swift */,
+				D5BA14072E70000000000409 /* PrimaryCapsuleButton.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -665,6 +668,7 @@
 				D5011AA82E36C13E00A2F8EE /* PokedexGridView.swift in Sources */,
 				D5BA14002E70000000000401 /* Chip.swift in Sources */,
 				D5BA14022E70000000000403 /* MoveCell.swift in Sources */,
+				D5BA14062E70000000000408 /* PrimaryCapsuleButton.swift in Sources */,
 				D5BA14042E70000000000405 /* TypeColor.swift in Sources */,
 				D58C0E022E3A26D0003098EC /* DataStorageReader.swift in Sources */,
 				9332C0EA273F51E1003AF377 /* AsyncSpriteView.swift in Sources */,

@@ -106,35 +106,22 @@ private extension OpponentPickerView {
     var pickerButtons: some View {
         HStack(spacing: 12) {
             if !isAIThinking {
-                capsuleButton(icon: "die.face.5.fill", title: "Random", action: pickRandom)
+                PrimaryCapsuleButton(
+                    icon: "die.face.5.fill",
+                    title: "Random",
+                    action: pickRandom
+                )
             }
-            capsuleButton(
+            PrimaryCapsuleButton(
                 icon: isAIThinking ? "hourglass" : "sparkles",
                 title: isAIThinking ? "Thinking" : "Smart pick",
+                isEnabled: !isAIThinking,
                 action: pickSmart
             )
         }
-        .disabled(isAIThinking)
-        .opacity(isAIThinking ? 0.6 : 1)
         .animation(.bouncy(duration: 0.25), value: isAIThinking)
         .padding(.bottom, 32)
         .padding(.horizontal, 24)
-    }
-
-    func capsuleButton(icon: String, title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
-                Text(title)
-                    .font(.pixel14)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .foregroundStyle(.white)
-        }
-        .glassEffect(.clear.tint(.pokedexRed).interactive(), in: Capsule())
     }
 
     /// Convert a row id back into the underlying summary and push setup.
