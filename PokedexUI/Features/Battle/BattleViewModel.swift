@@ -1,24 +1,34 @@
 import SwiftUI
 
+/// Drives `BattleView`. Takes fully-hydrated combatants + finalised move lists
+/// from `BattleSetupViewModel` — no network or SwiftData work happens inside
+/// this VM. By the time the view appears we already know everything we need
+/// to start the battle; `prepare()` just builds engine state and plays the
+/// entrance animation.
 @MainActor
 @Observable
 final class BattleViewModel {
-    let playerPokemon: PokemonViewModel
+    let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
+    /// Player's 4 hand-picked moves from the loadout screen.
+    let playerMoves:     [MoveDetail]
+    /// Opponent's sampled movepool (up to 40), used by the AI to pick each
+    /// turn. Player never sees this list directly.
+    let opponentMoves:   [MoveDetail]
 
     var engine: BattleEngine?
-    var state: BattleState?
-    var log: [String] = []
-    var isLoadingMoves = true
-    var isResolvingTurn = false
+    var state:  BattleState?
+    var log:    [String] = []
+    var isLoadingMoves   = true
+    var isResolvingTurn  = false
     var winner: BattleSide?
     var lastEvent: BattleEvent?
     var errorMessage: String?
 
     // Animation cues — each driven by event playback.
-    var attackingSide: BattleSide?
-    var faintedSide: BattleSide?
-    var playerShakeTick: Int = 0
+    var attackingSide:    BattleSide?
+    var faintedSide:      BattleSide?
+    var playerShakeTick:  Int = 0
     var opponentShakeTick: Int = 0
     /// Increments when the player commits a move — drives the attack-confirm haptic.
     var attackTick: Int = 0
@@ -26,41 +36,40 @@ final class BattleViewModel {
     /// shortly after `prepare` finishes so SwiftUI can animate them in.
     var hasEntered: Bool = false
 
-    private let typeChart: TypeChartLoader
-    private let moveService: MoveServiceProtocol
-    private let audioPlayer: AudioPlayer
+    private let typeChart:    TypeChartLoader
+    private let audioPlayer:  AudioPlayer
+    private let aiService:    BattleAIServiceProtocol
 
     init(
         player: PokemonViewModel,
         opponent: PokemonViewModel,
+        playerMoves: [MoveDetail],
+        opponentMoves: [MoveDetail],
         typeChart: TypeChartLoader,
-        moveService: MoveServiceProtocol,
-        audioPlayer: AudioPlayer
+        audioPlayer: AudioPlayer,
+        aiService: BattleAIServiceProtocol
     ) {
-        self.playerPokemon = player
+        self.playerPokemon   = player
         self.opponentPokemon = opponent
-        self.typeChart = typeChart
-        self.moveService = moveService
-        self.audioPlayer = audioPlayer
+        self.playerMoves     = playerMoves
+        self.opponentMoves   = opponentMoves
+        self.typeChart       = typeChart
+        self.audioPlayer     = audioPlayer
+        self.aiService       = aiService
     }
 
-    /// Preflight: ensure the type chart is loaded and hydrate up to 4 damaging moves per side.
+    /// Build engine state from the pre-supplied combatants + moves and start
+    /// the entrance animation. Type chart is the only thing we might still
+    /// need to wait on (it's a one-time eager load, usually already done).
     func prepare() async {
         await typeChart.loadIfNeeded()
-        do {
-            async let playerMoves = fetchMoves(for: playerPokemon)
-            async let opponentMoves = fetchMoves(for: opponentPokemon)
-            let player = BattleCombatant(pokemon: playerPokemon, moves: try await playerMoves)
-            let opponent = BattleCombatant(pokemon: opponentPokemon, moves: try await opponentMoves)
-            let state = BattleState(player: player, opponent: opponent)
-            self.state = state
-            self.engine = BattleEngine(state: state, typeChart: typeChart)
-            self.isLoadingMoves = false
-            await playEntrance()
-        } catch {
-            self.errorMessage = "Couldn't load moves: \(error.localizedDescription)"
-            self.isLoadingMoves = false
-        }
+        let playerSide   = BattleCombatant(pokemon: playerPokemon,   moves: playerMoves)
+        let opponentSide = BattleCombatant(pokemon: opponentPokemon, moves: opponentMoves)
+        let state = BattleState(player: playerSide, opponent: opponentSide)
+        self.state = state
+        self.engine = BattleEngine(state: state, typeChart: typeChart)
+        self.isLoadingMoves = false
+        await playEntrance()
     }
 
     /// Brief delay, then slide both sprites in and play the opponent's cry.
@@ -74,15 +83,22 @@ final class BattleViewModel {
         }
     }
 
-    /// Player picked a move. Resolve a round and animate events.
-    /// The engine returns the post-round state in one shot, but we want the HP bars
-    /// and status pills to update *in sync with their log line*. So we keep a
-    /// "displayed state" and apply each event's effect to it as we play.
+    // MARK: - Round playback
+
     func submit(_ move: MoveDetail) async {
-        guard let engine, !isResolvingTurn, winner == nil, state != nil else { return }
+        guard let engine, !isResolvingTurn, winner == nil, let snapshot = state else { return }
         attackTick += 1
         isResolvingTurn = true
-        let events = engine.resolveRound(playerMove: move)
+
+        // Ask the on-device AI for the opponent's move. Service falls back to
+        // a random pick automatically if Apple Intelligence is unavailable or
+        // the model returns garbage — so this always returns a legal move.
+        let opponentMove = await aiService.chooseMove(
+            attacker: snapshot.opponent,
+            defender: snapshot.player,
+            moves: snapshot.opponent.moves
+        )
+        let events = engine.resolveRound(playerMove: move, opponentMove: opponentMove)
         for event in events {
             lastEvent = event
             let line = format(event)
@@ -99,22 +115,20 @@ final class BattleViewModel {
                 break
             }
         }
-        // Reconcile with engine in case of drift (status flags resolved during ticks etc).
         state = engine.state
         isResolvingTurn = false
     }
 
-    /// Brief pause so the faint event finishes its slide-off before the cry fires.
     private func playWinnerCry() async {
         guard let winner else { return }
-        let pokemon = winner == .player ? playerPokemon : opponentPokemon
-        guard let cry = pokemon.latestCry else { return }
+        let cry = winner == .player ? playerPokemon.latestCry : opponentPokemon.latestCry
+        guard let cry else { return }
         try? await Task.sleep(for: .milliseconds(350))
         await audioPlayer.play(from: cry)
     }
 
-    /// Mutate the displayed state for a single event so the HP gauge animates only
-    /// after its matching log line appears.
+    /// Mutate the displayed state for a single event so the HP gauge animates
+    /// only after its matching log line appears.
     private func apply(_ event: BattleEvent) {
         guard var snapshot = state else { return }
         switch event {
@@ -148,7 +162,7 @@ final class BattleViewModel {
             withAnimation(.spring(response: 0.18, dampingFraction: 0.4)) { attackingSide = nil }
         case .damaged(let side, _, _, _):
             switch side {
-            case .player: playerShakeTick += 1
+            case .player:   playerShakeTick += 1
             case .opponent: opponentShakeTick += 1
             }
             try? await Task.sleep(for: .milliseconds(250))
@@ -160,18 +174,7 @@ final class BattleViewModel {
         }
     }
 
-    /// Fetch the pokemon's full movepool up front, capped at 40 moves to keep the
-    /// preflight from spiralling on pokemon with massive movesets. The shuffle
-    /// means battles with >40-move pokemon see a different random 40 each fight.
-    /// `MoveService.requestMoves(named:)` parallelises the network calls via a
-    /// `withThrowingTaskGroup`, so wall time scales with the slowest move, not
-    /// the count.
-    private func fetchMoves(for pokemon: PokemonViewModel) async throws -> [MoveDetail] {
-        let names = pokemon.pokemon.moves.map(\.move.name)
-        guard !names.isEmpty else { return [] }
-        let capped = Array(names.shuffled().prefix(40))
-        return try await moveService.requestMoves(named: capped)
-    }
+    // MARK: - Log formatting
 
     private func name(of side: BattleSide) -> String {
         side == .player ? playerPokemon.name : opponentPokemon.name

@@ -43,7 +43,7 @@ private extension PokedexView {
     var searchTab: some View {
         NavigationStack {
             SearchView(
-                viewModel: SearchViewModel(pokemon: viewModel.pokemon),
+                viewModel: SearchViewModel(),
                 selectedTab: $viewModel.selectedTab
             )
             .applyPokedexStyling(title: Tabs.search.title)
@@ -65,7 +65,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             PokedexGridView(
-                pokemon: viewModel.pokemon,
+                pokemon: viewModel.summaries,
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading
             )

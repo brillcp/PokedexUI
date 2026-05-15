@@ -51,4 +51,13 @@ actor DataStorageReader {
             print("Skipped clear for \(M.self): \(error)")
         }
     }
+
+    /// Deletes persisted objects of the given type that match the supplied
+    /// predicate. Used for one-off cleanups (e.g. purging alt-form pokemon
+    /// with id ≥ 10000 that were persisted under an earlier paging rule).
+    func delete<M: PersistentModel>(matching predicate: Predicate<M>) throws {
+        let context = modelContext
+        try context.delete(model: M.self, where: predicate)
+        try context.save()
+    }
 }

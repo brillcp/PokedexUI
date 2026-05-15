@@ -1,8 +1,12 @@
 import Networking
 
-protocol MoveServiceProtocol {
+protocol MoveServiceProtocol: Sendable {
     func requestMove(named name: String) async throws -> MoveDetail
     func requestMoves(named names: [String]) async throws -> [MoveDetail]
+    /// Pulls every move name from PokeAPI in a single list call. Used by the
+    /// prefetcher at app start so subsequent battle preflights are pure
+    /// SwiftData reads.
+    func requestAllMoveNames() async throws -> [String]
 }
 
 final class MoveService: MoveServiceProtocol {
@@ -30,5 +34,12 @@ final class MoveService: MoveServiceProtocol {
             }
             return out
         }
+    }
+
+    func requestAllMoveNames() async throws -> [String] {
+        // PokeAPI currently has ~937 moves. Cap at 2000 to absorb any future
+        // growth without ever needing pagination here.
+        let response: APIResponse = try await networkService.request(MoveRequest.list(limit: 2000))
+        return response.results.map(\.name)
     }
 }

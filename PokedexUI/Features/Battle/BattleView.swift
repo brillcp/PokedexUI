@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct BattleView: View {
-    @Environment(\.dismiss) private var dismiss
     @State var viewModel: BattleViewModel
 
     var body: some View {
@@ -69,14 +68,14 @@ struct BattleView: View {
     private func arena(state: BattleState) -> some View {
         VStack(spacing: -28) {
             HStack(alignment: .top) {
-                hpCard(state.opponent)
+                hpCard(state.opponent, side: .opponent)
                 Spacer(minLength: 12)
                 sprite(url: state.opponent.frontSpriteURL, side: .opponent)
             }
             HStack(alignment: .bottom) {
                 sprite(url: playerSpriteURL(state: state), side: .player)
                 Spacer(minLength: 12)
-                hpCard(state.player)
+                hpCard(state.player, side: .player)
             }
         }
     }
@@ -100,14 +99,37 @@ struct BattleView: View {
         )
     }
 
-    private func hpCard(_ c: BattleCombatant) -> some View {
-        HPCard(
-            name: c.name,
-            currentHP: c.currentHP,
-            maxHP: c.maxHP,
-            status: c.status
-        )
-        .equatable()
+    /// HP card with type chips. Opponent shows chips ABOVE the glass card,
+    /// player shows them BELOW — so each side's "id badge" sits next to the
+    /// sprite it represents (opponent sprite is below its card, player sprite
+    /// is above its card).
+    private func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if side == .opponent {
+                typeChips(c.typeNames)
+            }
+            HPCard(
+                name: c.name,
+                currentHP: c.currentHP,
+                maxHP: c.maxHP,
+                status: c.status
+            )
+            .equatable()
+            if side == .player {
+                typeChips(c.typeNames)
+            }
+        }
+    }
+
+    private func typeChips(_ types: [String]) -> some View {
+        HStack(spacing: 4) {
+            ForEach(types, id: \.self) { type in
+                Chip(
+                    type.uppercased(),
+                    style: .custom(background: TypeColor.color(for: type))
+                )
+            }
+        }
     }
 
     /// GameBoy-style fixed window — always 5 lines tall, showing the most recent 5.
@@ -145,41 +167,29 @@ struct BattleView: View {
 
     private func moveGrid(state: BattleState) -> some View {
         let disabled = viewModel.isResolvingTurn || viewModel.winner != nil
-        let rowHeight: CGFloat = 56
-        let cardWidth: CGFloat = 160
         let spacing: CGFloat = 12
-        // Two stacked rows of moves that scroll horizontally — paired so each
-        // swipe reveals two new cells at once.
-        let rows = [GridItem(.fixed(rowHeight), spacing: spacing), GridItem(.fixed(rowHeight), spacing: spacing)]
-        return ScrollView(.horizontal, showsIndicators: false) {
-            LazyHGrid(rows: rows, spacing: spacing) {
-                ForEach(state.player.moves, id: \.name) { move in
-                    Button {
-                        Task { await viewModel.submit(move) }
-                    } label: {
-                        moveLabel(move)
-                    }
-                    .frame(width: cardWidth)
-                    .disabled(disabled)
+        // Player has exactly 4 hand-picked moves (set during loadout), so the
+        // grid is a static 2×2 — no scrolling needed.
+        let columns = [
+            GridItem(.flexible(), spacing: spacing),
+            GridItem(.flexible(), spacing: spacing)
+        ]
+        return LazyVGrid(columns: columns, spacing: spacing) {
+            ForEach(state.player.moves, id: \.name) { move in
+                Button {
+                    Task { await viewModel.submit(move) }
+                } label: {
+                    MoveCell(move: move, mode: .battle)
+                        .equatable()
+                        .glassEffect(.clear.interactive(), in: RoundedRectangle(cornerRadius: 8))
                 }
+                .disabled(disabled)
             }
-            .padding(.horizontal, 16)
         }
-        .scrollTargetBehavior(.viewAligned)
-        .frame(height: rowHeight * 2 + spacing + 16)
+        .padding(.horizontal, 16)
         .disabled(disabled)
         .opacity(disabled ? 0.35 : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
-    }
-
-    private func moveLabel(_ move: MoveDetail) -> some View {
-        MoveLabel(
-            name: move.displayName,
-            typeName: move.typeName,
-            pp: move.pp,
-            typeColor: typeColor(move.typeName)
-        )
-        .equatable()
     }
 
     private func hpTint(current: Int, max: Int) -> Color {
@@ -198,24 +208,6 @@ struct BattleView: View {
         }
     }
 
-    private func typeColor(_ name: String) -> Color {
-        switch name {
-        case "fire": return .orange
-        case "water": return .blue
-        case "grass": return .green
-        case "electric": return .yellow
-        case "psychic": return .pink
-        case "ice": return .cyan
-        case "fighting", "rock", "ground": return .brown
-        case "poison", "ghost": return .purple
-        case "flying", "fairy": return .mint
-        case "bug": return .green.opacity(0.7)
-        case "steel": return .gray
-        case "dark": return .black
-        case "dragon": return .indigo
-        default: return .gray
-        }
-    }
 }
 
 #Preview {
@@ -225,9 +217,11 @@ struct BattleView: View {
                 viewModel: BattleViewModel(
                     player: PokemonViewModel(pokemon: .pikachu),
                     opponent: PokemonViewModel(pokemon: .pikachu),
+                    playerMoves: [],
+                    opponentMoves: [],
                     typeChart: TypeChartLoader(),
-                    moveService: MockMoveService(),
-                    audioPlayer: AudioPlayer()
+                    audioPlayer: AudioPlayer(),
+                    aiService: BattleAIService()
                 )
             )
         }

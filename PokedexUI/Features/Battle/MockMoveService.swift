@@ -13,6 +13,10 @@ struct MockMoveService: MoveServiceProtocol {
         names.map(Self.make)
     }
 
+    func requestAllMoveNames() async throws -> [String] {
+        ["tackle", "thunder-shock", "growl", "thunder-wave"]
+    }
+
     private static func make(_ name: String) -> MoveDetail {
         let move = MoveDetail(name: name)
         move.power = 40

@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Y-axis 3D flip used by the detail sprite. Single rotation — applying two
+/// stacked `rotation3DEffect` calls with the same angle compounds to 360° and
+/// cancels the visible flip entirely.
 struct Perspective3D: ViewModifier {
     @Binding var isFlipped: Bool
 
@@ -8,9 +11,6 @@ struct Perspective3D: ViewModifier {
             .rotation3DEffect(
                 .degrees(isFlipped ? 180 : 0),
                 axis: (x: 0, y: 1, z: 0)
-            )
-            .rotation3DEffect(
-                .degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0)
             )
     }
 }

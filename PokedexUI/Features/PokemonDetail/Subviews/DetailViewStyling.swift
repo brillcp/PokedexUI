@@ -13,7 +13,7 @@ extension View {
         self.font(.pixel14)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("\(viewModel.pokemon.name) #\(viewModel.pokemon.id)")
+                    Text("\(viewModel.summary.name) #\(viewModel.summary.id)")
                         .font(.pixel17)
                         .foregroundStyle(textColor)
                 }

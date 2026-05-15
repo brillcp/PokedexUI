@@ -22,22 +22,26 @@ final class AppContainer {
     // MARK: - Long-lived workers
 
     let typeChart:          TypeChartLoader
+    let movePrefetcher:     MovePrefetcher
     let spriteLoader:       SpriteLoader
     let imageColorAnalyzer: ImageColorAnalyzer
     let audioPlayer:        AudioPlayer
     let haptic:             UIImpactFeedbackGenerator
+    let battleAI:           BattleAIServiceProtocol
 
     init(
         pokemonService:     PokemonServiceProtocol  = PokemonService(),
         moveService:        MoveServiceProtocol     = MoveService(),
         typeService:        TypeServiceProtocol     = TypeService(),
-        evolutionService:   EvolutionServiceProtocol = EvolutionService(),
+        evolutionService:   EvolutionServiceProtocol = EvolutionService.shared,
         itemService:        ItemServiceProtocol     = ItemService(),
         typeChart:          TypeChartLoader         = TypeChartLoader(),
+        movePrefetcher:     MovePrefetcher          = MovePrefetcher(),
         spriteLoader:       SpriteLoader            = SpriteLoader(),
         imageColorAnalyzer: ImageColorAnalyzer      = ImageColorAnalyzer(),
         audioPlayer:        AudioPlayer             = AudioPlayer(),
-        haptic:             UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        haptic:             UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light),
+        battleAI:           BattleAIServiceProtocol = BattleAIService()
     ) {
         self.pokemonService     = pokemonService
         self.moveService        = moveService
@@ -45,10 +49,12 @@ final class AppContainer {
         self.evolutionService   = evolutionService
         self.itemService        = itemService
         self.typeChart          = typeChart
+        self.movePrefetcher     = movePrefetcher
         self.spriteLoader       = spriteLoader
         self.imageColorAnalyzer = imageColorAnalyzer
         self.audioPlayer        = audioPlayer
         self.haptic             = haptic
+        self.battleAI           = battleAI
     }
 
     /// The default container used by the live app. Resolved lazily on first

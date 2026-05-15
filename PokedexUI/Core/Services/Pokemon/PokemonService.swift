@@ -1,97 +1,96 @@
+import Foundation
 import Networking
 
-/// A protocol defining the interface for fetching Pokémon data.
+/// One paginated page of summaries + the total count the endpoint exposes.
+/// Callers stop requesting more pages once they have `count` summaries.
+struct PokemonPage: Sendable {
+    let summaries: [PokemonSummary]
+    let totalCount: Int
+}
+
+/// Public surface for Pokémon data: cheap paginated summary fetches for the
+/// grid, plus an on-demand "hydrate one" call for the detail/battle views.
 protocol PokemonServiceProtocol {
-    /// The underlying API service used to fetch and decode Pokémon data.
-    var service: APIService<PokemonService.Config> { get }
+    /// Fetches one page (~200 items) of `/pokemon`. Cheap — single network
+    /// call, no per-pokemon detail requests. Drives the pokedex grid.
+    func requestPokemonPage(offset: Int, limit: Int) async throws -> PokemonPage
 
-    /// Requests the initial set of Pokémon.
-    ///
-    /// - Returns: An array of `PokemonViewModel` objects.
-    /// - Throws: An error if the request or decoding fails.
-    func requestPokemon() async throws -> [PokemonViewModel]
+    /// Fully hydrates a single pokemon by id — fetches the species, resolves
+    /// the default variety, fetches the variety's `/pokemon/{id}`, and merges
+    /// species-only fields (habitat, flavor text, evolution chain, genus,
+    /// gender rate, capture rate, …) onto the returned `Pokemon`.
+    func requestFullPokemon(id: Int) async throws -> Pokemon
 }
-// MARK: - PokemonService implementation
-/// A concrete implementation of `PokemonServiceProtocol` for interacting with Pokémon-related endpoints of the PokeAPI.
-final class PokemonService {
-    /// The generic API service responsible for fetching and decoding Pokémon data.
-    let service: APIService<Config>
 
-    /// Creates a new `PokemonService` with an optional custom API service.
-    ///
-    /// - Parameter service: A configured API service. Defaults to one using `PokemonService.Config`.
-    init(service: APIService<Config> = .init(config: Config())) {
-        self.service = service
+// MARK: - Concrete implementation
+
+final class PokemonService: PokemonServiceProtocol {
+    private let networkService: Network.Service
+
+    init(networkService: Network.Service = .default) {
+        self.networkService = networkService
     }
-}
 
-// MARK: - PokemonServiceProtocol
-extension PokemonService: PokemonServiceProtocol {
-    /// Requests the initial set of Pokémon from the API.
-    ///
-    /// - Returns: An array of `PokemonViewModel` representing the fetched Pokémon.
-    /// - Throws: An error if the network request or decoding fails.
-    func requestPokemon() async throws -> [PokemonViewModel] {
-        try await service.requestData()
+    func requestPokemonPage(offset: Int, limit: Int) async throws -> PokemonPage {
+        let response: APIResponse = try await networkService.request(
+            PokemonRequest.pokemonPage(offset: offset, limit: limit)
+        )
+        let summaries = response.results.compactMap(Self.makeSummary)
+        return PokemonPage(
+            summaries: summaries,
+            totalCount: response.count ?? summaries.count
+        )
     }
-}
 
-// MARK: - PokemonService configuration
-extension PokemonService {
-    /// A configuration used by `APIService` to define Pokémon-specific requests and response transformation.
-    struct Config: ServiceConfiguration {
-        typealias ResponseType = Pokemon & Sendable
-        typealias OutputModel = PokemonViewModel
+    func requestFullPokemon(id: Int) async throws -> Pokemon {
+        let idString = "\(id)"
+        let species: PokemonSpecies = try await networkService.request(
+            PokemonRequest.species(idString)
+        )
 
-        /// Builds the request used to fetch the species list (one entry per Pokédex species).
-        func createRequest() -> Requestable {
-            PokemonRequest.speciesList
+        let pokemonId: String
+        if let variety = species.defaultVariety,
+           let url = try? variety.pokemon.url.asURL() {
+            pokemonId = url.lastPathComponent
+        } else {
+            pokemonId = idString
         }
 
-        /// Builds a request for fetching species data, used as the entry point for each detail.
-        func createDetailRequest(from urlComponent: String) -> Requestable {
-            PokemonRequest.species(urlComponent)
-        }
+        let pokemon: Pokemon = try await networkService.request(
+            PokemonRequest.details(pokemonId)
+        )
+        Self.merge(species: species, into: pokemon)
+        return pokemon
+    }
 
-        /// Fetches species first, resolves the default variety's Pokémon URL, then fetches
-        /// that Pokémon and attaches species-derived habitat and flavor text.
-        func fetchDetail(from urlComponent: String, networkService: Network.Service) async throws -> ResponseType {
-            let species: PokemonSpecies = try await networkService.request(
-                PokemonRequest.species(urlComponent)
-            )
+    // MARK: - Helpers
 
-            let pokemonId: String
-            if let variety = species.defaultVariety,
-               let url = try? variety.pokemon.url.asURL() {
-                pokemonId = url.lastPathComponent
-            } else {
-                pokemonId = urlComponent
-            }
+    /// Build a `PokemonSummary` from a list-endpoint result. Returns `nil`
+    /// when the URL doesn't carry a numeric trailing path component (defensive
+    /// against malformed responses) or when the id refers to a non-species
+    /// alt form (ids ≥ 10000 — mega/alolan/galarian/gmax variants which have
+    /// no `/pokemon-species/{id}` page and 404 on detail hydration).
+    private static func makeSummary(from item: APIItem) -> PokemonSummary? {
+        guard let url = URL(string: item.url),
+              let last = url.pathComponents.last(where: { !$0.isEmpty && $0 != "/" }),
+              let id = Int(last),
+              id < 10000
+        else { return nil }
+        return PokemonSummary(id: id, name: item.name.capitalized)
+    }
 
-            let pokemon: Pokemon = try await networkService.request(
-                PokemonRequest.details(pokemonId)
-            )
-            pokemon.habitat = species.habitat?.name
-            pokemon.flavorText = species.englishFlavorText
-            pokemon.genus = species.englishGenus
-            pokemon.generationName = species.generation?.name
-            pokemon.genderRate = species.genderRate
-            pokemon.captureRate = species.captureRate
-            pokemon.baseHappiness = species.baseHappiness ?? 0
-            pokemon.evolutionChainId = species.evolutionChain?.id
-            pokemon.isLegendary = species.isLegendary
-            pokemon.isMythical = species.isMythical
-            return pokemon
-        }
-
-        /// Transforms an array of detailed Pokémon data into sorted `PokemonViewModel` instances.
-        ///
-        /// - Parameter response: The array of detailed Pokémon data.
-        /// - Returns: A sorted array of `PokemonViewModel` by Pokémon ID.
-        func transformResponse(_ response: [ResponseType]) -> [OutputModel] {
-            response
-                .sorted(by: { $0.id < $1.id })
-                .map { PokemonViewModel(pokemon: $0) }
-        }
+    /// Copy species-only fields onto the fetched Pokémon. The `Pokemon`
+    /// decoder doesn't see these, so we fold them in after the variety fetch.
+    private static func merge(species: PokemonSpecies, into pokemon: Pokemon) {
+        pokemon.habitat          = species.habitat?.name
+        pokemon.flavorText       = species.englishFlavorText
+        pokemon.genus            = species.englishGenus
+        pokemon.generationName   = species.generation?.name
+        pokemon.genderRate       = species.genderRate
+        pokemon.captureRate      = species.captureRate
+        pokemon.baseHappiness    = species.baseHappiness ?? 0
+        pokemon.evolutionChainId = species.evolutionChain?.id
+        pokemon.isLegendary      = species.isLegendary
+        pokemon.isMythical       = species.isMythical
     }
 }

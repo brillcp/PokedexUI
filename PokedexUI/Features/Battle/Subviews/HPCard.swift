@@ -15,7 +15,7 @@ struct HPCard: View, Equatable {
                 Text(name).font(.pixel14)
                 if status != .none {
                     Text(status.displayName)
-                        .font(.pixel10)
+                        .font(.pixel9)
                         .foregroundStyle(statusColor)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 4)

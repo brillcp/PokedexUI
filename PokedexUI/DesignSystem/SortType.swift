@@ -1,23 +1,28 @@
 import Foundation
 
+/// Sort options exposed in the pokedex toolbar menu.
+///
+/// Only fields available on `PokemonSummary` (id + name) are shipped today —
+/// height/weight/stat sorts need fully-hydrated `Pokemon` rows we don't load
+/// up front anymore, so they're commented out of `allCases` until we re-add
+/// a background hydration pass.
+enum SortType: Hashable {
+    case number, name
+    case height, weight
+    case stat(Stats)
+
+    /// Cases shown in the menu. Restricted to what the summary list can sort on.
+    static let allCases: [Self] = [.number, .name]
+}
+
 enum Stats: String, CaseIterable {
     case hp, attack, defense, speed
 
-    var displayName: String {
-        rawValue.capitalized
-    }
+    var displayName: String { rawValue.capitalized }
 }
 
-enum SortType: Hashable {
-    case number, name, height, weight
-    case stat(Stats)
+// MARK: - Display
 
-    static let allCases: [Self] = [
-        .number, .name, .height, .weight
-    ] + Stats.allCases.map { .stat($0) }
-}
-
-// MARK: -
 extension SortType {
     var title: String {
         switch self {
@@ -44,22 +49,18 @@ extension SortType {
             }
         }
     }
+}
 
-    var comparator: (PokemonViewModel, PokemonViewModel) -> Bool {
+// MARK: - Comparator
+
+extension SortType {
+    /// Comparator over `PokemonSummary`. Falls back to id for any sort that
+    /// needs full-detail fields the summary doesn't carry.
+    var summaryComparator: (PokemonSummary, PokemonSummary) -> Bool {
         switch self {
         case .number: { $0.id < $1.id }
         case .name: { $0.name < $1.name }
-        case .height: { $0.pokemon.height > $1.pokemon.height }
-        case .weight: { $0.pokemon.weight > $1.pokemon.weight }
-        case .stat(let stat):
-            { $0.baseStat(for: stat) > $1.baseStat(for: stat) }
+        case .height, .weight, .stat: { $0.id < $1.id }
         }
-    }
-}
-
-// MARK: - PokemonViewModel base stat extension
-private extension PokemonViewModel {
-    func baseStat(for stat: Stats) -> Int {
-        statLookup[stat.rawValue] ?? 0
     }
 }

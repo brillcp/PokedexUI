@@ -9,6 +9,7 @@ enum Endpoint {
     case pokemon
     case items
     case moveDetail(String)
+    case moveList
     case typeDetail(String)
     case typeList
     case evolutionChain(String)
@@ -25,6 +26,7 @@ extension Endpoint: EndpointType {
             case .pokemon: return "pokemon"
             case .items: return "item"
             case .moveDetail(let id): return "move/\(id)"
+            case .moveList: return "move"
             case .typeDetail(let id): return "type/\(id)"
             case .typeList: return "type"
             case .evolutionChain(let id): return "evolution-chain/\(id)"

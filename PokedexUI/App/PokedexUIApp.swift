@@ -7,7 +7,13 @@ struct PokedexUIApp: App {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [ItemData.self, Pokemon.self, TypeDetail.self])
+        .modelContainer(for: [
+            PokemonSummary.self,
+            Pokemon.self,
+            ItemData.self,
+            TypeDetail.self,
+            MoveDetail.self
+        ])
     }
 }
 
@@ -24,6 +30,14 @@ private struct RootView: View {
         .task {
             container.typeChart.attach(modelContainer: modelContext.container)
             await container.typeChart.loadIfNeeded()
+        }
+        .task(priority: .background) {
+            // One-shot bulk move download. Mirrors `TypeChartLoader.loadIfNeeded`
+            // semantics — first launch fetches ~900 moves at background priority,
+            // subsequent launches see the cache and early-return without any
+            // network hit. Battle preflight reads `MoveDetail` rows locally.
+            container.movePrefetcher.attach(modelContainer: modelContext.container)
+            await container.movePrefetcher.prefetchIfNeeded()
         }
     }
 }

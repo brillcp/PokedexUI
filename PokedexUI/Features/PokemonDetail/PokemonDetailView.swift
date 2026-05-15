@@ -6,18 +6,14 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
 
-    // MARK: - Data Query
-    @Query(
-        filter: #Predicate<Pokemon> { $0.isBookmarked },
-        sort: \.id
-    )
-    private var bookmarks: [Pokemon]
-
     // MARK: - State Management
     @State private var viewModel: ViewModel
     @State private var showOpponentPicker = false
-    @State private var battleOpponent: PokemonViewModel?
-    @State private var evolutionTarget: PokemonViewModel?
+    /// Hydrated combatants + chosen movesets. Pushing this onto the nav stack
+    /// shows `BattleView`. Set when the picker sheet bubbles up a loadout
+    /// completion; back-from-battle is a single standard pop.
+    @State private var battleLaunch: BattleLaunch?
+    @State private var evolutionTarget: PokemonSummary?
 
     // MARK: - Initialization
     init(viewModel: ViewModel) {
@@ -28,51 +24,54 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
-                VStack(spacing: 0) {
-                    spriteImage()
-                    actionButtons()
-                }
-                contentSection()
+                spriteImage()
+                loadedSection()
             }
+            .frame(maxWidth: .infinity)
         }
         .scrollIndicators(.hidden)
-        .task(id: viewModel.pokemon.id) {
+        .task(id: viewModel.summary.id) {
+            await viewModel.loadFullDetails(context: modelContext)
+        }
+        .task(id: viewModel.summary.id) {
             await viewModel.loadSpritesAndColor(
                 withSpriteLoader: container.spriteLoader,
                 imageColorAnalyzer: container.imageColorAnalyzer
             )
         }
-        .task(id: viewModel.pokemon.evolutionChainId) {
+        .task(id: viewModel.pokemon?.id) {
+            // Back sprite URL only exists on the full Pokemon row, so wait
+            // for hydration to land before kicking off this load.
+            await viewModel.loadBackSprite(withSpriteLoader: container.spriteLoader)
+        }
+        .task(id: viewModel.pokemon?.evolutionChainId) {
             await viewModel.loadEvolutionChain()
         }
         .task { await container.typeChart.loadIfNeeded() }
-        .onAppear {
-            viewModel.updateBookmarkStatus(from: bookmarks)
-        }
         .sheet(isPresented: $showOpponentPicker) {
-            if let player = viewModel.pokemon as? PokemonViewModel {
-                OpponentPickerView(player: player) { opp in
-                    showOpponentPicker = false
-                    battleOpponent = opp
-                }
+            OpponentPickerView(player: viewModel.summary) { launch in
+                // Picker sheet has dismissed itself; we just push battle on
+                // the detail view's nav stack.
+                showOpponentPicker = false
+                battleLaunch = launch
             }
         }
-        .navigationDestination(item: $battleOpponent) { opp in
-            if let player = viewModel.pokemon as? PokemonViewModel {
-                BattleView(
-                    viewModel: BattleViewModel(
-                        player: player,
-                        opponent: opp,
-                        typeChart: container.typeChart,
-                        moveService: container.moveService,
-                        audioPlayer: container.audioPlayer
-                    )
+        .navigationDestination(item: $battleLaunch) { launch in
+            BattleView(
+                viewModel: BattleViewModel(
+                    player: launch.player,
+                    opponent: launch.opponent,
+                    playerMoves: launch.playerMoves,
+                    opponentMoves: launch.opponentMoves,
+                    typeChart: container.typeChart,
+                    audioPlayer: container.audioPlayer,
+                    aiService: container.battleAI
                 )
-            }
+            )
         }
         .navigationDestination(item: $evolutionTarget) { target in
             PokemonDetailView<PokemonDetailViewModel>(
-                viewModel: PokemonDetailViewModel(pokemon: target)
+                viewModel: PokemonDetailViewModel(summary: target)
             )
         }
         .applyDetailViewStyling(viewModel: viewModel, textColor: textColor, context: modelContext)
@@ -85,11 +84,28 @@ private extension PokemonDetailView {
         viewModel.color?.isLight ?? false ? .black : .white
     }
 
-    func contentSection() -> some View {
-        Group {
-            speciesHeader()
+    /// Everything below the sprite — action buttons + content — fades in
+    /// together once the lazy pokemon hydration call resolves. Sprite stays
+    /// visible from frame one (driven by `viewModel.summary`).
+    @ViewBuilder
+    func loadedSection() -> some View {
+        if let pokemon = viewModel.pokemon {
+            VStack(spacing: 32) {
+                actionButtons(pokemon: pokemon)
+                loadedContent(pokemon: pokemon)
+            }
+            .transition(.opacity)
+        }
+    }
 
-            if let flavorText = viewModel.pokemon.flavorText?.pretty {
+    /// Renders every detail row + the stats/evolution sections once the lazy
+    /// fetch resolves. Wrapped in `Group { … }.padding(...)` so the parent
+    /// `contentSection()` can swap it in with an opacity transition.
+    func loadedContent(pokemon: PokemonViewModelProtocol) -> some View {
+        Group {
+            speciesHeader(pokemon: pokemon)
+
+            if let flavorText = pokemon.flavorText?.pretty {
                 Text(flavorText)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -97,24 +113,24 @@ private extension PokemonDetailView {
                     .background(textColor.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
             }
-            DetailRow(title: "Types", subtitle: viewModel.pokemon.types)
-            DetailRow(title: "Height", subtitle: viewModel.pokemon.height)
-            DetailRow(title: "Weight", subtitle: viewModel.pokemon.weight)
+            typesRow(pokemon: pokemon)
+            DetailRow(title: "Height", subtitle: pokemon.height)
+            DetailRow(title: "Weight", subtitle: pokemon.weight)
 
-            if let habitat = viewModel.pokemon.habitat {
+            if let habitat = pokemon.habitat {
                 DetailRow(title: "Habitat", subtitle: habitat)
             }
-            DetailRow(title: "Capture", subtitle: capturePercentText)
-            GenderRow(rate: viewModel.pokemon.genderRate, textColor: textColor)
+            DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
+            GenderRow(rate: pokemon.genderRate, textColor: textColor)
             WeaknessGridView(
-                pokemon: viewModel.pokemon,
+                pokemon: pokemon,
                 typeChart: container.typeChart,
                 textColor: textColor
             )
 
-            rowSection(title: "Abilities", data: viewModel.pokemon.abilities)
-            rowSection(title: "Moves", data: viewModel.pokemon.moves)
-            statsSection()
+            rowSection(title: "Abilities", data: pokemon.abilities)
+            rowSection(title: "Moves", data: pokemon.moves)
+            statsSection(pokemon: pokemon)
             Divider().foregroundStyle(textColor)
             EvolutionChainView(
                 stages: viewModel.evolutionStages,
@@ -129,55 +145,55 @@ private extension PokemonDetailView {
     }
 
     /// Top header: genus + generation badge.
-    func speciesHeader() -> some View {
+    func speciesHeader(pokemon: PokemonViewModelProtocol) -> some View {
         HStack {
-            if let genus = viewModel.pokemon.genus {
+            if let genus = pokemon.genus {
                 Text(genus.pretty)
                     .font(.pixel14)
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if let gen = viewModel.pokemon.generationName?.uppercased().replacingOccurrences(of: "GENERATION-", with: "GEN ") {
-                Text(gen)
-                    .font(.pixel12)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(textColor.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            if let gen = pokemon.generationName?.uppercased().replacingOccurrences(of: "GENERATION-", with: "GEN ") {
+                Chip(gen, style: .custom(background: textColor.opacity(0.1), foreground: textColor))
             }
-            if viewModel.pokemon.isLegendary {
-                badgePill("LEGENDARY")
-            }
-            if viewModel.pokemon.isMythical {
-                badgePill("MYTHICAL")
-            }
+            if pokemon.isLegendary { Chip("LEGENDARY", style: .primary) }
+            if pokemon.isMythical { Chip("MYTHICAL", style: .primary) }
         }
     }
 
-    func badgePill(_ text: String) -> some View {
-        Text(text)
-            .font(.pixel12)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.pokedexRed.opacity(0.7))
-            .foregroundStyle(.white)
-            .clipShape(Capsule())
-    }
-
-    /// Resolve an evolution stage's species id to a stored `Pokemon` and push the detail view.
-    /// Skips navigation if the species isn't in the local SwiftData cache yet.
+    /// Resolve an evolution stage's species id to a stored `PokemonSummary`
+    /// and push that pokemon's detail view. Falls back to a minimal name
+    /// lookup if the summary isn't cached yet.
     func navigateToEvolution(speciesId: Int) {
-        guard speciesId != viewModel.pokemon.id else { return }
-        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == speciesId })
-        if let pokemon = try? modelContext.fetch(descriptor).first {
-            evolutionTarget = PokemonViewModel(pokemon: pokemon)
+        guard speciesId != viewModel.summary.id else { return }
+        let descriptor = FetchDescriptor<PokemonSummary>(predicate: #Predicate { $0.id == speciesId })
+        if let summary = try? modelContext.fetch(descriptor).first {
+            evolutionTarget = summary
         }
     }
 
-    var capturePercentText: String {
-        // PokeAPI capture_rate is a 0–255 byte. Convert to a familiar percent.
-        let pct = Int(round(Double(viewModel.pokemon.captureRate) / 255.0 * 100.0))
-        return "\(viewModel.pokemon.captureRate) (\(pct)%)"
+    func capturePercentText(for pokemon: PokemonViewModelProtocol) -> String {
+        let pct = Int(round(Double(pokemon.captureRate) / 255.0 * 100.0))
+        return "\(pokemon.captureRate) (\(pct)%)"
+    }
+
+    /// "Types" row built with type-tinted chips instead of a plain string.
+    /// Matches the chip style used on the fighter cards + battle HP card.
+    func typesRow(pokemon: PokemonViewModelProtocol) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            Text("Types")
+                .foregroundStyle(.secondary)
+                .frame(width: 82, alignment: .leading)
+            HStack(spacing: 4) {
+                ForEach(pokemon.typeNames, id: \.self) { type in
+                    Chip(
+                        type.uppercased(),
+                        style: .custom(background: TypeColor.color(for: type))
+                    )
+                }
+                Spacer()
+            }
+        }
     }
 
     func spriteImage() -> some View {
@@ -192,18 +208,21 @@ private extension PokemonDetailView {
 
 // MARK: - Action Buttons
 private extension PokemonDetailView {
-    func actionButtons() -> some View {
+    func actionButtons(pokemon: PokemonViewModelProtocol) -> some View {
         HStack {
             DetailButton(icon: "bolt.fill") {
                 showOpponentPicker = true
             }
             Spacer()
-            if viewModel.pokemon.latestCry != nil {
+            if pokemon.latestCry != nil {
                 DetailButton(icon: "speaker.wave.3.fill") {
                     Task { await viewModel.playSound(with: container.audioPlayer) }
                 }
             }
-            if viewModel.pokemon.backSprite != nil {
+            // Only expose the flip toggle once the back image is actually
+            // loaded — otherwise tapping flips to a nil sprite which looks
+            // like a freeze.
+            if pokemon.backSprite != nil && viewModel.backSprite != nil {
                 flipButton()
             }
         }
@@ -227,12 +246,12 @@ private extension PokemonDetailView {
 
 // MARK: - Information Sections
 private extension PokemonDetailView {
-    func statsSection() -> some View {
+    func statsSection(pokemon: PokemonViewModelProtocol) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Divider()
                 .foregroundStyle(textColor)
                 .frame(height: 2)
-            ForEach(viewModel.pokemon.stats) { stat in
+            ForEach(pokemon.stats) { stat in
                 DetailRowStat(
                     title: stat.stat.name,
                     value: stat.baseStat,
@@ -244,7 +263,7 @@ private extension PokemonDetailView {
                 Text("TOTAL")
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text("\(viewModel.pokemon.baseStatTotal)")
+                Text("\(pokemon.baseStatTotal)")
             }
             .font(.pixel14)
             .padding(.top, 4)
@@ -262,7 +281,7 @@ private extension PokemonDetailView {
 }
 
 #Preview {
-    let vm = PokemonDetailViewModel(pokemon: PokemonViewModel(pokemon: .pikachu))
+    let vm = PokemonDetailViewModel(summary: PokemonSummary(id: 25, name: "Pikachu"))
     PokemonDetailView(viewModel: vm)
         .colorScheme(.dark)
 }

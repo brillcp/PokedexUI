@@ -13,18 +13,14 @@ final class BattleEngine {
         self.typeChart = typeChart
     }
 
-    /// Resolve one round given the player's chosen move. AI picks a random move
-    /// from its known moveset. Returns the ordered list of events to animate.
-    func resolveRound(playerMove: MoveDetail) -> [BattleEvent] {
+    /// Resolve one round given both sides' chosen moves. The opponent's move
+    /// is picked by the caller (BattleViewModel) — typically via
+    /// `BattleAIService`, falling back to random. Returns the ordered list of
+    /// events to animate.
+    func resolveRound(playerMove: MoveDetail, opponentMove: MoveDetail) -> [BattleEvent] {
         guard case .selectingMove = state.phase else { return [] }
         var events: [BattleEvent] = []
         state.phase = .resolving
-
-        guard let opponentMove = state.opponent.moves.randomElement() else {
-            state.phase = .ended(winner: .player)
-            events.append(.ended(winner: .player))
-            return events
-        }
 
         // Order: priority desc, then effective speed desc, ties broken by coin flip.
         let order: [BattleSide] = orderedSides(

@@ -1,48 +1,37 @@
 import Foundation
 import SwiftData
 
-/// A protocol defining the requirements for a ViewModel that handles Pokémon search logic.
+/// Search works against the live `PokemonSummary` query (so it never goes
+/// stale as pagination fills the store). The view model owns only the query
+/// string and the filter logic — the SwiftData corpus is passed in by the
+/// view on each `updateFiltered(in:)` call.
 @MainActor
 protocol SearchViewModelProtocol {
-    /// The filtered list of Pokémon based on the current query.
-    var filtered: [PokemonViewModel] { get }
-    /// The user's search input query.
+    /// Filtered summaries matching the current query.
+    var filtered: [PokemonSummary] { get }
+    /// The user's search input.
     var query: String { get set }
 
-    /// Filters the Pokémon list based on the query and updates `filteredPokemon`.
-    func updateFilteredPokemon()
+    /// Recompute `filtered` from `query` against the supplied corpus.
+    func updateFiltered(in corpus: [PokemonSummary])
 
-    init(pokemon: [PokemonViewModel])
+    init()
 }
 
 // MARK: - SearchViewModel
-/// A ViewModel responsible for managing and filtering a list of Pokémon based on search queries.
+
 @Observable
 final class SearchViewModel {
-    // MARK: Private Properties
-    /// The full list of Pokémon to be searched.
-    private var pokemon: [PokemonViewModel]
-
-    // MARK: - Public Properties
-    /// The filtered Pokémon data.
-    var filtered: [PokemonViewModel] = []
-
-    /// The current search query entered by the user.
+    var filtered: [PokemonSummary] = []
     var query: String = ""
 
-    // MARK: - Init
-    init(pokemon: [PokemonViewModel]) {
-        self.pokemon = pokemon
-    }
+    init() {}
 }
 
 // MARK: - SearchViewModelProtocol
+
 extension SearchViewModel: SearchViewModelProtocol {
-    /// Filters the internal Pokémon list based on the current query.
-    ///
-    /// This method splits the query into normalized search terms (case- and diacritic-insensitive)
-    /// and filters Pokémon whose name or types match all terms.
-    func updateFilteredPokemon() {
+    func updateFiltered(in corpus: [PokemonSummary]) {
         let queryTerms = query
             .split(whereSeparator: \.isWhitespace)
             .map { $0.normalize }
@@ -53,8 +42,8 @@ extension SearchViewModel: SearchViewModelProtocol {
             return
         }
 
-        filtered = pokemon.filter { pokemonVM in
-            let haystack = pokemonVM.searchHaystack
+        filtered = corpus.filter { summary in
+            let haystack = summary.name.normalize
             return queryTerms.allSatisfy { haystack.contains($0) }
         }
     }

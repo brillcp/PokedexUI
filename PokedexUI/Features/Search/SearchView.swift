@@ -1,14 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct SearchView<ViewModel: SearchViewModelProtocol>: View {
-    // MARK: Private properties
     @FocusState private var isSearchFocused: Bool
+    @Query(sort: \PokemonSummary.id) private var corpus: [PokemonSummary]
 
-    // MARK: - Public properties
     @State var viewModel: ViewModel
     @Binding var selectedTab: Tabs
 
-    // MARK: - Body
     var body: some View {
         Group {
             if !viewModel.query.isEmpty && viewModel.filtered.isEmpty {
@@ -26,13 +25,19 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
         .onAppear { isSearchFocused = true }
         .scrollDismissesKeyboard(.immediately)
         .onChange(of: viewModel.query) { _, _ in
-            withAnimation(.bouncy(duration: 0.25)) { viewModel.updateFilteredPokemon() }
+            withAnimation(.bouncy(duration: 0.25)) {
+                viewModel.updateFiltered(in: corpus)
+            }
+        }
+        .onChange(of: corpus.count) { _, _ in
+            // Pagination just added more summaries — re-run the current query
+            // against the larger corpus so new matches appear without a typing pause.
+            viewModel.updateFiltered(in: corpus)
         }
         .onChange(of: isSearchFocused, dismissSearch)
     }
 }
 
-// MARK: - Private functions
 private extension SearchView {
     func dismissSearch(_ oldValue: Bool, _ newValue: Bool) {
         guard oldValue, !newValue, viewModel.query.isEmpty else { return }
@@ -43,10 +48,9 @@ private extension SearchView {
 }
 
 #Preview {
-    @Previewable
-    @Environment(\.modelContext) var modelContext
+    @Previewable @Environment(\.modelContext) var modelContext
     SearchView(
-        viewModel: SearchViewModel(pokemon: [.init(pokemon: .pikachu)]),
+        viewModel: SearchViewModel(),
         selectedTab: .constant(.pokedex)
     )
 }
