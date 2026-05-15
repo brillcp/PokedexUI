@@ -11,8 +11,7 @@
 PokedexUI is a modern example app built with **SwiftUI** by [Viktor Gidlöf](https://viktorgidlof.com).
 It integrates with the [PokeAPI](https://pokeapi.co) to fetch and display Pokémon data using a clean, reactive architecture using `async / await` and Swift Concurrency.
 
-<img width="360" alt="pd1" src="https://github.com/user-attachments/assets/13c2362d-4519-4457-8e8f-94c0b97ad1f9" />
-<img width="360" alt="pd2" src="https://github.com/user-attachments/assets/facfadbd-da67-4de8-9e7d-ac6c4207fbee" />
+<img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/451ad765-9be9-4643-afc2-6baccf661e91" />
 
 # Architecture 🏛
 
