@@ -107,7 +107,7 @@ private extension BattleSetupView {
     /// shows sprite, name, types, and the six base stats compressed into a
     /// 3×2 grid so they fit alongside each other on phone widths.
     var matchupRow: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 12) {
             if let player = viewModel.playerPokemon {
                 fighterCard(pokemon: player, summary: viewModel.playerSummary)
             }
@@ -246,7 +246,7 @@ private extension BattleSetupView {
         case 0: return "×0"
         case let m where m >= 2: return "×\(Int(m))"
         case let m where m == 1: return "×1"
-        case let m where m < 1: return "×½"
+        case let m where m < 1: return "×1/2"
         default: return String(format: "×%.1f", mult)
         }
     }
@@ -264,9 +264,15 @@ private extension BattleSetupView {
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
             }
+            let spacing: CGFloat = 16
+            let columns = [
+                GridItem(.flexible(), spacing: spacing),
+                GridItem(.flexible(), spacing: spacing)
+            ]
+
             LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
-                spacing: 8
+                columns: columns,
+                spacing: spacing
             ) {
                 ForEach(viewModel.playerMovePool, id: \.name) { move in
                     moveCard(move)

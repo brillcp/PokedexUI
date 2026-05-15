@@ -170,7 +170,7 @@ private extension BattleView {
 
     func moveGrid(state: BattleState) -> some View {
         let disabled = viewModel.engine == nil || viewModel.isResolvingTurn || viewModel.winner != nil
-        let spacing: CGFloat = 12
+        let spacing: CGFloat = 16
         let columns = [
             GridItem(.flexible(), spacing: spacing),
             GridItem(.flexible(), spacing: spacing)
