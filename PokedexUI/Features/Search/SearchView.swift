@@ -1,6 +1,9 @@
 import SwiftUI
 import SwiftData
 
+/// Search tab. Live-filters the pokedex on every keystroke against the
+/// `PokemonSummary` corpus pulled via `@Query`. Generic so previews can swap
+/// the view model.
 struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     @FocusState private var isSearchFocused: Bool
     @Query(sort: \PokemonSummary.id) private var corpus: [PokemonSummary]

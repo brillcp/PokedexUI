@@ -1,6 +1,10 @@
 import SwiftUI
 import SwiftData
 
+/// Pokemon detail screen. Sprite + name + id render frame 1 from the
+/// supplied `PokemonSummary`; the heavy body (stats, evolution, weaknesses)
+/// fades in once the full `Pokemon` row is hydrated. Generic over the view
+/// model protocol so tests + previews can swap in mocks.
 struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: View {
     // MARK: - Environment Dependencies
     @Environment(\.container) private var container
