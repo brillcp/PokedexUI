@@ -47,6 +47,9 @@ protocol PokemonDetailViewModelProtocol {
 
 // MARK: - Implementation
 
+/// Live implementation of `PokemonDetailViewModelProtocol`. Owns the lazy
+/// hydration of the full `Pokemon` row, back-sprite Image, dominant color
+/// fallback, evolution chain, and the bookmark toggle.
 @Observable
 final class PokemonDetailViewModel {
     let summary: PokemonSummary

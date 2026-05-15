@@ -1,6 +1,10 @@
 import SwiftUI
 
 // MARK: - Main View
+
+/// Root tab host. Owns the four top-level tabs (pokedex grid, items list,
+/// favourites, search) and forwards the relevant view model to each. Generic
+/// so previews + tests can supply mocks for both pokedex and item list.
 struct PokedexView<
     PokedexViewModel: PokedexViewModelProtocol,
     ItemListViewModel: ItemListViewModelProtocol
@@ -59,6 +63,9 @@ private extension PokedexView {
 }
 
 // MARK: - Content Views
+
+/// The pokedex tab's content. Wraps the grid in a `NavigationStack` and
+/// hosts the toolbar (sort menu + grid-layout toggle).
 private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
     let viewModel: ViewModel
 
@@ -77,6 +84,9 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
 }
 
 // MARK: - Toolbar
+
+/// Toolbar for the pokedex tab: grid layout toggle (3 vs 4 columns) on the
+/// left, sort menu on the right.
 private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: ToolbarContent {
     @State var viewModel: ViewModel
 

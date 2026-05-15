@@ -39,6 +39,9 @@ struct PokedexGridView: View {
 
 // MARK: - Grid item
 
+/// Single cell in the pokedex grid. Renders `AsyncSpriteView` inside a
+/// navigation link to `PokemonDetailView`, with a matched-transition
+/// source so the sprite zooms into the detail screen.
 private struct PokedexGridItem: View {
     let pokemon: PokemonSummary
     let grid: GridLayout

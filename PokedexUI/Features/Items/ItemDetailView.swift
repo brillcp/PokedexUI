@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Full description list for a single item: sprite, cost, effect blurb,
+/// flavor text. Pushed from the items tab via `ItemListView`.
 struct ItemDetailView<ViewModel: ItemDetailViewModelProtocol>: View {
     let viewModel: ViewModel
 

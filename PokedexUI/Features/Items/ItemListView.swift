@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Items tab. Paginated list of every PokeAPI item (potions, balls, TMs,
+/// etc.). Tapping a row pushes `ItemDetailView`.
 struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
     @State var viewModel: ViewModel
 

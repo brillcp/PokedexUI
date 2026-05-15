@@ -20,6 +20,9 @@ protocol SearchViewModelProtocol {
 
 // MARK: - SearchViewModel
 
+/// Live implementation of `SearchViewModelProtocol`. Holds only the query
+/// string + last filtered result; the corpus is owned by `SearchView` via
+/// `@Query` and handed in on every `updateFiltered(in:)` call.
 @Observable
 final class SearchViewModel {
     var filtered: [PokemonSummary] = []

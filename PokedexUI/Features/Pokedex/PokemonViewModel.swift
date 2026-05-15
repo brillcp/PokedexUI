@@ -196,6 +196,10 @@ extension PokemonViewModel: Hashable {
 }
 
 // MARK: - Array helper functions
+
+/// Internal helper: anything name-bearing that can be joined into a comma
+/// separated capitalized list (abilities, moves, types). Keeps the joining
+/// logic in one place rather than scattering `.map(\.name).joined(...)`.
 private protocol NameProvidable {
     var name: String { get }
 }

@@ -30,6 +30,9 @@ protocol PokedexViewModelProtocol {
 
 // MARK: - Implementation
 
+/// Live implementation of `PokedexViewModelProtocol`. Drives the paginated
+/// summary load, the cached-then-network resume behaviour, and the active
+/// sort + grid layout state for the toolbar.
 @Observable
 final class PokedexViewModel {
     /// Page size for `/pokemon?limit=N`. ~200 keeps each batch's network round-trip
