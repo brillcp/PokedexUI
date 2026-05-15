@@ -14,7 +14,8 @@ struct BookmarksView: View {
     var body: some View {
         NavigationStack {
             if bookmarks.isEmpty {
-                Text("No favourites yet…")
+                Text("No favourites")
+                    .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .font(.pixel14)
             } else {
