@@ -18,7 +18,7 @@ struct PrimaryCapsuleButton: View {
             }
             .font(.pixel17)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical)
             .foregroundStyle(.white)
         }
         .glassEffect(.clear.tint(.pokedexRed?.opacity(0.8)).interactive(), in: Capsule())

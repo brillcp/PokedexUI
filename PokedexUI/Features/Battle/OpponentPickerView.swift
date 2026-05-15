@@ -120,7 +120,6 @@ private extension OpponentPickerView {
             )
         }
         .animation(.bouncy(duration: 0.25), value: isAIThinking)
-        .padding(.bottom, 32)
         .padding(.horizontal, 24)
     }
 
@@ -182,13 +181,13 @@ private struct OpponentCard: View, Equatable {
         Button {
             onTap(row.id)
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 0) {
                 SpritePlaceholder(url: row.spriteURL)
-                    .frame(height: 96)
+                    .frame(height: 92)
                     .frame(maxWidth: .infinity)
                 Text(row.name)
                     .font(.pixel12)
-                    .padding(.bottom, 14)
+                    .padding(.bottom, 12)
             }
             .frame(maxWidth: .infinity)
             .background(Color.cardBackground)

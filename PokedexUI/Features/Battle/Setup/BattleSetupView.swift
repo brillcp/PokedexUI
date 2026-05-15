@@ -96,8 +96,7 @@ private extension BattleSetupView {
                 movePicker
                 Spacer(minLength: 96)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
+            .padding()
         }
         .scrollIndicators(.hidden)
         .safeAreaBar(edge: .bottom) { battleButton }
@@ -308,7 +307,6 @@ private extension BattleSetupView {
             action: startBattle
         )
         .padding(.horizontal, 24)
-        .padding(.bottom, 24)
         .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }
 }

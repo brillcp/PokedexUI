@@ -48,7 +48,7 @@ private extension BattleView {
         VStack(spacing: 12) {
             Spacer()
             arena(state: state)
-            logFeed.padding(.top, 16.0)
+            logFeed.padding(.top)
             moveGrid(state: state)
         }
         .frame(maxHeight: .infinity)
@@ -133,7 +133,7 @@ private extension BattleView {
     /// stable) and animate out from the top as real lines push them
     /// off-screen.
     var logFeed: some View {
-        let lineCount = 5
+        let lineCount = 4
         let lineHeight: CGFloat = 16
         let thinking = viewModel.aiThinking
         let realCapacity = thinking ? lineCount - 1 : lineCount
