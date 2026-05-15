@@ -61,7 +61,7 @@ struct OpponentPickerView: View {
             }
             .scrollIndicators(.hidden)
             .foregroundStyle(.white)
-            .overlay(alignment: .bottom) { pickerButtons }
+            .safeAreaBar(edge: .bottom) { pickerButtons }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(role: .cancel) { dismiss() }

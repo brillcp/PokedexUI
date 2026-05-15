@@ -100,10 +100,7 @@ private extension BattleSetupView {
             .padding(.vertical, 16)
         }
         .scrollIndicators(.hidden)
-        .ignoresSafeArea(edges: .bottom)
-        .safeAreaBar(edge: .bottom) {
-            battleButton
-        }
+        .safeAreaBar(edge: .bottom) { battleButton }
     }
 
     /// Two pokemon cards side-by-side with a "VS" badge between. Each card

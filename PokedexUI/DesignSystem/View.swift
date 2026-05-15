@@ -14,7 +14,6 @@ extension View {
             .toolbarBackground(color ?? .red, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .background(Color.darkGrey?.ignoresSafeArea())
-            .contentMargins(.bottom, 88.0)
     }
 
     func fadeIn<Value: Equatable>(when value: Value, duration: Double = 0.4) -> some View {

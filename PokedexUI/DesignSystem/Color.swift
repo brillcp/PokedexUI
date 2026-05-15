@@ -3,7 +3,7 @@ import SwiftUI
 extension Color {
     /// App background. Every full-screen feature (pokedex grid, search,
     /// opponent picker, loadout, battle) renders on this.
-    static let darkGrey = Color(hex: "222222")
+    static let darkGrey = Color(hex: "181818")
     /// Brand accent. Used for the bookmark heart, primary CTAs, legendary
     /// badges, and the VS chip.
     static let pokedexRed = Color(hex: "d53b47")
