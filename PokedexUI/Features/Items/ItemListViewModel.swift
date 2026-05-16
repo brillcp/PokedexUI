@@ -17,9 +17,10 @@ protocol ItemListViewModelProtocol {
 /// View model that manages the retrieval, searching, and storage of items.
 @Observable
 final class ItemListViewModel {
-    /// Service responsible for fetching items.
-    private let itemService: ItemServiceProtocol
-    private let storage: DataStorageReader
+    /// Fetcher that owns the cache-or-API choreography for the items list.
+    /// Composition over conformance: the view model **has** a fetcher rather
+    /// than **is** a fetcher.
+    private let fetcher: ItemFetcher
 
     /// The list of items currently displayed to the user.
     var items: [ItemData] = []
@@ -29,9 +30,9 @@ final class ItemListViewModel {
 
     /// Initializes a new instance of `ItemsListViewModel` with an optional item service.
     /// - Parameter itemService: The service used to fetch items. Defaults to a new `ItemService`.
-    init(modelContext: ModelContext, itemService: ItemService = ItemService()) {
-        self.itemService = itemService
-        self.storage = DataStorageReader(modelContainer: modelContext.container)
+    init(modelContext: ModelContext, itemService: ItemServiceProtocol = ItemService()) {
+        let storage = DataStorageReader(modelContainer: modelContext.container)
+        self.fetcher = ItemFetcher(storage: storage, service: itemService)
     }
 }
 
@@ -44,45 +45,8 @@ extension ItemListViewModel: ItemListViewModelProtocol {
         guard !isLoading, items.isEmpty else { return }
 
         items = await withLoadingState {
-            await fetchDataFromStorageOrAPI()
+            await fetcher.fetchDataFromStorageOrAPI()
         }
-    }
-}
-
-// MARK: - DataFetcher implementation
-extension ItemListViewModel: DataFetcher {
-    typealias StoredData = ItemData
-    typealias APIData = ItemData
-    typealias ViewModel = ItemData
-
-    func fetchStoredData() async throws -> [StoredData] {
-        try await storage.fetch(sortBy: SortDescriptor(\.title))
-    }
-
-    func fetchAPIData() async throws -> [APIData] {
-        try await itemService.requestItems()
-    }
-
-    func storeData(_ data: [StoredData]) async throws {
-        try await storage.store(data)
-    }
-
-    func transformToViewModel(_ data: StoredData) -> ViewModel {
-        data
-    }
-
-    func transformForStorage(_ data: ViewModel) -> StoredData {
-        data
-    }
-
-    func shouldInvalidate(_ stored: [ItemData]) -> Bool {
-        stored.contains(where: { $0.prettyTitle.isEmpty })
-    }
-
-    func clearStoredData() async throws {
-        await storage.clear(ItemData.self)
-        await storage.clear(ItemDetail.self)
-        await storage.clear(Effect.self)
     }
 }
 

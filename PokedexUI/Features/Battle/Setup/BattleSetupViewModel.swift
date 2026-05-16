@@ -2,6 +2,12 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+/// Terminal error raised when battle preflight cannot finish. Currently the
+/// only case is a hydration miss (network down + cache miss for one side).
+enum BattleSetupError: Error {
+    case hydrationFailed(id: Int)
+}
+
 /// Pre-battle prep screen. Hydrates both pokemon (cache-first), samples each
 /// side's movepool, surfaces the player's pool for hand-picking, and kicks off
 /// the AI's loadout pick in a background task so it runs in parallel with the
@@ -175,46 +181,26 @@ private extension BattleSetupViewModel {
         }
     }
 
-    /// SwiftData-cache-first hydration. Mirrors `PokemonDetailViewModel`'s path
-    /// so a pokemon viewed in detail is instant here too.
+    /// SwiftData-cache-first hydration through the shared `PokemonFetcher`.
+    /// Same code path `PokemonDetailViewModel` uses, so a pokemon viewed in
+    /// detail is instant here too.
     func hydrate(_ summary: PokemonSummary, in context: ModelContext) async throws -> PokemonViewModel {
-        let id = summary.id
-        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
-        if let cached = try? context.fetch(descriptor).first {
-            return PokemonViewModel(pokemon: cached)
+        let fetcher = PokemonFetcher(context: context, service: pokemonService)
+        guard let fetched = await fetcher.fetch(id: summary.id) else {
+            throw BattleSetupError.hydrationFailed(id: summary.id)
         }
-        let fetched = try await pokemonService.requestFullPokemon(id: id)
-        context.insert(fetched)
-        try? context.save()
         return PokemonViewModel(pokemon: fetched)
     }
 
-    /// Sample up to 40 moves from the pokemon's full movepool and resolve each
-    /// against the SwiftData `MoveDetail` cache (filled by `MovePrefetcher` at
-    /// app start). Misses fall back to network.
+    /// Sample up to 40 moves from the pokemon's full movepool and resolve
+    /// each against the SwiftData `MoveDetail` cache (filled by
+    /// `MovePrefetcher` at app start), with the network as the fall-back.
+    /// The `BatchDataFetcher` extension owns the cache-or-API choreography.
     func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) async throws -> [MoveDetail] {
         let names = pokemon.pokemon.moves.map(\.move.name)
         guard !names.isEmpty else { return [] }
-        let capped = Array(names.shuffled().prefix(40))
-
-        let descriptor = FetchDescriptor<MoveDetail>(
-            predicate: #Predicate { capped.contains($0.name) }
-        )
-        let cached = (try? modelContext.fetch(descriptor)) ?? []
-        let cachedByName = Dictionary(uniqueKeysWithValues: cached.map { ($0.name, $0) })
-
-        let missing = capped.filter { cachedByName[$0] == nil }
-        var fetched: [MoveDetail] = []
-        if !missing.isEmpty {
-            fetched = try await moveService.requestMoves(named: missing)
-            for move in fetched { modelContext.insert(move) }
-            try? modelContext.save()
-        }
-
-        let merged = cachedByName.merging(
-            Dictionary(uniqueKeysWithValues: fetched.map { ($0.name, $0) }),
-            uniquingKeysWith: { lhs, _ in lhs }
-        )
-        return capped.compactMap { merged[$0] }
+        let capped = Array(names.shuffled().prefix(60))
+        let fetcher = MoveBatchFetcher(context: modelContext, service: moveService)
+        return await fetcher.fetch(keys: capped)
     }
 }

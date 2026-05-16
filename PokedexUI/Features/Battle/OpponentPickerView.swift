@@ -61,7 +61,7 @@ struct OpponentPickerView: View {
             }
             .scrollIndicators(.hidden)
             .foregroundStyle(.white)
-            .safeAreaBar(edge: .bottom) { pickerButtons }
+            .safeAreaBar(edge: .bottom) { pickerButton }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(role: .cancel) { dismiss() }
@@ -99,27 +99,13 @@ struct OpponentPickerView: View {
 // MARK: - Subviews + actions
 
 private extension OpponentPickerView {
-    /// Floating capsule glass buttons anchored at the bottom: dice for a
-    /// pure-random pick, sparkles to ask the on-device AI for a "worthy"
-    /// opponent. Both buttons disable while the model is thinking so Random
-    /// can't race the AI mid-pick.
-    var pickerButtons: some View {
-        HStack(spacing: 12) {
-            if !isAIThinking {
-                PrimaryCapsuleButton(
-                    icon: "die.face.5.fill",
-                    title: "Random",
-                    action: pickRandom
-                )
-            }
-            PrimaryCapsuleButton(
-                icon: isAIThinking ? "hourglass" : "sparkles",
-                title: isAIThinking ? "Thinking" : "Smart pick",
-                isEnabled: !isAIThinking,
-                action: pickSmart
-            )
-        }
-        .animation(.bouncy(duration: 0.25), value: isAIThinking)
+    var pickerButton: some View {
+        PrimaryCapsuleButton(
+            icon: isAIThinking ? "hourglass" : "sparkles.2",
+            title: isAIThinking ? "Thinking" : "Random",
+            isEnabled: !isAIThinking,
+            action: pickSmart
+        )
         .padding(.horizontal, 24)
     }
 
@@ -140,7 +126,7 @@ private extension OpponentPickerView {
     func pickSmart() {
         isAIThinking = true
         Task {
-            let candidates = Array(allPokemon.shuffled().prefix(60))
+            let candidates = Array(allPokemon.shuffled())
             let pick = await container.battleAI.chooseOpponent(
                 for: player,
                 playerTypes: playerTypes,

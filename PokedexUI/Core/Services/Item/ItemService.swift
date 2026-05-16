@@ -1,4 +1,6 @@
+import Foundation
 import Networking
+import SwiftData
 
 /// A protocol defining the interface for fetching item data.
 protocol ItemServiceProtocol {
@@ -74,5 +76,58 @@ extension ItemService {
                 .sorted(by: { $0.key < $1.key })
                 .map { ItemData(title: $0.key, items: $0.value) }
         }
+    }
+}
+
+// MARK: - ItemFetcher
+
+/// `DataFetcher` conformer for the items list. Pulled out of
+/// `ItemListViewModel` so the view model is concerned only with UI state
+/// (`items`, `isLoading`) while this struct owns the cache-or-API
+/// choreography. Composition over conformance: the VM **has** a fetcher
+/// rather than **is** a fetcher.
+///
+/// All three associated types collapse to `ItemData` because the wire
+/// payload is decoded straight into the `@Model` row used by the view; a
+/// minimal example of `DataFetcher` for cases where no shape translation
+/// is needed.
+struct ItemFetcher: DataFetcher {
+    typealias StoredData = ItemData
+    typealias APIData = ItemData
+    typealias ViewModel = ItemData
+
+    private let storage: DataStorageReader
+    private let service: ItemServiceProtocol
+
+    init(storage: DataStorageReader, service: ItemServiceProtocol = ItemService()) {
+        self.storage = storage
+        self.service = service
+    }
+
+    func fetchStoredData() async throws -> [ItemData] {
+        try await storage.fetch(sortBy: SortDescriptor(\.title))
+    }
+
+    func fetchAPIData() async throws -> [ItemData] {
+        try await service.requestItems()
+    }
+
+    func storeData(_ data: [ItemData]) async throws {
+        try await storage.store(data)
+    }
+
+    func transformToViewModel(_ data: ItemData) -> ItemData { data }
+    func transformForStorage(_ data: ItemData) -> ItemData { data }
+
+    /// Force a refresh when the local cache predates the response-grouping
+    /// fix that filled in `prettyTitle`. Empty titles mark a stale row.
+    func shouldInvalidate(_ stored: [ItemData]) -> Bool {
+        stored.contains(where: { $0.prettyTitle.isEmpty })
+    }
+
+    func clearStoredData() async throws {
+        await storage.clear(ItemData.self)
+        await storage.clear(ItemDetail.self)
+        await storage.clear(Effect.self)
     }
 }

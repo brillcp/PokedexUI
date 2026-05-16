@@ -97,21 +97,12 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         isLoadingDetails = true
         defer { isLoadingDetails = false }
 
-        // 1. Cache lookup, falling back to network on miss.
-        let id = summary.id
-        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
-        let fetched: Pokemon
-        if let cached = try? context.fetch(descriptor).first {
-            fetched = cached
-        } else {
-            do {
-                fetched = try await pokemonService.requestFullPokemon(id: id)
-                context.insert(fetched)
-                try? context.save()
-            } catch {
-                print("Detail load failed for #\(id): \(error)")
-                return
-            }
+        // 1. Cache-or-API via the `IdentifiedDataFetcher` family. The fetcher
+        // owns the `FetchDescriptor` + network + `insert/save` choreography,
+        // leaving this method to express only the "what" for the view.
+        let fetcher = PokemonFetcher(context: context, service: pokemonService)
+        guard let fetched = await fetcher.fetch(id: summary.id) else {
+            return
         }
 
         // 2. Load the back sprite Image up-front so the flip button is armed
@@ -132,29 +123,9 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         guard evolutionStages.isEmpty,
               let chainId = pokemon?.evolutionChainId
         else { return }
-
-        // Cache hit: decode the persisted JSON payload and bail before the
-        // network. Chains never change so disk is authoritative once we've
-        // seen them.
-        let descriptor = FetchDescriptor<EvolutionChainEntity>(
-            predicate: #Predicate { $0.chainId == chainId }
-        )
-        if let entity = try? context.fetch(descriptor).first,
-           let cached = try? JSONDecoder().decode(EvolutionChain.self, from: entity.payload) {
-            evolutionStages = cached.stages
-            return
-        }
-
-        do {
-            let chain = try await evolutionService.requestChain(id: chainId)
-            evolutionStages = chain.stages
-            if let data = try? JSONEncoder().encode(chain) {
-                context.insert(EvolutionChainEntity(chainId: chainId, payload: data))
-                try? context.save()
-            }
-        } catch {
-            print("Evolution chain failed for \(summary.name): \(error)")
-        }
+        let fetcher = EvolutionFetcher(context: context, service: evolutionService)
+        guard let chain = await fetcher.fetch(id: chainId) else { return }
+        evolutionStages = chain.stages
     }
 
     /// Front sprite + dominant color. The color is normally seeded in `init`

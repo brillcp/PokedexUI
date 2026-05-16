@@ -19,16 +19,15 @@ struct BattleAIPromptBuilder {
         recentMoves: [String]
     ) -> String {
         let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double($0.maxHP) * 100) }
-        let recentSet = recentMoveAnnotations(recentMoves: recentMoves)
+        let annotations = moveAnnotations(moves: moves, recentMoves: recentMoves)
         let movesBlock = moves.enumerated().map { idx, move in
-            let annotation = recentSet[move.name]
-            return describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0, annotation: annotation)
+            describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0, annotation: annotations[idx])
         }.joined(separator: "\n")
-        let historyBlock = recentMoves.isEmpty
+        let historyLine = recentMoves.isEmpty
             ? ""
-            : "\n        Your last \(recentMoves.count) move(s): \(recentMoves.joined(separator: " -> "))\n"
+            : "\n        Your recent moves: \(recentMoves.joined(separator: " -> ")). Surprise the opponent with something different.\n"
         return """
-        Pick the best move for the attacker this turn.
+        Pick a move for the attacker this turn. Make this battle exciting.
 
         Attacker: \(attacker.name)
         - Types: \(attacker.typeNames.joined(separator: ", "))
@@ -39,11 +38,11 @@ struct BattleAIPromptBuilder {
         - Types: \(defender.typeNames.joined(separator: ", "))
         - HP: \(hpPct(defender))%
         - Status: \(statusDescription(defender.status))
-        \(historyBlock)
+        \(historyLine)
         Available moves (index: name. details):
         \(movesBlock)
 
-        Return ONLY the index (integer) of the chosen move from the list above.
+        Return ONLY the index (integer) of the chosen move.
         """
     }
 
@@ -122,21 +121,19 @@ private extension BattleAIPromptBuilder {
         return "\(index): \(move.name). \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)\(tag)"
     }
 
-    /// Builds annotations like "used last turn" or "used 2 of last 3 turns"
-    /// for moves that appear in recent history, keyed by move name.
-    func recentMoveAnnotations(recentMoves: [String]) -> [String: String] {
-        guard !recentMoves.isEmpty else { return [:] }
+    /// Annotates moves with recent usage info so the model naturally
+    /// gravitates toward variety.
+    func moveAnnotations(moves: [MoveDetail], recentMoves: [String]) -> [String?] {
+        guard !recentMoves.isEmpty else { return Array(repeating: nil, count: moves.count) }
+        let last = recentMoves.last
         var counts: [String: Int] = [:]
         for name in recentMoves { counts[name, default: 0] += 1 }
-        var result: [String: String] = [:]
-        for (name, count) in counts {
-            if count >= 2 {
-                result[name] = "used \(count) of last \(recentMoves.count) turns"
-            } else if name == recentMoves.last {
-                result[name] = "used last turn"
-            }
+        return moves.map { move in
+            let count = counts[move.name] ?? 0
+            if count >= 2 { return "used \(count) of last \(recentMoves.count) turns" }
+            if move.name == last { return "used last turn" }
+            return nil
         }
-        return result
     }
 
     func format(_ multiplier: Double) -> String {

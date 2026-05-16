@@ -35,18 +35,11 @@ protocol PokedexViewModelProtocol {
 /// sort + grid layout state for the toolbar.
 @Observable
 final class PokedexViewModel {
-    /// Page size for `/pokemon?limit=N`. ~200 keeps each batch's network round-trip
-    /// + SwiftData write under one second on a fresh install while still
-    /// covering the dex in a small number of pages.
-    private static let pageSize = 200
-    /// UserDefaults key flipped to `true` once the paginated `/pokemon` walk
-    /// finishes naturally (API returns an empty page). Subsequent launches
-    /// read this and skip the network entirely when the cache is non-empty.
-    /// Bumped if/when a new generation drops and we need to re-sync.
-    private static let syncedFullyKey = "pokedex.syncedFully.v1"
-
-    private let pokemonService: PokemonServiceProtocol
-    private let storageReader:  DataStorageReader
+    /// Fetcher that owns the cache-or-API choreography for the pokedex
+    /// list. Composition over conformance: the view model **has** a
+    /// fetcher rather than **is** a fetcher.
+    private let fetcher: PokemonPageFetcher
+    private let storageReader: DataStorageReader
 
     var summaries:   [PokemonSummary] = []
     var isLoading:   Bool = false
@@ -56,8 +49,9 @@ final class PokedexViewModel {
     var grid:        GridLayout = .three
 
     init(modelContext: ModelContext, pokemonService: PokemonServiceProtocol = PokemonService()) {
-        self.storageReader = DataStorageReader(modelContainer: modelContext.container)
-        self.pokemonService = pokemonService
+        let storage = DataStorageReader(modelContainer: modelContext.container)
+        self.storageReader = storage
+        self.fetcher = PokemonPageFetcher(storage: storage, service: pokemonService)
     }
 }
 
@@ -77,61 +71,21 @@ extension PokedexViewModel: PokedexViewModelProtocol {
             matching: #Predicate<PokemonSummary> { $0.id >= 10000 }
         )
 
-        // Resume from local cache first so returning users see the grid instantly.
-        let cached: [PokemonSummary] = (try? await storageReader.fetch(sortBy: SortDescriptor(\.id))) ?? []
-        if !cached.isEmpty {
-            summaries = cached
-            loadedCount = cached.count
-            totalCount = cached.count
-        }
-
-        // If a previous launch already walked the full `/pokemon` list to
-        // exhaustion, trust the cache and skip the network entirely. The flag
-        // is bumped (suffixed `vN`) if/when the dex expands and we need to
-        // re-sync.
-        if !cached.isEmpty,
-           UserDefaults.standard.bool(forKey: Self.syncedFullyKey) {
-            return
-        }
-
-        // Continue paginated fetches from wherever the cache leaves off.
-        var offset = cached.count
-        var done = false
-        var exhausted = false
-        while !done {
-            do {
-                let page = try await pokemonService.requestPokemonPage(
-                    offset: offset,
-                    limit: Self.pageSize
-                )
-                totalCount = page.totalCount
-
-                let knownIds = Set(summaries.map(\.id))
-                let fresh = page.summaries.filter { !knownIds.contains($0.id) }
-
-                if !fresh.isEmpty {
-                    try await storageReader.store(fresh)
-                    summaries.append(contentsOf: fresh)
-                    loadedCount = summaries.count
-                }
-
-                offset += page.summaries.count
-                if page.summaries.isEmpty {
-                    exhausted = true
-                    done = true
-                } else if loadedCount >= totalCount {
-                    done = true
-                }
-            } catch {
-                print("Pokedex page fetch failed at offset \(offset): \(error)")
-                done = true
+        // `PaginatedDataFetcher.paginatedLoad()` yields the cached set first
+        // (possibly empty), then each network page as fresh rows land. The
+        // view model just appends and lets the grid render progressively.
+        // The fetcher handles the `syncedFully` flag so a returning user
+        // with a complete cache makes zero network calls.
+        var isFirstBatch = true
+        for await batch in fetcher.paginatedLoad() {
+            if isFirstBatch {
+                summaries = batch
+                isFirstBatch = false
+            } else {
+                summaries.append(contentsOf: batch)
             }
-        }
-
-        // Only mark fully synced after a clean walk to the empty page. A mid-
-        // run network failure leaves the flag unset so the next launch retries.
-        if exhausted {
-            UserDefaults.standard.set(true, forKey: Self.syncedFullyKey)
+            loadedCount = summaries.count
+            totalCount = max(totalCount, summaries.count)
         }
     }
 
