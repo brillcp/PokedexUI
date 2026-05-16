@@ -58,9 +58,12 @@ final class BattleEngine {
         return events
     }
 
-    // MARK: - Action
+}
 
-    private func performAction(side: BattleSide, move: MoveDetail, events: inout [BattleEvent]) {
+// MARK: - Private
+
+private extension BattleEngine {
+    func performAction(side: BattleSide, move: MoveDetail, events: inout [BattleEvent]) {
         events.append(.used(side, moveName: move.displayName))
 
         // Paralysis full-skip check.
@@ -111,7 +114,7 @@ final class BattleEngine {
         }
     }
 
-    private func computeDamage(
+    func computeDamage(
         power: Int,
         move: MoveDetail,
         attacker: BattleCombatant,
@@ -142,7 +145,7 @@ final class BattleEngine {
 
     // MARK: - Status
 
-    private func applyStatusTick(side: BattleSide, events: inout [BattleEvent]) {
+    func applyStatusTick(side: BattleSide, events: inout [BattleEvent]) {
         let c = combatant(side)
         guard !c.isFainted else { return }
         switch c.status {
@@ -159,7 +162,7 @@ final class BattleEngine {
         }
     }
 
-    private func parseStatus(_ raw: String) -> BattleStatus {
+    func parseStatus(_ raw: String) -> BattleStatus {
         switch raw {
         case "paralysis": return .paralysis
         case "burn": return .burn
@@ -170,7 +173,7 @@ final class BattleEngine {
 
     // MARK: - Ordering
 
-    private func orderedSides(playerMove: MoveDetail, opponentMove: MoveDetail) -> [BattleSide] {
+    func orderedSides(playerMove: MoveDetail, opponentMove: MoveDetail) -> [BattleSide] {
         let playerKey = (playerMove.priority, state.player.effectiveSpeed)
         let opponentKey = (opponentMove.priority, state.opponent.effectiveSpeed)
         if playerKey.0 != opponentKey.0 {
@@ -184,11 +187,11 @@ final class BattleEngine {
 
     // MARK: - State helpers
 
-    private func combatant(_ side: BattleSide) -> BattleCombatant {
+    func combatant(_ side: BattleSide) -> BattleCombatant {
         side == .player ? state.player : state.opponent
     }
 
-    private func mutate(_ side: BattleSide, _ body: (inout BattleCombatant) -> Void) {
+    func mutate(_ side: BattleSide, _ body: (inout BattleCombatant) -> Void) {
         if side == .player {
             body(&state.player)
         } else {

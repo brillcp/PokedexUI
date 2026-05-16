@@ -192,23 +192,8 @@ private extension BattleView {
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }
 
-    func hpTint(current: Int, max: Int) -> Color {
-        let ratio = Double(current) / Double(max)
-        if ratio > 0.5 { return .green }
-        if ratio > 0.2 { return .yellow }
-        return .red
-    }
-
-    func statusColor(_ status: BattleStatus) -> Color {
-        switch status {
-        case .paralysis: return .yellow
-        case .burn: return .orange
-        case .poison: return .purple
-        case .none: return .clear
-        }
-    }
-
 }
+
 
 #Preview {
     NavigationStack {

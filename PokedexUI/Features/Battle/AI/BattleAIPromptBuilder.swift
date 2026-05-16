@@ -96,11 +96,14 @@ struct BattleAIPromptBuilder {
         """
     }
 
-    // MARK: - Helpers
+}
 
+// MARK: - Private
+
+private extension BattleAIPromptBuilder {
     /// Render one move row. Damaging moves include the pre-computed
     /// effectiveness multiplier vs the defender's typing.
-    private func describe(_ move: MoveDetail, index: Int, effectiveness: Double) -> String {
+    func describe(_ move: MoveDetail, index: Int, effectiveness: Double) -> String {
         let power = move.power.map { "\($0)" } ?? "-"
         let accuracy = move.accuracy.map { "\($0)%" } ?? "100%"
         let effectivenessText: String
@@ -113,14 +116,14 @@ struct BattleAIPromptBuilder {
         return "\(index): \(move.name). \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)"
     }
 
-    private func format(_ multiplier: Double) -> String {
+    func format(_ multiplier: Double) -> String {
         if multiplier == multiplier.rounded() {
             return String(Int(multiplier))
         }
         return String(format: "%.2f", multiplier)
     }
 
-    private func statusDescription(_ status: BattleStatus) -> String {
+    func statusDescription(_ status: BattleStatus) -> String {
         switch status {
         case .none: return "healthy"
         case .paralysis: return "paralyzed (speed halved, 25% skip)"

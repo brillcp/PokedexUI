@@ -94,17 +94,6 @@ final class BattleViewModel {
         await playEntrance()
     }
 
-    /// Brief delay, then slide both sprites in and play the opponent's cry.
-    private func playEntrance() async {
-        try? await Task.sleep(for: .milliseconds(250))
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
-            hasEntered = true
-        }
-        if let cry = opponentPokemon.latestCry {
-            await audioPlayer.play(from: cry)
-        }
-    }
-
     // MARK: - Round playback
 
     func submit(_ move: MoveDetail) async {
@@ -152,8 +141,22 @@ final class BattleViewModel {
         state = engine.state
         isResolvingTurn = false
     }
+}
 
-    private func playWinnerCry() async {
+// MARK: - Private
+
+private extension BattleViewModel {
+    func playEntrance() async {
+        try? await Task.sleep(for: .milliseconds(250))
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
+            hasEntered = true
+        }
+        if let cry = opponentPokemon.latestCry {
+            await audioPlayer.play(from: cry)
+        }
+    }
+
+    func playWinnerCry() async {
         guard let winner else { return }
         let cry = winner == .player ? playerPokemon.latestCry : opponentPokemon.latestCry
         guard let cry else { return }
@@ -163,7 +166,7 @@ final class BattleViewModel {
 
     /// Mutate the displayed state for a single event so the HP gauge animates
     /// only after its matching log line appears.
-    private func apply(_ event: BattleEvent) {
+    func apply(_ event: BattleEvent) {
         guard var snapshot = state else { return }
         switch event {
         case .damaged(let side, let amount, _, _),
@@ -179,7 +182,7 @@ final class BattleViewModel {
         state = snapshot
     }
 
-    private func mutate(_ side: BattleSide, in state: inout BattleState, _ body: (inout BattleCombatant) -> Void) {
+    func mutate(_ side: BattleSide, in state: inout BattleState, _ body: (inout BattleCombatant) -> Void) {
         if side == .player {
             body(&state.player)
         } else {
@@ -188,7 +191,7 @@ final class BattleViewModel {
     }
 
     /// Drive the per-event visual cue: attacker lunge, defender shake, faint fade.
-    private func playAnimation(for event: BattleEvent) async {
+    func playAnimation(for event: BattleEvent) async {
         switch event {
         case .used(let side, _):
             withAnimation(.easeOut(duration: 0.10)) { attackingSide = side }
@@ -210,11 +213,11 @@ final class BattleViewModel {
 
     // MARK: - Log formatting
 
-    private func name(of side: BattleSide) -> String {
+    func name(of side: BattleSide) -> String {
         side == .player ? playerPokemon.name : opponentPokemon.name
     }
 
-    private func format(_ event: BattleEvent) -> String {
+    func format(_ event: BattleEvent) -> String {
         switch event {
         case .used(let side, let moveName):
             return "\(name(of: side)) used \(moveName)!"

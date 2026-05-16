@@ -154,11 +154,16 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
         }
     }
 
+}
+
+// MARK: - Private
+
+private extension BattleSetupViewModel {
     /// Sort movepool so the most useful damaging moves bubble to the top of
     /// the picker grid. Damaging moves before status, then higher power, then
     /// higher accuracy. Player still makes every pick consciously; this only
     /// changes presentation order.
-    private static func rankedByImpact(_ moves: [MoveDetail]) -> [MoveDetail] {
+    static func rankedByImpact(_ moves: [MoveDetail]) -> [MoveDetail] {
         moves.sorted { lhs, rhs in
             let lDamage = (lhs.power ?? 0) > 0
             let rDamage = (rhs.power ?? 0) > 0
@@ -170,11 +175,9 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
         }
     }
 
-    // MARK: - Helpers
-
     /// SwiftData-cache-first hydration. Mirrors `PokemonDetailViewModel`'s path
     /// so a pokemon viewed in detail is instant here too.
-    private func hydrate(_ summary: PokemonSummary, in context: ModelContext) async throws -> PokemonViewModel {
+    func hydrate(_ summary: PokemonSummary, in context: ModelContext) async throws -> PokemonViewModel {
         let id = summary.id
         let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
         if let cached = try? context.fetch(descriptor).first {
@@ -189,7 +192,7 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     /// Sample up to 40 moves from the pokemon's full movepool and resolve each
     /// against the SwiftData `MoveDetail` cache (filled by `MovePrefetcher` at
     /// app start). Misses fall back to network.
-    private func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) async throws -> [MoveDetail] {
+    func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) async throws -> [MoveDetail] {
         let names = pokemon.pokemon.moves.map(\.move.name)
         guard !names.isEmpty else { return [] }
         let capped = Array(names.shuffled().prefix(40))
