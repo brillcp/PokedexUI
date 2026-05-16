@@ -15,7 +15,8 @@ struct PokedexUIApp: App {
             Pokemon.self,
             ItemData.self,
             TypeDetail.self,
-            MoveDetail.self
+            MoveDetail.self,
+            EvolutionChainEntity.self
         ])
     }
 }

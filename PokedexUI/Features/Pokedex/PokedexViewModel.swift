@@ -39,6 +39,11 @@ final class PokedexViewModel {
     /// + SwiftData write under one second on a fresh install while still
     /// covering the dex in a small number of pages.
     private static let pageSize = 200
+    /// UserDefaults key flipped to `true` once the paginated `/pokemon` walk
+    /// finishes naturally (API returns an empty page). Subsequent launches
+    /// read this and skip the network entirely when the cache is non-empty.
+    /// Bumped if/when a new generation drops and we need to re-sync.
+    private static let syncedFullyKey = "pokedex.syncedFully.v1"
 
     private let pokemonService: PokemonServiceProtocol
     private let storageReader:  DataStorageReader
@@ -77,11 +82,22 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         if !cached.isEmpty {
             summaries = cached
             loadedCount = cached.count
+            totalCount = cached.count
+        }
+
+        // If a previous launch already walked the full `/pokemon` list to
+        // exhaustion, trust the cache and skip the network entirely. The flag
+        // is bumped (suffixed `vN`) if/when the dex expands and we need to
+        // re-sync.
+        if !cached.isEmpty,
+           UserDefaults.standard.bool(forKey: Self.syncedFullyKey) {
+            return
         }
 
         // Continue paginated fetches from wherever the cache leaves off.
         var offset = cached.count
         var done = false
+        var exhausted = false
         while !done {
             do {
                 let page = try await pokemonService.requestPokemonPage(
@@ -100,11 +116,22 @@ extension PokedexViewModel: PokedexViewModelProtocol {
                 }
 
                 offset += page.summaries.count
-                done = page.summaries.isEmpty || loadedCount >= totalCount
+                if page.summaries.isEmpty {
+                    exhausted = true
+                    done = true
+                } else if loadedCount >= totalCount {
+                    done = true
+                }
             } catch {
                 print("Pokedex page fetch failed at offset \(offset): \(error)")
                 done = true
             }
+        }
+
+        // Only mark fully synced after a clean walk to the empty page. A mid-
+        // run network failure leaves the flag unset so the next launch retries.
+        if exhausted {
+            UserDefaults.standard.set(true, forKey: Self.syncedFullyKey)
         }
     }
 

@@ -33,8 +33,9 @@ protocol PokemonDetailViewModelProtocol {
     /// `summary.colorHex` in init) the dominant color from it.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async
-    /// Fetch the evolution chain via the API (no-op if absent or already loaded).
-    func loadEvolutionChain() async
+    /// Fetch the evolution chain (SwiftData-cache-first, network on miss).
+    /// No-op when absent or already loaded.
+    func loadEvolutionChain(context: ModelContext) async
     /// Toggle the `isBookmarked` flag on the underlying summary row.
     func toggleBookmark(in context: ModelContext)
     /// Flip to the back sprite, with a haptic.
@@ -127,13 +128,30 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         self.pokemon = viewModelForVM
     }
 
-    func loadEvolutionChain() async {
+    func loadEvolutionChain(context: ModelContext) async {
         guard evolutionStages.isEmpty,
               let chainId = pokemon?.evolutionChainId
         else { return }
+
+        // Cache hit: decode the persisted JSON payload and bail before the
+        // network. Chains never change so disk is authoritative once we've
+        // seen them.
+        let descriptor = FetchDescriptor<EvolutionChainEntity>(
+            predicate: #Predicate { $0.chainId == chainId }
+        )
+        if let entity = try? context.fetch(descriptor).first,
+           let cached = try? JSONDecoder().decode(EvolutionChain.self, from: entity.payload) {
+            evolutionStages = cached.stages
+            return
+        }
+
         do {
             let chain = try await evolutionService.requestChain(id: chainId)
             evolutionStages = chain.stages
+            if let data = try? JSONEncoder().encode(chain) {
+                context.insert(EvolutionChainEntity(chainId: chainId, payload: data))
+                try? context.save()
+            }
         } catch {
             print("Evolution chain failed for \(summary.name): \(error)")
         }

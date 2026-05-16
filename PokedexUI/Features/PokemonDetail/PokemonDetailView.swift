@@ -48,7 +48,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             )
         }
         .task(id: viewModel.pokemon?.evolutionChainId) {
-            await viewModel.loadEvolutionChain()
+            await viewModel.loadEvolutionChain(context: modelContext)
         }
         .task { await container.typeChart.loadIfNeeded() }
         .sheet(isPresented: $showOpponentPicker) {

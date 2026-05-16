@@ -14,7 +14,7 @@ import FoundationModels
 /// Every call degrades gracefully to a deterministic fallback if Apple
 /// Intelligence is unavailable or generation fails.
 protocol BattleAIServiceProtocol: Sendable {
-    func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> MoveDetail
+    func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String]) async -> MoveDetail
     func chooseOpponent(for player: PokemonSummary, playerTypes: [String], candidates: [PokemonSummary]) async -> PokemonSummary
     func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
 }
@@ -29,15 +29,16 @@ actor BattleAIService: BattleAIServiceProtocol {
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
-        typeChart: TypeChart
+        typeChart: TypeChart,
+        recentMoves: [String]
     ) async -> MoveDetail {
         guard let first = moves.first else { return MoveDetail(name: "tackle") }
         guard isAvailable else { return moves.randomElement() ?? first }
         let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: defender.typeNames) }
-        let prompt = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness)
-        print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name))")
+        let prompt = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves)
+        print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name)), recent: \(recentMoves)")
         do {
-            let raw = try await session().respond(to: prompt, options: .init(temperature: 0.2)).content
+            let raw = try await moveSession().respond(to: prompt, options: .init(temperature: 0.35)).content
             print("[llm] chooseMove: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             if let i = BattleAIResponseParser.firstInt(in: raw), moves.indices.contains(i) {
                 print("[llm] chooseMove: resolved to \(moves[i].name)")
@@ -58,7 +59,7 @@ actor BattleAIService: BattleAIServiceProtocol {
         let prompt = prompts.buildOpponentPrompt(player: player, playerTypes: playerTypes, candidates: pool)
         print("[llm] chooseOpponent: for \(player.name) (\(playerTypes.joined(separator: "/"))) from \(pool.count) candidates")
         do {
-            let raw = try await session().respond(to: prompt, options: .init(temperature: 0.5)).content
+            let raw = try await opponentSession().respond(to: prompt, options: .init(temperature: 0.5)).content
             print("[llm] chooseOpponent: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             if let id = BattleAIResponseParser.firstInt(in: raw), let picked = pool.first(where: { $0.id == id }) {
                 print("[llm] chooseOpponent: resolved to \(picked.name)")
@@ -82,7 +83,7 @@ actor BattleAIService: BattleAIServiceProtocol {
         let prompt = prompts.buildLoadoutPrompt(fighter: fighter, opponent: opponent, moves: moves, effectiveness: effectiveness, loadoutSize: size)
         print("[llm] chooseLoadout: \(fighter.name) vs \(opponent.name), pool size \(moves.count)")
         do {
-            let raw = try await session().respond(to: prompt, options: .init(temperature: 0.4)).content
+            let raw = try await loadoutSession().respond(to: prompt, options: .init(temperature: 0.4)).content
             print("[llm] chooseLoadout: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             let indices = BattleAIResponseParser.intsOnLastLine(of: raw)
             print("[llm] chooseLoadout: parsed indices \(indices)")
@@ -103,14 +104,26 @@ private extension BattleAIService {
         return false
     }
 
-    func session() -> LanguageModelSession {
-        LanguageModelSession(model: model, instructions: Self.instructions)
+    func moveSession() -> LanguageModelSession {
+        LanguageModelSession(model: model, instructions: Self.moveInstructions)
     }
 
-    static let instructions: String = {
-        guard let url = Bundle.main.url(forResource: "BattleAIInstructions", withExtension: "md"),
+    func loadoutSession() -> LanguageModelSession {
+        LanguageModelSession(model: model, instructions: Self.loadoutInstructions)
+    }
+
+    func opponentSession() -> LanguageModelSession {
+        LanguageModelSession(model: model, instructions: Self.opponentInstructions)
+    }
+
+    static let moveInstructions: String = loadInstructions("BattleAIMoveInstructions", fallback: "You are an expert Pokemon battler.")
+    static let loadoutInstructions: String = loadInstructions("BattleAILoadoutInstructions", fallback: "You are an expert Pokemon teambuilder.")
+    static let opponentInstructions: String = loadInstructions("BattleAIOpponentInstructions", fallback: "You are a Pokemon battle matchmaker.")
+
+    static func loadInstructions(_ name: String, fallback: String) -> String {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "md"),
               let text = try? String(contentsOf: url, encoding: .utf8)
-        else { return "You are an expert Pokemon battler." }
+        else { return fallback }
         return text
-    }()
+    }
 }

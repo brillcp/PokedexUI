@@ -45,6 +45,10 @@ final class BattleViewModel {
     /// resolves the loader. AI service reads this off-main on every turn,
     /// with no actor hops.
     private var typeChart: TypeChart?
+    /// Rolling window of the opponent's last few move names (oldest first).
+    /// Fed into the AI prompt so it avoids repetitive play.
+    private var opponentMoveHistory: [String] = []
+    private let moveHistoryLimit = 4
 
     init(
         player: PokemonViewModel,
@@ -116,8 +120,13 @@ final class BattleViewModel {
             attacker: snapshot.opponent,
             defender: snapshot.player,
             moves: snapshot.opponent.moves,
-            typeChart: typeChart
+            typeChart: typeChart,
+            recentMoves: opponentMoveHistory
         )
+        opponentMoveHistory.append(opponentMove.name)
+        if opponentMoveHistory.count > moveHistoryLimit {
+            opponentMoveHistory.removeFirst()
+        }
         withAnimation(.easeInOut(duration: 0.15)) {
             aiThinking = false
         }

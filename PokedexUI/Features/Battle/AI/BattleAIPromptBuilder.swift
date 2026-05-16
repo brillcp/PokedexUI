@@ -5,20 +5,28 @@ import Foundation
 /// shape is easy to tweak / inspect in isolation.
 struct BattleAIPromptBuilder {
 
-    /// Compact battle snapshot + indexed move list. Each move row carries the
-    /// pre-computed type effectiveness multiplier against the defender so the
-    /// model doesn't need to recall the type chart from training; it just
-    /// compares numbers. `effectiveness` is parallel to `moves`.
+    /// Compact battle snapshot + indexed move list with recent move history.
+    /// Each move row carries the pre-computed type effectiveness multiplier
+    /// against the defender so the model doesn't need to recall the type chart
+    /// from training; it just compares numbers. `recentMoves` contains the
+    /// names of the last few moves the attacker used (oldest first) so the
+    /// model can avoid repetitive play.
     func buildMovePrompt(
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double]
+        effectiveness: [Double],
+        recentMoves: [String]
     ) -> String {
         let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double($0.maxHP) * 100) }
+        let recentSet = recentMoveAnnotations(recentMoves: recentMoves)
         let movesBlock = moves.enumerated().map { idx, move in
-            describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0)
+            let annotation = recentSet[move.name]
+            return describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0, annotation: annotation)
         }.joined(separator: "\n")
+        let historyBlock = recentMoves.isEmpty
+            ? ""
+            : "\n        Your last \(recentMoves.count) move(s): \(recentMoves.joined(separator: " -> "))\n"
         return """
         Pick the best move for the attacker this turn.
 
@@ -31,7 +39,7 @@ struct BattleAIPromptBuilder {
         - Types: \(defender.typeNames.joined(separator: ", "))
         - HP: \(hpPct(defender))%
         - Status: \(statusDescription(defender.status))
-
+        \(historyBlock)
         Available moves (index: name. details):
         \(movesBlock)
 
@@ -101,19 +109,34 @@ struct BattleAIPromptBuilder {
 // MARK: - Private
 
 private extension BattleAIPromptBuilder {
-    /// Render one move row. Damaging moves include the pre-computed
-    /// effectiveness multiplier vs the defender's typing.
-    func describe(_ move: MoveDetail, index: Int, effectiveness: Double) -> String {
+    func describe(_ move: MoveDetail, index: Int, effectiveness: Double, annotation: String? = nil) -> String {
         let power = move.power.map { "\($0)" } ?? "-"
         let accuracy = move.accuracy.map { "\($0)%" } ?? "100%"
         let effectivenessText: String
         if move.power == nil || (move.power ?? 0) == 0 {
-            // Status / non-damaging move: no useful effectiveness number to print.
             effectivenessText = "status"
         } else {
             effectivenessText = "×\(format(effectiveness)) vs defender"
         }
-        return "\(index): \(move.name). \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)"
+        let tag = annotation.map { " [\($0)]" } ?? ""
+        return "\(index): \(move.name). \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)\(tag)"
+    }
+
+    /// Builds annotations like "used last turn" or "used 2 of last 3 turns"
+    /// for moves that appear in recent history, keyed by move name.
+    func recentMoveAnnotations(recentMoves: [String]) -> [String: String] {
+        guard !recentMoves.isEmpty else { return [:] }
+        var counts: [String: Int] = [:]
+        for name in recentMoves { counts[name, default: 0] += 1 }
+        var result: [String: String] = [:]
+        for (name, count) in counts {
+            if count >= 2 {
+                result[name] = "used \(count) of last \(recentMoves.count) turns"
+            } else if name == recentMoves.last {
+                result[name] = "used last turn"
+            }
+        }
+        return result
     }
 
     func format(_ multiplier: Double) -> String {
