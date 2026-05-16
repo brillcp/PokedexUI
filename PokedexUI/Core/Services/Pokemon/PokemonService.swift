@@ -63,15 +63,17 @@ final class PokemonService: PokemonServiceProtocol {
         Self.merge(species: species, into: pokemon)
         return pokemon
     }
+}
 
-    // MARK: - Helpers
+// MARK: - Private
 
+private extension PokemonService {
     /// Build a `PokemonSummary` from a list-endpoint result. Returns `nil`
     /// when the URL doesn't carry a numeric trailing path component (defensive
     /// against malformed responses) or when the id refers to a non-species
     /// alt form (ids ≥ 10000: mega/alolan/galarian/gmax variants which have
     /// no `/pokemon-species/{id}` page and 404 on detail hydration).
-    private static func makeSummary(from item: APIItem) -> PokemonSummary? {
+    static func makeSummary(from item: APIItem) -> PokemonSummary? {
         guard let url = URL(string: item.url),
               let last = url.pathComponents.last(where: { !$0.isEmpty && $0 != "/" }),
               let id = Int(last),
@@ -82,7 +84,7 @@ final class PokemonService: PokemonServiceProtocol {
 
     /// Copy species-only fields onto the fetched Pokémon. The `Pokemon`
     /// decoder doesn't see these, so we fold them in after the variety fetch.
-    private static func merge(species: PokemonSpecies, into pokemon: Pokemon) {
+    static func merge(species: PokemonSpecies, into pokemon: Pokemon) {
         pokemon.habitat          = species.habitat?.name
         pokemon.flavorText       = species.englishFlavorText
         pokemon.genus            = species.englishGenus

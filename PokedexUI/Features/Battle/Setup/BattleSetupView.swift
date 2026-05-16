@@ -299,7 +299,7 @@ private extension BattleSetupView {
 
     var battleButton: some View {
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
-        let label = remaining > 0 ? "Pick \(remaining) more" : "Battle"
+        let label = remaining > 0 ? "Pick \(remaining) more" : "Start"
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
             title: label,
