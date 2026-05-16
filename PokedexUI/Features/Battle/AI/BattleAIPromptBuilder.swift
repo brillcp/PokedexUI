@@ -66,7 +66,8 @@ struct BattleAIPromptBuilder {
         Full movepool (index: name. details):
         \(movesBlock)
 
-        Return exactly \(loadoutSize) DISTINCT indices (integers) from the list above. the moves the fighter should carry into battle. Prefer a balanced set: at least one super-effective damaging move when possible, no duplicates of the same type, mix damaging and utility if it helps.
+        Return ONLY a comma-separated list of exactly \(loadoutSize) distinct indices (e.g. "0, 3, 7, 12"). No other text.
+        Prefer a balanced set: at least one super-effective damaging move when possible, no duplicate types, mix damaging and utility if it helps.
         """
     }
 

@@ -1,4 +1,3 @@
-#if DEBUG
 import Foundation
 
 /// Returns canned `MoveDetail` instances so SwiftUI previews don't hit the
@@ -28,4 +27,3 @@ struct MockMoveService: MoveServiceProtocol {
         return move
     }
 }
-#endif
