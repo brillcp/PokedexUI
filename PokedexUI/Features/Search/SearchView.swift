@@ -5,6 +5,7 @@ import SwiftData
 /// always reflects the full corpus without prop-drilling from the grid.
 struct SearchView: View {
     @FocusState private var isSearchFocused: Bool
+    @Namespace private var namespace
     @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
 
     @State var viewModel: SearchViewModel
@@ -45,42 +46,71 @@ struct SearchView: View {
 private extension SearchView {
     @ViewBuilder
     var emptyState: some View {
-        List {
-            if !viewModel.suggestedPokemon.isEmpty {
-                Section("Suggested Pokemon") {
-                    suggestedGrid
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24.0) {
+                if !viewModel.suggestedPokemon.isEmpty {
+                    suggestedSection
+                }
+                if !viewModel.recentSearches.isEmpty {
+                    recentSection
+                } else {
+                    Text("Search Pokemon and types")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 80.0)
                 }
             }
-            if !viewModel.recentSearches.isEmpty {
-                Section {
-                    ForEach(viewModel.recentSearches, id: \.self) { term in
-                        Button {
-                            viewModel.query = term
-                        } label: {
-                            Label(term, systemImage: "clock.arrow.circlepath")
+            .padding(.top, 8.0)
+        }
+        .scrollIndicators(.hidden)
+        .navigationDestination(for: Pokemon.self) { pokemon in
+            PokemonDetailView(viewModel: PokemonDetailViewModel(summary: pokemon))
+                .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
+        }
+    }
+
+    var suggestedSection: some View {
+        VStack(alignment: .leading, spacing: 8.0) {
+            sectionHeader(title: "Suggested Pokemon", systemImage: "sparkles.2")
+                .padding(.horizontal, 16.0)
+            suggestedGrid
+        }
+    }
+
+    var recentSection: some View {
+        VStack(alignment: .leading, spacing: 8.0) {
+            HStack {
+                sectionHeader(title: "Recent Searches", systemImage: "clock.arrow.circlepath")
+                Spacer()
+                Button("Clear", action: viewModel.clearRecentSearches)
+                    .font(.pixel12)
+                    .foregroundStyle(Color.pokedexRed ?? .red)
+            }
+            .padding(.horizontal, 16.0)
+            VStack(spacing: 1.0) {
+                ForEach(viewModel.recentSearches, id: \.self) { term in
+                    Button {
+                        viewModel.query = term
+                    } label: {
+                        HStack {
+                            Label(term, systemImage: "magnifyingglass")
                                 .foregroundStyle(.white)
+                            Spacer()
                         }
-                        .listRowBackground(Color.cardBackground)
+                        .padding(.horizontal, 16.0)
+                        .padding(.vertical, 12.0)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.cardBackground)
                     }
-                } header: {
-                    HStack {
-                        Label("Recent Searches", systemImage: "clock.arrow.circlepath")
-                        Spacer()
-                        Button("Clear", action: viewModel.clearRecentSearches)
-                            .font(.pixel12)
-                            .foregroundStyle(Color.pokedexRed ?? .red)
-                            .textCase(nil)
-                    }
+                    .buttonStyle(.plain)
                 }
-            } else {
-                Text("Search Pokemon and types")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+    }
+
+    func sectionHeader(title: String, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.pixel12)
+            .foregroundStyle(.secondary)
     }
 
     var suggestedGrid: some View {
@@ -92,14 +122,14 @@ private extension SearchView {
             spacing: 2.0
         ) {
             ForEach(viewModel.suggestedPokemon, id: \.id) { pokemon in
-                NavigationLink {
-                    PokemonDetailView(viewModel: PokemonDetailViewModel(summary: pokemon))
-                } label: {
+                NavigationLink(value: pokemon) {
                     PokemonSpriteCard(
                         id: pokemon.id,
                         name: pokemon.name.capitalized,
                         spriteURL: pokemon.frontSprite
                     )
+                    .matchedTransitionSource(id: pokemon.id, in: namespace)
+                    .tint(.white)
                 }
             }
         }

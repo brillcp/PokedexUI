@@ -91,9 +91,13 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         }
     }
 
-func toggleBookmark(in context: ModelContext) {
-        pokemon.isBookmarked.toggle()
-        isBookmarked = pokemon.isBookmarked
+    func toggleBookmark(in context: ModelContext) {
+        let id = pokemon.id
+        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == id })
+        guard let model = try? context.fetch(descriptor).first else { return }
+        model.isBookmarked.toggle()
+        pokemon.isBookmarked = model.isBookmarked
+        isBookmarked = model.isBookmarked
         try? context.save()
     }
 
