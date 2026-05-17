@@ -48,7 +48,7 @@ enum CornerRadius {
     /// Larger containers: fighter cards, HP cards, move cells, type matchup
     /// blocks, the flavor-text bubble. Slightly more rounded than chips so
     /// the visual hierarchy reads at a glance.
-    static let card: CGFloat = 8.0
+    static let card: CGFloat = 4.0
 }
 
 extension RoundedRectangle {

@@ -213,34 +213,18 @@ private extension PokemonDetailView {
 private extension PokemonDetailView {
     func actionButtons(pokemon: PokemonViewModel) -> some View {
         HStack {
-            DetailButton(icon: "bolt.fill") {
-                showOpponentPicker = true
-            }
-            Spacer()
             if pokemon.latestCry != nil {
                 DetailButton(icon: "speaker.wave.3.fill") {
                     Task { await viewModel.playSound(with: container.audioPlayer) }
                 }
             }
-            if viewModel.backSprite != nil {
-                flipButton()
+            Spacer()
+            DetailButton(icon: "bolt.fill") {
+                showOpponentPicker = true
             }
         }
         .tint(textColor)
         .padding(.horizontal, 24)
-    }
-
-    func flipButton() -> some View {
-        DetailButton(icon: "arrow.trianglehead.2.clockwise") {}
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        viewModel.flipSprite(hapticFeedback: container.haptic)
-                    }
-                    .onEnded { _ in
-                        viewModel.flipSpriteBack(hapticFeedback: container.haptic)
-                    }
-            )
     }
 }
 

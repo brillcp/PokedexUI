@@ -30,10 +30,6 @@ protocol PokemonDetailViewModelProtocol {
     func loadEvolutionChain(context: ModelContext) async
     /// Toggle the `isBookmarked` flag on the underlying summary row.
     func toggleBookmark(in context: ModelContext)
-    /// Flip to the back sprite, with a haptic.
-    func flipSprite(hapticFeedback: UIImpactFeedbackGenerator)
-    /// Flip back to the front sprite, with a haptic.
-    func flipSpriteBack(hapticFeedback: UIImpactFeedbackGenerator)
     /// Play the latest cry through the supplied audio player.
     func playSound(with audioPlayer: AudioPlayer) async
 }
@@ -62,9 +58,6 @@ final class PokemonDetailViewModel {
         self.isBookmarked = summary.isBookmarked
         self.evolutionService = evolutionService
         self.pokemon = PokemonViewModel(pokemon: summary)
-//        if let hex = summary.colorHex {
-//            self.color = Color(hex: hex)
-//        }
     }
 }
 
@@ -104,17 +97,5 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     func playSound(with audioPlayer: AudioPlayer) async {
         guard let cryURL = pokemon.latestCry else { return }
         await audioPlayer.play(from: cryURL)
-    }
-
-    func flipSprite(hapticFeedback: UIImpactFeedbackGenerator) {
-        guard !isFlipped else { return }
-        isFlipped = true
-        hapticFeedback.impactOccurred()
-    }
-
-    func flipSpriteBack(hapticFeedback: UIImpactFeedbackGenerator) {
-        guard isFlipped else { return }
-        isFlipped = false
-        hapticFeedback.impactOccurred()
     }
 }

@@ -37,8 +37,7 @@ struct SearchView: View {
                 viewModel.updateFilteredPokemon()
             }
         }
-//        .onChange(of: isSearchFocused, dismissSearch)
-    }
+      }
 }
 
 // MARK: - Subviews

@@ -40,7 +40,6 @@ private extension BattleView {
                 .lineHeight(.loose)
         } else if let state = viewModel.state {
             battleLayout(state: state)
-                .padding(.horizontal)
         }
     }
 
@@ -48,7 +47,9 @@ private extension BattleView {
         VStack(spacing: 12) {
             Spacer()
             arena(state: state)
+                .padding(.horizontal)
             logFeed.padding(.top)
+                .padding(.horizontal)
             moveGrid(state: state)
         }
         .frame(maxHeight: .infinity)
@@ -170,7 +171,7 @@ private extension BattleView {
 
     func moveGrid(state: BattleState) -> some View {
         let disabled = viewModel.engine == nil || viewModel.isResolvingTurn || viewModel.winner != nil
-        let spacing: CGFloat = 16
+        let spacing: CGFloat = 2
         let columns = [
             GridItem(.flexible(), spacing: spacing),
             GridItem(.flexible(), spacing: spacing)
@@ -182,7 +183,6 @@ private extension BattleView {
                 } label: {
                     MoveCell(move: move, mode: .battle)
                         .equatable()
-                        .glassEffect(.clear.interactive(), in: RoundedRectangle.card)
                 }
                 .disabled(disabled)
             }

@@ -86,13 +86,12 @@ private extension BattleSetupView {
 
     var loadout: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 24) {
+            VStack(spacing: 2) {
                 matchupRow
                 typeMatchup
                 movePicker
                 Spacer(minLength: 96)
             }
-            .padding()
         }
         .scrollIndicators(.hidden)
         .safeAreaBar(edge: .bottom) { battleButton }
@@ -102,7 +101,7 @@ private extension BattleSetupView {
     /// shows sprite, name, types, and the six base stats compressed into a
     /// 3×2 grid so they fit alongside each other on phone widths.
     var matchupRow: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: 2) {
             if let player = viewModel.playerPokemon {
                 fighterCard(pokemon: player, summary: viewModel.playerSummary)
             }
@@ -142,10 +141,9 @@ private extension BattleSetupView {
 
             statGrid(pokemon: pokemon)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical)
         .frame(maxWidth: .infinity)
         .background(Color.cardBackground)
-        .clipShape(RoundedRectangle.card)
     }
 
     /// Compact base-stat readout: HP / ATK / DEF on row 1, SPA / SPD / SPE on row 2.
@@ -202,10 +200,9 @@ private extension BattleSetupView {
                 toTypes: viewModel.playerPokemon?.typeNames ?? []
             )
         }
-        .padding(12)
+        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.cardBackground)
-        .clipShape(RoundedRectangle.card)
     }
 
     func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
@@ -259,7 +256,9 @@ private extension BattleSetupView {
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
             }
-            let spacing: CGFloat = 16
+            .padding(.top)
+            .padding(.horizontal)
+            let spacing: CGFloat = 2
             let columns = [
                 GridItem(.flexible(), spacing: spacing),
                 GridItem(.flexible(), spacing: spacing)

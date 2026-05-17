@@ -24,12 +24,11 @@ struct MoveCell: View, Equatable {
             header
             footer
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .overlay(overlay)
-        .clipShape(RoundedRectangle.card)
     }
 
     // MARK: - Sections
@@ -45,6 +44,7 @@ struct MoveCell: View, Equatable {
                     .foregroundStyle(.white)
             }
         }
+        .frame(height: 16)
     }
 
     private var footer: some View {
@@ -73,9 +73,7 @@ struct MoveCell: View, Equatable {
     private var background: AnyShapeStyle {
         switch mode {
         case .battle:
-            // The battle grid sits on the dark battle stage with no inner
-            // fill; the glass effect comes from the parent.
-            return AnyShapeStyle(Color.clear)
+            return AnyShapeStyle(Color.cardBackground)
         case .loadout(let selected):
             let accent = Color.pokedexRed ?? .red
             return AnyShapeStyle(selected ? accent.opacity(0.4) : Color.cardBackground)
@@ -89,7 +87,7 @@ struct MoveCell: View, Equatable {
             EmptyView()
         case .loadout(let selected):
             let accent = Color.pokedexRed ?? .red
-            RoundedRectangle.card
+            Rectangle()
                 .stroke(selected ? accent.opacity(0.8) : .clear, lineWidth: 1)
         }
     }
