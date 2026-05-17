@@ -1,15 +1,13 @@
 import SwiftUI
 import SwiftData
 
-/// Bookmarks tab. Backed by `PokemonSummary` (the lightweight row that powers
-/// the pokedex grid); tapping a bookmark navigates to `PokemonDetailView`,
-/// which lazy-hydrates the full pokemon on appear.
+/// Bookmarks tab. Backed by `Pokemon` rows filtered by `isBookmarked`.
+/// Tapping a bookmark navigates to `PokemonDetailView`.
 struct BookmarksView: View {
     @Query(
-        filter: #Predicate<PokemonSummary> { $0.isBookmarked },
+        filter: #Predicate<Pokemon> { $0.isBookmarked },
         sort: \.id
-    )
-    private var bookmarks: [PokemonSummary]
+    ) private var bookmarks: [Pokemon]
 
     var body: some View {
         NavigationStack {

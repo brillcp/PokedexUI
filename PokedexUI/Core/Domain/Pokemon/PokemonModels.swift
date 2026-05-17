@@ -79,7 +79,7 @@ final class Pokemon: Decodable, Sendable {
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(Int.self, forKey: .id)
-        name = try container.decode(String.self, forKey: .name)
+        name = try container.decode(String.self, forKey: .name).capitalized
         weight = try container.decode(Int.self, forKey: .weight)
         height = try container.decode(Int.self, forKey: .height)
         cries = try container.decode(Cries.self, forKey: .cries)
@@ -89,6 +89,13 @@ final class Pokemon: Decodable, Sendable {
         types = try container.decode([Type].self, forKey: .types)
         stats = try container.decode([Stat].self, forKey: .stats)
     }
+}
+
+// MARK: - Sprite convenience
+
+extension Pokemon {
+    var frontSprite: String { sprite.front }
+    var backSprite: String? { sprite.back }
 }
 
 // MARK: - Mock pokemon

@@ -59,7 +59,7 @@ struct EvolutionDetail: Codable, Sendable {
 }
 
 /// Name + URL reference to a species. `id` parses the trailing path
-/// component of `url` so callers can map a stage back to a `PokemonSummary`.
+/// component of `url` so callers can map a stage back to a `Pokemon`.
 struct SpeciesRef: Codable, Sendable, Hashable {
     let name: String
     let url: String?

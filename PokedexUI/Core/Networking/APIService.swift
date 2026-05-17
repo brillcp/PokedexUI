@@ -1,3 +1,4 @@
+import Foundation
 import Networking
 
 // MARK: - Service Configuration Protocol
@@ -14,9 +15,6 @@ protocol ServiceConfiguration {
     /// Returns the request to fetch detailed data from a specific item URL component.
     /// - Parameter urlComponent: The last path component of a resource URL.
     func createDetailRequest(from urlComponent: String) -> Requestable
-    /// Fetches a single detail entry. Override to perform multi-step or merged fetches.
-    /// Default implementation issues `createDetailRequest` directly.
-    func fetchDetail(from urlComponent: String, networkService: Network.Service) async throws -> ResponseType
     /// Transforms a list of decoded response objects into output models.
     /// - Parameter response: The raw decoded response items.
     func transformResponse(_ response: [ResponseType]) -> [OutputModel]
@@ -97,6 +95,12 @@ extension Network.Service {
     /// on every property access).
     static let `default`: Network.Service = {
         let url = try! "https://pokeapi.co/api/v2/".asURL()
-        return Network.Service(server: .basic(baseURL: url))
+        return Network.Service(server: .basic(baseURL: url), logger: SilentNetworkLogger())
     }()
+}
+
+/// No-op logger for bulk network operations.
+struct SilentNetworkLogger: NetworkLoggerProtocol {
+    func logRequest(_ request: URLRequest) {}
+    func logResponse(_ data: Data, _ response: URLResponse, printJSON: Bool) {}
 }

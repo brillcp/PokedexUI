@@ -1,40 +1,71 @@
 import Foundation
 import SwiftData
 
-/// Search works against the live `PokemonSummary` query (so it never goes
-/// stale as pagination fills the store). The view model owns only the query
-/// string and the filter logic; the SwiftData corpus is passed in by the
-/// view on each `updateFiltered(in:)` call.
+/// Search works against the full `[Pokemon]` corpus from SwiftData.
+/// The view model owns only the query string and the filter logic.
 @MainActor
 protocol SearchViewModelProtocol {
-    /// Filtered summaries matching the current query.
-    var filtered: [PokemonSummary] { get }
-    /// The user's search input.
+    /// The filtered list based on the current query.
+    var filtered: [Pokemon] { get }
+    /// The user's search input query.
     var query: String { get set }
+    /// Most-recent submitted search terms, newest first.
+    var recentSearches: [String] { get }
+    /// Two random Pokemon sampled from the corpus; shown in empty-state.
+    var suggestedPokemon: [Pokemon] { get }
 
-    /// Recompute `filtered` from `query` against the supplied corpus.
-    func updateFiltered(in corpus: [PokemonSummary])
-
-    init()
+    /// Replaces the backing corpus (called by SearchView when @Query updates).
+    func updateCorpus(_ corpus: [Pokemon])
+    /// Filters the list based on the query and updates `filtered`.
+    func updateFilteredPokemon()
+    /// Records the current `query` into `recentSearches`.
+    func recordSearch()
+    /// Wipes the recent searches list.
+    func clearRecentSearches()
 }
 
 // MARK: - SearchViewModel
 
-/// Live implementation of `SearchViewModelProtocol`. Holds only the query
-/// string + last filtered result; the corpus is owned by `SearchView` via
-/// `@Query` and handed in on every `updateFiltered(in:)` call.
+/// Live implementation of `SearchViewModelProtocol`. Corpus is fed from
+/// SearchView's `@Query`; no network calls involved.
 @Observable
 final class SearchViewModel {
-    var filtered: [PokemonSummary] = []
+    private static let recentSearchesKey = "search.recentSearches"
+    private static let maxRecentSearches = 8
+
+    private var pokemon: [Pokemon] = []
+    private let defaults: UserDefaults
+
+    /// The filtered data.
+    var filtered: [Pokemon] = []
+
+    /// The current search query entered by the user.
     var query: String = ""
 
-    init() {}
+    /// Most-recent submitted search terms, newest first.
+    var recentSearches: [String]
+
+    /// Two random Pokemon sampled once from the corpus.
+    var suggestedPokemon: [Pokemon] = []
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        self.recentSearches = defaults.stringArray(forKey: Self.recentSearchesKey) ?? []
+    }
 }
 
 // MARK: - SearchViewModelProtocol
 
 extension SearchViewModel: SearchViewModelProtocol {
-    func updateFiltered(in corpus: [PokemonSummary]) {
+    func updateCorpus(_ corpus: [Pokemon]) {
+        pokemon = corpus
+        if suggestedPokemon.isEmpty && !corpus.isEmpty {
+            suggestedPokemon = Array(corpus.shuffled().prefix(2))
+        }
+    }
+
+    /// Filters the internal list based on the current query.
+    func updateFilteredPokemon() {
         let queryTerms = query
             .split(whereSeparator: \.isWhitespace)
             .map { $0.normalize }
@@ -45,9 +76,28 @@ extension SearchViewModel: SearchViewModelProtocol {
             return
         }
 
-        filtered = corpus.filter { summary in
-            let haystack = summary.name.normalize
-            return queryTerms.allSatisfy { haystack.contains($0) }
+        filtered = pokemon.filter { pokemon in
+            let name = pokemon.name.normalize
+            let types = pokemon.types.map { $0.type.name.normalize }
+            return queryTerms.allSatisfy { term in
+                name.contains(term) || types.contains(where: { $0.contains(term) })
+            }
         }
+    }
+
+    func recordSearch() {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        recentSearches.removeAll { $0.caseInsensitiveCompare(trimmed) == .orderedSame }
+        recentSearches.insert(trimmed, at: 0)
+        if recentSearches.count > Self.maxRecentSearches {
+            recentSearches = Array(recentSearches.prefix(Self.maxRecentSearches))
+        }
+        defaults.set(recentSearches, forKey: Self.recentSearchesKey)
+    }
+
+    func clearRecentSearches() {
+        recentSearches.removeAll()
+        defaults.removeObject(forKey: Self.recentSearchesKey)
     }
 }

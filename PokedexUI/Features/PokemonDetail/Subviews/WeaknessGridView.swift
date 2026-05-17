@@ -4,7 +4,7 @@ import SwiftUI
 /// grid (×4 / ×2 / ×½ / ×¼ / ×0). Reads the loaded `TypeChartLoader` directly
 /// so first-paint shows nothing until the chart is hydrated.
 struct WeaknessGridView: View {
-    let pokemon: PokemonViewModelProtocol
+    let pokemon: PokemonViewModel
     let typeChart: TypeChartLoader
     let textColor: Color
 

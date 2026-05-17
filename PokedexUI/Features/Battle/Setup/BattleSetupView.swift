@@ -49,11 +49,7 @@ private extension BattleSetupView {
         onStart(launch)
     }
 
-    @ViewBuilder
     var content: some View {
-        // Cross-fade between the three branches. `isReady` flips once both
-        // sides are hydrated + move pools filled, which is the main transition
-        // the player sees (spinner → grid).
         Group {
             if let error = viewModel.errorMessage {
                 errorState(error)
@@ -121,7 +117,7 @@ private extension BattleSetupView {
         }
     }
 
-    func fighterCard(pokemon: PokemonViewModel, summary: PokemonSummary) -> some View {
+    func fighterCard(pokemon: PokemonViewModel, summary: Pokemon) -> some View {
         VStack(spacing: 12) {
             AsyncImage(url: URL(string: summary.frontSprite)) { phase in
                 switch phase {
@@ -312,12 +308,11 @@ private extension BattleSetupView {
 }
 
 #Preview {
-    let player   = PokemonSummary(id: 25, name: "Pikachu")
-    let opponent = PokemonSummary(id: 6,  name: "Charizard")
+    let player   = Pokemon.pikachu
+    let opponent = Pokemon.pikachu
     let vm = BattleSetupViewModel(
         player: player,
         opponent: opponent,
-        pokemonService: PokemonService(),
         moveService: MockMoveService(),
         aiService: BattleAIService(),
         typeChart: TypeChartLoader()

@@ -72,7 +72,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             PokedexGridView(
-                pokemon: viewModel.summaries,
+                pokemon: viewModel.pokemonData,
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading
             )

@@ -1,13 +1,12 @@
 import SwiftUI
 
-/// Grid of `PokemonSummary` rows used by the pokedex, search, and bookmarks
-/// tabs. Tapping a cell pushes `PokemonDetailView`, which then lazy-hydrates
-/// the full pokemon. `isLoading` only shows a spinner on a cold start when
-/// the summary list is still empty.
+/// Grid of `Pokemon` rows used by the pokedex, search, and bookmarks tabs.
+/// Tapping a cell pushes `PokemonDetailView`. `isLoading` only shows a
+/// spinner on a cold start when the list is still empty.
 struct PokedexGridView: View {
     @Namespace private var namespace
 
-    let pokemon: [PokemonSummary]
+    let pokemon: [Pokemon]
     var grid: GridLayout = .three
     var isLoading: Bool = false
 
@@ -30,7 +29,7 @@ struct PokedexGridView: View {
                     .tint(.white)
             }
         }
-        .navigationDestination(for: PokemonSummary.self) { vm in
+        .navigationDestination(for: Pokemon.self) { vm in
             PokemonDetailView(viewModel: PokemonDetailViewModel(summary: vm))
                 .navigationTransition(.zoom(sourceID: vm.id, in: namespace))
         }
@@ -43,7 +42,7 @@ struct PokedexGridView: View {
 /// navigation link to `PokemonDetailView`, with a matched-transition
 /// source so the sprite zooms into the detail screen.
 private struct PokedexGridItem: View {
-    let pokemon: PokemonSummary
+    let pokemon: Pokemon
     let grid: GridLayout
     let namespace: Namespace.ID
 

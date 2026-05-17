@@ -5,45 +5,40 @@ import Foundation
 /// shape is easy to tweak / inspect in isolation.
 struct BattleAIPromptBuilder {
 
-    /// Compact battle snapshot + indexed move list with recent move history.
-    /// Each move row carries the pre-computed type effectiveness multiplier
-    /// against the defender so the model doesn't need to recall the type chart
-    /// from training; it just compares numbers. `recentMoves` contains the
-    /// names of the last few moves the attacker used (oldest first) so the
-    /// model can avoid repetitive play.
+    /// Builds the move-selection prompt with shuffled move order. Returns
+    /// the prompt string and a mapping from shuffled index back to original
+    /// index so the caller can resolve the model's pick.
     func buildMovePrompt(
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
         effectiveness: [Double],
         recentMoves: [String]
-    ) -> String {
+    ) -> (prompt: String, indexMap: [Int: Int]) {
         let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double($0.maxHP) * 100) }
         let annotations = moveAnnotations(moves: moves, recentMoves: recentMoves)
-        let movesBlock = moves.enumerated().map { idx, move in
-            describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0, annotation: annotations[idx])
+        let shuffled = Array(moves.indices).shuffled()
+        var indexMap: [Int: Int] = [:]
+        let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
+            indexMap[displayIdx] = originalIdx
+            let move = moves[originalIdx]
+            return describe(move, index: displayIdx, effectiveness: effectiveness[safe: originalIdx] ?? 1.0, annotation: annotations[originalIdx])
         }.joined(separator: "\n")
         let historyLine = recentMoves.isEmpty
             ? ""
-            : "\n        Your recent moves: \(recentMoves.joined(separator: " -> ")). Surprise the opponent with something different.\n"
-        return """
-        Pick a move for the attacker this turn. Make this battle exciting.
+            : "\n        Your last move was \(recentMoves.last!). Pick a different one.\n"
+        let prompt = """
+        Pick a move. Do not repeat your last move.
 
-        Attacker: \(attacker.name)
-        - Types: \(attacker.typeNames.joined(separator: ", "))
-        - HP: \(hpPct(attacker))%
-        - Status: \(statusDescription(attacker.status))
-
-        Defender: \(defender.name)
-        - Types: \(defender.typeNames.joined(separator: ", "))
-        - HP: \(hpPct(defender))%
-        - Status: \(statusDescription(defender.status))
+        Attacker: \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(statusDescription(attacker.status)))
+        Defender: \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(statusDescription(defender.status)))
         \(historyLine)
-        Available moves (index: name. details):
+        Moves:
         \(movesBlock)
 
-        Return ONLY the index (integer) of the chosen move.
+        Return ONLY the index number.
         """
+        return (prompt, indexMap)
     }
 
     /// Loadout selection: fighter + opponent context + full movepool with
@@ -84,9 +79,9 @@ struct BattleAIPromptBuilder {
     /// from training. Candidate roster is capped at 60 to stay under the
     /// input token budget.
     func buildOpponentPrompt(
-        player: PokemonSummary,
+        player: Pokemon,
         playerTypes: [String],
-        candidates: [PokemonSummary]
+        candidates: [Pokemon]
     ) -> String {
         let capped = candidates.prefix(60)
         let roster = capped.map { "- \($0.id): \($0.name)" }.joined(separator: "\n")

@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 /// Sheet shown from `PokemonDetailView` to choose a battle opponent. Backed by
-/// `PokemonSummary` rows (the same lightweight store the pokedex grid uses), so
+/// `Pokemon` rows (the same lightweight store the pokedex grid uses), so
 /// the picker pops instantly even on a cold install where full pokemon haven't
 /// been hydrated yet.
 ///
@@ -11,7 +11,7 @@ import SwiftData
 /// dismisses the whole sheet and bubbles the launch payload up to the detail
 /// view, which then pushes `BattleView` on its own nav stack.
 struct OpponentPickerView: View {
-    let player: PokemonSummary
+    let player: Pokemon
     /// Player's type names (e.g. ["grass", "poison"]). Passed straight into
     /// the AI prompt for smart-pick so the model picks against the actual
     /// matchup instead of relying on training recall.
@@ -20,16 +20,16 @@ struct OpponentPickerView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.container) private var container
-    @Query private var allPokemon: [PokemonSummary]
+    @Query private var allPokemon: [Pokemon]
     @State private var rows: [Row] = []
     /// `true` while the AI service is picking. Disables both bottom buttons
     /// so Random can't race the model response.
     @State private var isAIThinking = false
     /// When non-nil, pushes `BattleSetupView` onto this view's nav stack.
-    @State private var setupOpponent: PokemonSummary?
+    @State private var setupOpponent: Pokemon?
 
     init(
-        player: PokemonSummary,
+        player: Pokemon,
         playerTypes: [String] = [],
         onStart: @escaping (BattleLaunch) -> Void
     ) {
@@ -39,7 +39,7 @@ struct OpponentPickerView: View {
         // Exclude the player from the candidate list. Sort by id (pokedex order).
         let playerId = player.id
         _allPokemon = Query(
-            filter: #Predicate<PokemonSummary> { $0.id != playerId },
+            filter: #Predicate<Pokemon> { $0.id != playerId },
             sort: \.id
         )
     }
@@ -55,7 +55,16 @@ struct OpponentPickerView: View {
                     spacing: 2
                 ) {
                     ForEach(rows) { row in
-                        OpponentCard(row: row, onTap: select(rowId:))
+                        Button {
+                            select(rowId: row.id)
+                        } label: {
+                            PokemonSpriteCard(
+                                id: row.id,
+                                name: row.name,
+                                spriteURL: row.spriteURL
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -73,7 +82,6 @@ struct OpponentPickerView: View {
                     viewModel: BattleSetupViewModel(
                         player: player,
                         opponent: opp,
-                        pokemonService: container.pokemonService,
                         moveService: container.moveService,
                         aiService: container.battleAI,
                         typeChart: container.typeChart
@@ -147,7 +155,7 @@ extension OpponentPickerView {
         let name: String
         let spriteURL: String
 
-        init(_ summary: PokemonSummary) {
+        init(_ summary: Pokemon) {
             self.id = summary.id
             self.name = summary.name.capitalized
             self.spriteURL = summary.frontSprite
@@ -155,30 +163,29 @@ extension OpponentPickerView {
     }
 }
 
-private struct OpponentCard: View, Equatable {
-    let row: OpponentPickerView.Row
-    let onTap: (Int) -> Void
+/// Sprite-over-name grid cell shared by the opponent picker and the search
+/// empty-state suggestions. Caller wraps in a `Button` / `NavigationLink` to
+/// supply the tap behavior.
+struct PokemonSpriteCard: View, Equatable {
+    let id: Int
+    let name: String
+    let spriteURL: String
 
-    static func == (lhs: OpponentCard, rhs: OpponentCard) -> Bool {
-        lhs.row == rhs.row
+    static func == (lhs: PokemonSpriteCard, rhs: PokemonSpriteCard) -> Bool {
+        lhs.id == rhs.id && lhs.name == rhs.name && lhs.spriteURL == rhs.spriteURL
     }
 
     var body: some View {
-        Button {
-            onTap(row.id)
-        } label: {
-            VStack(spacing: 0) {
-                SpritePlaceholder(url: row.spriteURL)
-                    .frame(height: 92)
-                    .frame(maxWidth: .infinity)
-                Text(row.name)
-                    .font(.pixel12)
-                    .padding(.bottom, 12)
-            }
-            .frame(maxWidth: .infinity)
-            .background(Color.cardBackground)
+        VStack(spacing: 0) {
+            SpritePlaceholder(url: spriteURL)
+                .frame(height: 92)
+                .frame(maxWidth: .infinity)
+            Text(name)
+                .font(.pixel12)
+                .padding(.bottom, 12)
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .background(Color.cardBackground)
     }
 }
 

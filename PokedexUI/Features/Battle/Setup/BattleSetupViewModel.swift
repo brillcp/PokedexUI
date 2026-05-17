@@ -2,12 +2,6 @@ import Foundation
 import SwiftData
 import SwiftUI
 
-/// Terminal error raised when battle preflight cannot finish. Currently the
-/// only case is a hydration miss (network down + cache miss for one side).
-enum BattleSetupError: Error {
-    case hydrationFailed(id: Int)
-}
-
 /// Pre-battle prep screen. Hydrates both pokemon (cache-first), samples each
 /// side's movepool, surfaces the player's pool for hand-picking, and kicks off
 /// the AI's loadout pick in a background task so it runs in parallel with the
@@ -17,8 +11,8 @@ enum BattleSetupError: Error {
 /// no random movesets, both sides commit to 4 moves before battling.
 @MainActor
 protocol BattleSetupViewModelProtocol {
-    var playerSummary:   PokemonSummary { get }
-    var opponentSummary: PokemonSummary { get }
+    var playerSummary:   Pokemon { get }
+    var opponentSummary: Pokemon { get }
     var playerPokemon:   PokemonViewModel? { get }
     var opponentPokemon: PokemonViewModel? { get }
     /// Hydrated movepool the player picks from (up to 40 sampled).
@@ -54,8 +48,8 @@ protocol BattleSetupViewModelProtocol {
 /// 4 moves while the model thinks.
 @Observable
 final class BattleSetupViewModel: BattleSetupViewModelProtocol {
-    let playerSummary:   PokemonSummary
-    let opponentSummary: PokemonSummary
+    let playerSummary:   Pokemon
+    let opponentSummary: Pokemon
     let maxSelections:   Int = 4
 
     var playerPokemon:    PokemonViewModel?
@@ -68,22 +62,19 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     private var selectionOrder: [String] = []
     var errorMessage: String?
 
-    private let pokemonService: PokemonServiceProtocol
     private let moveService:    MoveServiceProtocol
     private let aiService:      BattleAIServiceProtocol
     private let typeChartLoader: TypeChartLoader
 
     init(
-        player: PokemonSummary,
-        opponent: PokemonSummary,
-        pokemonService: PokemonServiceProtocol,
+        player: Pokemon,
+        opponent: Pokemon,
         moveService: MoveServiceProtocol,
         aiService: BattleAIServiceProtocol,
         typeChart: TypeChartLoader
     ) {
         self.playerSummary  = player
         self.opponentSummary = opponent
-        self.pokemonService = pokemonService
         self.moveService    = moveService
         self.aiService      = aiService
         self.typeChartLoader = typeChart
@@ -118,10 +109,8 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
 
     func prepare(modelContext: ModelContext) async {
         do {
-            async let playerFull   = hydrate(playerSummary,   in: modelContext)
-            async let opponentFull = hydrate(opponentSummary, in: modelContext)
-            let player   = try await playerFull
-            let opponent = try await opponentFull
+            let player   = PokemonViewModel(pokemon: playerSummary)
+            let opponent = PokemonViewModel(pokemon: opponentSummary)
             self.playerPokemon   = player
             self.opponentPokemon = opponent
 
@@ -179,17 +168,6 @@ private extension BattleSetupViewModel {
             if lp != rp { return lp > rp }
             return (lhs.accuracy ?? 100) > (rhs.accuracy ?? 100)
         }
-    }
-
-    /// SwiftData-cache-first hydration through the shared `PokemonFetcher`.
-    /// Same code path `PokemonDetailViewModel` uses, so a pokemon viewed in
-    /// detail is instant here too.
-    func hydrate(_ summary: PokemonSummary, in context: ModelContext) async throws -> PokemonViewModel {
-        let fetcher = PokemonFetcher(context: context, service: pokemonService)
-        guard let fetched = await fetcher.fetch(id: summary.id) else {
-            throw BattleSetupError.hydrationFailed(id: summary.id)
-        }
-        return PokemonViewModel(pokemon: fetched)
     }
 
     /// Sample up to 40 moves from the pokemon's full movepool and resolve

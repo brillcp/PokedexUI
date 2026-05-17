@@ -1,23 +1,18 @@
 import Foundation
 
 /// Sort options exposed in the pokedex toolbar menu.
-///
-/// Only fields available on `PokemonSummary` (id + name) are shipped today .
-/// height/weight/stat sorts need fully-hydrated `Pokemon` rows we don't load
-/// up front anymore, so they're commented out of `allCases` until we re-add
-/// a background hydration pass.
 enum SortType: Hashable {
     case number, name
     case height, weight
     case stat(Stats)
 
-    /// Cases shown in the menu. Restricted to what the summary list can sort on.
-    static let allCases: [Self] = [.number, .name]
+    static let allCases: [Self] = [
+        .number, .name, .height, .weight,
+        .stat(.hp), .stat(.attack), .stat(.defense), .stat(.speed)
+    ]
 }
 
-/// Subset of the six base stats available as sort keys. Kept small because
-/// the pokedex grid only sorts on summary-derivable fields; the full stats
-/// surface is available on the detail view.
+/// Subset of the six base stats available as sort keys.
 enum Stats: String, CaseIterable {
     case hp, attack, defense, speed
 
@@ -57,13 +52,23 @@ extension SortType {
 // MARK: - Comparator
 
 extension SortType {
-    /// Comparator over `PokemonSummary`. Falls back to id for any sort that
-    /// needs full-detail fields the summary doesn't carry.
-    var summaryComparator: (PokemonSummary, PokemonSummary) -> Bool {
+    var comparator: (Pokemon, Pokemon) -> Bool {
         switch self {
-        case .number: { $0.id < $1.id }
-        case .name: { $0.name < $1.name }
-        case .height, .weight, .stat: { $0.id < $1.id }
+        case .number:
+            return { (a: Pokemon, b: Pokemon) in a.id < b.id }
+        case .name:
+            return { (a: Pokemon, b: Pokemon) in a.name < b.name }
+        case .height:
+            return { (a: Pokemon, b: Pokemon) in a.height > b.height }
+        case .weight:
+            return { (a: Pokemon, b: Pokemon) in a.weight > b.weight }
+        case .stat(let stat):
+            let name = stat.rawValue
+            return { (a: Pokemon, b: Pokemon) in
+                let l = a.stats.first { $0.stat.name == name }?.baseStat ?? 0
+                let r = b.stats.first { $0.stat.name == name }?.baseStat ?? 0
+                return l > r
+            }
         }
     }
 }

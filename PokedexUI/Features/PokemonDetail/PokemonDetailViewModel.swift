@@ -1,18 +1,16 @@
 import SwiftUI
 import SwiftData
 
-/// Detail view model. Backed by a lightweight `PokemonSummary` for the header
-/// (always available) and an optional `PokemonViewModelProtocol` for the rest
-/// (set after the lazy hydration call returns).
+/// Detail view model. Full `Pokemon` data is available from the grid, so
+/// stats, types, moves, and sprites render on frame 1. Back sprite and
+/// evolution chain load asynchronously.
 @MainActor
 protocol PokemonDetailViewModelProtocol {
-    /// Always present: drives the sprite + title before any network call lands.
-    var summary: PokemonSummary { get }
-    /// `nil` until the lazy fetch resolves. The detail body fades in once set.
-    var pokemon: PokemonViewModelProtocol? { get }
-    /// True while the hydration network call is in-flight.
+    /// View-ready wrapper around `summary`. Set in init (never nil after init).
+    var pokemon: PokemonViewModel { get }
+    /// Always false after init (kept for animation compatibility).
     var isLoadingDetails: Bool { get }
-    /// Bookmark flag mirrors the `PokemonSummary.isBookmarked` on disk.
+    /// Bookmark flag mirrors `Pokemon.isBookmarked` on disk.
     var isBookmarked: Bool { get }
     /// Whether the sprite is flipped (showing the back view).
     var isFlipped: Bool { get set }
@@ -25,16 +23,10 @@ protocol PokemonDetailViewModelProtocol {
     /// Linear evolution chain. Empty until `loadEvolutionChain` runs.
     var evolutionStages: [EvolutionChain.Stage] { get }
 
-    /// Fetch full pokemon detail (cache-first via SwiftData, then network),
-    /// then load the back sprite Image. Both land before `pokemon` is
-    /// published so the body fades in with the flip button already armed.
-    func loadFullDetails(context: ModelContext, spriteLoader: SpriteLoader) async
-    /// Resolve the front sprite UIImage and (if not seeded from
-    /// `summary.colorHex` in init) the dominant color from it.
+    /// Resolve the front sprite UIImage and dominant color.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async
     /// Fetch the evolution chain (SwiftData-cache-first, network on miss).
-    /// No-op when absent or already loaded.
     func loadEvolutionChain(context: ModelContext) async
     /// Toggle the `isBookmarked` flag on the underlying summary row.
     func toggleBookmark(in context: ModelContext)
@@ -48,14 +40,12 @@ protocol PokemonDetailViewModelProtocol {
 
 // MARK: - Implementation
 
-/// Live implementation of `PokemonDetailViewModelProtocol`. Owns the lazy
-/// hydration of the full `Pokemon` row, back-sprite Image, dominant color
-/// fallback, evolution chain, and the bookmark toggle.
+/// Live implementation of `PokemonDetailViewModelProtocol`. Full Pokemon
+/// data renders on frame 1. Back sprite and evolution chain load async.
 @Observable
 final class PokemonDetailViewModel {
-    let summary: PokemonSummary
-    var pokemon: PokemonViewModelProtocol?
-    var isLoadingDetails: Bool = true
+    var pokemon: PokemonViewModel
+    var isLoadingDetails: Bool = false
     var isBookmarked: Bool
     var isFlipped: Bool = false
     var frontSprite: Image?
@@ -63,94 +53,52 @@ final class PokemonDetailViewModel {
     var color: Color?
     var evolutionStages: [EvolutionChain.Stage] = []
 
-    private let pokemonService:   PokemonServiceProtocol
     private let evolutionService: EvolutionServiceProtocol
 
     init(
-        summary: PokemonSummary,
-        pokemonService:   PokemonServiceProtocol   = PokemonService(),
+        summary: Pokemon,
         evolutionService: EvolutionServiceProtocol = EvolutionService.shared
     ) {
-        self.summary = summary
         self.isBookmarked = summary.isBookmarked
-        self.pokemonService = pokemonService
         self.evolutionService = evolutionService
-        // Seed the gradient color from the persisted hex if we've already
-        // analyzed this sprite once. Frame-1 background instead of black-flash
-        // while the image color analyzer crunches.
-        if let hex = summary.colorHex {
-            self.color = Color(hex: hex)
-        }
+        self.pokemon = PokemonViewModel(pokemon: summary)
+//        if let hex = summary.colorHex {
+//            self.color = Color(hex: hex)
+//        }
     }
 }
 
 // MARK: - PokemonDetailViewModelProtocol
 
 extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
-    /// Cache-first hydration. Loads the full `Pokemon` row, then sequentially
-    /// loads the back sprite image, then publishes both atomically by setting
-    /// `pokemon` last, so SwiftUI sees a single state transition and the
-    /// detail body + flip button fade in together. Returns early when already
-    /// loaded so re-entering the detail view is instant.
-    func loadFullDetails(context: ModelContext, spriteLoader: SpriteLoader) async {
-        guard pokemon == nil else { return }
-        isLoadingDetails = true
-        defer { isLoadingDetails = false }
-
-        // 1. Cache-or-API via the `IdentifiedDataFetcher` family. The fetcher
-        // owns the `FetchDescriptor` + network + `insert/save` choreography,
-        // leaving this method to express only the "what" for the view.
-        let fetcher = PokemonFetcher(context: context, service: pokemonService)
-        guard let fetched = await fetcher.fetch(id: summary.id) else {
-            return
-        }
-
-        // 2. Load the back sprite Image up-front so the flip button is armed
-        // the moment the body becomes visible. The front sprite is loaded on
-        // a parallel `.task`; that path already started before this method.
-        let viewModelForVM = PokemonViewModel(pokemon: fetched)
-        if let backURL = viewModelForVM.backSprite,
-           let backImage = await spriteLoader.spriteImage(from: backURL) {
-            self.backSprite = Image(uiImage: backImage)
-        }
-
-        // 3. Publish atomically: a single setter flips SwiftUI body to the
-        // "loaded" branch with everything (back sprite, color, content) ready.
-        self.pokemon = viewModelForVM
-    }
-
     func loadEvolutionChain(context: ModelContext) async {
         guard evolutionStages.isEmpty,
-              let chainId = pokemon?.evolutionChainId
+              let chainId = pokemon.evolutionChainId
         else { return }
-        let fetcher = EvolutionFetcher(context: context, service: evolutionService)
-        guard let chain = await fetcher.fetch(id: chainId) else { return }
+        guard let chain = try? await evolutionService.requestChain(id: "\(chainId)") else { return }
         evolutionStages = chain.stages
     }
 
-    /// Front sprite + dominant color. The color is normally seeded in `init`
-    /// from `summary.colorHex` (filled by `SpriteColorPrefetcher` at app
-    /// start), so this call usually just loads the sprite image. On the rare
-    /// case the prefetcher hasn't reached this pokemon yet, the analyzer runs
-    /// to display a color in this session; the prefetcher persists it later.
+    /// Front sprite + dominant color. Cached `colorHex` seeds `init`;
+    /// otherwise the analyzer runs on first detail view open.
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async {
-        guard let image = await spriteLoader.spriteImage(from: summary.frontSprite) else { return }
+        guard let image = await spriteLoader.spriteImage(from: pokemon.frontSprite) else { return }
         frontSprite = Image(uiImage: image)
         if color == nil,
-           let uicolor = await imageColorAnalyzer.dominantColor(for: summary.id, image: image) {
+           let uicolor = await imageColorAnalyzer.dominantColor(for: pokemon.id, image: image) {
             color = Color(uiColor: uicolor)
         }
     }
 
 func toggleBookmark(in context: ModelContext) {
-        summary.isBookmarked.toggle()
-        isBookmarked = summary.isBookmarked
+        pokemon.isBookmarked.toggle()
+        isBookmarked = pokemon.isBookmarked
         try? context.save()
     }
 
     func playSound(with audioPlayer: AudioPlayer) async {
-        guard let cryURL = pokemon?.latestCry else { return }
+        guard let cryURL = pokemon.latestCry else { return }
         await audioPlayer.play(from: cryURL)
     }
 

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D6273F1DA6003AF377 /* PokemonService.swift */; };
+		D5BA16002E70000000000601 /* PokemonHydrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA16012E70000000000602 /* PokemonHydrator.swift */; };
 		9332C0E0273F2A36003AF377 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0DF273F2A36003AF377 /* Color.swift */; };
 		9332C0E8273F3219003AF377 /* SpriteLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0E7273F3219003AF377 /* SpriteLoader.swift */; };
 		9332C0EA273F51E1003AF377 /* AsyncSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0E9273F51E1003AF377 /* AsyncSpriteView.swift */; };
@@ -76,7 +77,6 @@
 		D5BA14022E70000000000403 /* MoveCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14032E70000000000404 /* MoveCell.swift */; };
 		D5BA14042E70000000000405 /* TypeColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14052E70000000000406 /* TypeColor.swift */; };
 		D5BA14062E70000000000408 /* PrimaryCapsuleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14072E70000000000409 /* PrimaryCapsuleButton.swift */; };
-		D5BA15002E70000000000501 /* SpriteColorPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA15012E70000000000502 /* SpriteColorPrefetcher.swift */; };
 		D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */; };
 		D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D503082E39305500AC4BC5 /* Tabs.swift */; };
 		D5D5030B2E39344500AC4BC5 /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */; };
@@ -92,7 +92,6 @@
 		D5E0000000000000000000E5 /* BattlerSprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E6 /* BattlerSprite.swift */; };
 		D5E0000000000000000000E7 /* ShakeEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E8 /* ShakeEffect.swift */; };
 		D5E0000000000000000000E9 /* MockMoveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000EA /* MockMoveService.swift */; };
-		D5E0000000000000000000F1 /* PokemonSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000F2 /* PokemonSummary.swift */; };
 		D5F41B762E256D5A000341D3 /* ItemRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F41B752E256D5A000341D3 /* ItemRowView.swift */; };
 		D5F6494D2E30FA82004FBD18 /* ItemSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5F6494C2E30FA82004FBD18 /* ItemSpriteView.swift */; };
 		D5FED1BD2E3B973A0013D99B /* ImageColorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */; };
@@ -100,6 +99,7 @@
 
 /* Begin PBXFileReference section */
 		9332C0D6273F1DA6003AF377 /* PokemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonService.swift; sourceTree = "<group>"; };
+		D5BA16012E70000000000602 /* PokemonHydrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonHydrator.swift; sourceTree = "<group>"; };
 		9332C0DF273F2A36003AF377 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9332C0E7273F3219003AF377 /* SpriteLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteLoader.swift; sourceTree = "<group>"; };
 		9332C0E9273F51E1003AF377 /* AsyncSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSpriteView.swift; sourceTree = "<group>"; };
@@ -169,7 +169,6 @@
 		D5BA14032E70000000000404 /* MoveCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveCell.swift; sourceTree = "<group>"; };
 		D5BA14052E70000000000406 /* TypeColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeColor.swift; sourceTree = "<group>"; };
 		D5BA14072E70000000000409 /* PrimaryCapsuleButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryCapsuleButton.swift; sourceTree = "<group>"; };
-		D5BA15012E70000000000502 /* SpriteColorPrefetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorPrefetcher.swift; sourceTree = "<group>"; };
 		D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonDetailViewModel.swift; sourceTree = "<group>"; };
 		D5D503082E39305500AC4BC5 /* Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tabs.swift; sourceTree = "<group>"; };
 		D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
@@ -185,7 +184,6 @@
 		D5E0000000000000000000E6 /* BattlerSprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattlerSprite.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000E8 /* ShakeEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeEffect.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000EA /* MockMoveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMoveService.swift; sourceTree = "<group>"; };
-		D5E0000000000000000000F2 /* PokemonSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonSummary.swift; sourceTree = "<group>"; };
 		D5F41B752E256D5A000341D3 /* ItemRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRowView.swift; sourceTree = "<group>"; };
 		D5F6494C2E30FA82004FBD18 /* ItemSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSpriteView.swift; sourceTree = "<group>"; };
 		D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageColorAnalyzer.swift; sourceTree = "<group>"; };
@@ -284,7 +282,6 @@
 		D5BA15022E70000000000503 /* Sprite */ = {
 			isa = PBXGroup;
 			children = (
-				D5BA15012E70000000000502 /* SpriteColorPrefetcher.swift */,
 			);
 			path = Sprite;
 			sourceTree = "<group>";
@@ -346,7 +343,6 @@
 			isa = PBXGroup;
 			children = (
 				D58C0E052E3A6D63003098EC /* PokemonModels.swift */,
-				D5E0000000000000000000F2 /* PokemonSummary.swift */,
 			);
 			path = Pokemon;
 			sourceTree = "<group>";
@@ -412,6 +408,7 @@
 			children = (
 				D57366112E21160900FE4ED0 /* PokemonRequest.swift */,
 				9332C0D6273F1DA6003AF377 /* PokemonService.swift */,
+				D5BA16012E70000000000602 /* PokemonHydrator.swift */,
 			);
 			path = Pokemon;
 			sourceTree = "<group>";
@@ -716,13 +713,13 @@
 				D57366092E2114E400FE4ED0 /* ItemModels.swift in Sources */,
 				D5164F732E22702000E3EC8D /* ItemDetailRowView.swift in Sources */,
 				9332C0E8273F3219003AF377 /* SpriteLoader.swift in Sources */,
-				D5BA15002E70000000000501 /* SpriteColorPrefetcher.swift in Sources */,
 				D5F41B762E256D5A000341D3 /* ItemRowView.swift in Sources */,
 				93F7F578274009B2002CEBB5 /* PokemonDetailView.swift in Sources */,
 				D5D5030B2E39344500AC4BC5 /* ViewModifiers.swift in Sources */,
 				D58C0DFB2E398709003098EC /* BookmarksView.swift in Sources */,
 				9332C0E0273F2A36003AF377 /* Color.swift in Sources */,
 				9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */,
+				D5BA16002E70000000000601 /* PokemonHydrator.swift in Sources */,
 				D54F5AA22E1D9FF800411759 /* PokemonViewModel.swift in Sources */,
 				D5164F752E22707700E3EC8D /* String.swift in Sources */,
 				D545C2F42E242F5E007F1BBA /* ItemDetailViewModel.swift in Sources */,
@@ -750,7 +747,6 @@
 				D5E0000000000000000000E5 /* BattlerSprite.swift in Sources */,
 				D5E0000000000000000000E7 /* ShakeEffect.swift in Sources */,
 				D5E0000000000000000000E9 /* MockMoveService.swift in Sources */,
-				D5E0000000000000000000F1 /* PokemonSummary.swift in Sources */,
 				D573661D2E217D5700FE4ED0 /* APIService.swift in Sources */,
 				D5329F3B2E29351500DC38B3 /* AudioPlayer.swift in Sources */,
 				D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */,

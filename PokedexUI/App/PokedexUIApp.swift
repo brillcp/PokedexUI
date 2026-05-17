@@ -11,7 +11,6 @@ struct PokedexUIApp: App {
             RootView()
         }
         .modelContainer(for: [
-            PokemonSummary.self,
             Pokemon.self,
             ItemData.self,
             TypeDetail.self,
@@ -23,10 +22,9 @@ struct PokedexUIApp: App {
 
 // MARK: - Root view
 
-/// Hosts the `PokedexView` and kicks off every one-shot bootstrap task at
-/// app launch: type chart hydration, bulk move prefetch, sprite color
-/// prefetch. All three early-return on subsequent launches once their cache
-/// is full.
+/// Hosts the `PokedexView` and kicks off bootstrap tasks at app launch:
+/// type chart hydration, bulk move prefetch, and species hydration. Each
+/// early-returns on subsequent launches once its cache is full.
 private struct RootView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.container) private var container
@@ -41,16 +39,12 @@ private struct RootView: View {
             await container.typeChart.loadIfNeeded()
         }
         .task(priority: .background) {
-            // One-shot bulk move download. Mirrors `TypeChartLoader.loadIfNeeded`
-            // semantics: first launch fetches ~900 moves at background priority,
-            // subsequent launches see the cache and early-return without any
-            // network hit. Battle preflight reads `MoveDetail` rows locally.
-            container.movePrefetcher.attach(modelContainer: modelContext.container)
+            await container.movePrefetcher.attach(modelContainer: modelContext.container)
             await container.movePrefetcher.prefetchIfNeeded()
         }
         .task(priority: .background) {
-            await container.spriteColorPrefetcher.attach(modelContainer: modelContext.container)
-            await container.spriteColorPrefetcher.prefetchIfNeeded()
+            await container.pokemonHydrator.attach(modelContainer: modelContext.container)
+            await container.pokemonHydrator.hydrateIfNeeded()
         }
     }
 }

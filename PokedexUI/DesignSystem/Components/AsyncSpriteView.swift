@@ -2,21 +2,17 @@ import SwiftUI
 
 /// Grid cell that loads a pokemon sprite asynchronously, fades it in, and
 /// optionally overlays the id + name (3-column grid layout shows the overlay,
-/// 4-column hides it to save space). Generic over `IdentifiablePokemon` so
-/// the same cell renders summaries, full pokemon, or evolution stages.
-struct AsyncSpriteView<ViewModel: IdentifiablePokemon>: View {
-    // MARK: Private properties
+/// 4-column hides it to save space).
+struct AsyncSpriteView: View {
     @Environment(\.container) private var container
 
     @State private var sprite: Image?
     @State private var color: Color?
     @State private var isLight = false
 
-    // MARK: - Public properties
-    let viewModel: ViewModel
+    let viewModel: Pokemon
     let showOverlay: Bool
 
-    // MARK: - Body
     var body: some View {
         ZStack {
             Color(.systemGray4)
@@ -81,7 +77,7 @@ private extension AsyncSpriteView {
 
 #Preview {
     AsyncSpriteView(
-        viewModel: PokemonViewModel(pokemon: .pikachu),
+        viewModel: .pikachu,
         showOverlay: true
     )
 }

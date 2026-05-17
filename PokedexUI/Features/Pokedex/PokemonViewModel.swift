@@ -1,75 +1,6 @@
 import SwiftUI
 
-// MARK: - Focused protocols (Interface Segregation)
-
-/// Minimum surface needed to render a sprite cell: id, name and the two sprite URLs.
-/// Used by grid cells and any view that just needs to identify a pokemon visually.
-protocol IdentifiablePokemon {
-    /// Unique Pokémon identifier (national dex number).
-    var id: Int { get }
-    /// Display-ready Pokémon name.
-    var name: String { get }
-    /// The Pokémon front sprite image URL.
-    var frontSprite: String { get }
-    /// The Pokémon back sprite image URL.
-    var backSprite: String? { get }
-}
-
-/// Combat-relevant numbers: read by the battle engine and by sort comparators
-/// that key on base stats.
-protocol PokemonStatsProviding {
-    /// Statistics for the Pokémon.
-    var stats: [Stat] { get }
-    /// Sum of all six base stats.
-    var baseStatTotal: Int { get }
-    /// Lowercase type names (e.g. `["fire", "flying"]`) for effectiveness lookup.
-    var typeNames: [String] { get }
-}
-
-/// Display-formatted strings + species metadata for the detail view, bookmarks,
-/// and search. Anything that exists only to be shown to the user lives here.
-protocol PokemonDisplayData {
-    /// Types as a comma-joined display string.
-    var types: String { get }
-    /// Abilities as a comma-joined display string.
-    var abilities: String { get }
-    /// Up to 10 move names joined for the detail view's Moves row.
-    var moves: String { get }
-    /// Pokémon height, formatted for display.
-    var height: String { get }
-    /// Pokémon weight, formatted for display.
-    var weight: String { get }
-    /// The battle cry of the pokemon.
-    var latestCry: String? { get }
-    /// Whether this Pokémon is currently bookmarked.
-    var isBookmarked: Bool { get set }
-    /// Precomputed, normalized text used for search matching.
-    var searchHaystack: String { get }
-    /// Display-ready habitat name, if available.
-    var habitat: String? { get }
-    /// English Pokédex flavor text, if available.
-    var flavorText: String? { get }
-    /// "Mouse Pokémon", etc.
-    var genus: String? { get }
-    /// "generation-i" style name.
-    var generationName: String? { get }
-    /// `-1` genderless, else `0...8` (1/8 increments female).
-    var genderRate: Int { get }
-    /// PokeAPI capture rate (0–255). 255 = easiest.
-    var captureRate: Int { get }
-    /// Evolution chain id (last path component) for lazy fetch.
-    var evolutionChainId: String? { get }
-    /// `true` when this pokemon is flagged legendary.
-    var isLegendary: Bool { get }
-    /// `true` when this pokemon is flagged mythical.
-    var isMythical: Bool { get }
-}
-
-/// Aggregate protocol used where the full Pokémon contract is needed (the
-/// detail view, mostly). Smaller surfaces should use the focused protocols.
-typealias PokemonViewModelProtocol = IdentifiablePokemon & PokemonStatsProviding & PokemonDisplayData
-
-// MARK: -
+// MARK: - PokemonViewModel
 /// ViewModel providing formatted and display-ready data for a single Pokémon.
 ///
 /// All derived values that involve dictionary/string allocation (stat lookup, normalized
@@ -77,14 +8,14 @@ typealias PokemonViewModelProtocol = IdentifiablePokemon & PokemonStatsProviding
 /// reference-typed `Derived` companion. Copying the struct copies the cache pointer, so
 /// callers that copy the value reuse work done by their siblings.
 struct PokemonViewModel {
-    private(set) var pokemon: Pokemon
+    private let derived: Derived
+
     let id: Int
     let name: String
     let frontSprite: String
-
     var isBookmarked: Bool
 
-    private let derived: Derived
+    private(set) var pokemon: Pokemon
 
     init(pokemon: Pokemon) {
         self.pokemon = pokemon
@@ -101,8 +32,8 @@ struct PokemonViewModel {
     }
 }
 
-// MARK: - Calculated PokemonViewModelProtocol properties
-extension PokemonViewModel: PokemonViewModelProtocol {
+// MARK: - Computed display properties
+extension PokemonViewModel {
     var backSprite: String? { pokemon.sprite.back }
     var height: String { "\(Double(pokemon.height) / 10.0) m" }
     var weight: String { "\(Double(pokemon.weight) / 10.0) kg" }

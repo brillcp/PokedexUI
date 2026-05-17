@@ -4,25 +4,19 @@ import SwiftUI
 
 /// Observable view model behind the pokedex grid.
 ///
-/// Loads summaries page-by-page from the PokeAPI (200 at a time) and writes
-/// each page to SwiftData immediately, so the grid renders the first batch in
-/// well under a second instead of waiting for all ~1300 pokemon to land.
+/// Fetches all national-dex ids from `/pokemon?limit=1150`.
 @MainActor
 protocol PokedexViewModelProtocol {
-    /// The grid's current data; populated progressively as pages arrive.
-    var summaries: [PokemonSummary] { get }
-    /// `true` while a page fetch is in-flight.
+    /// The grid's data source, populated progressively as chunks arrive.
+    var pokemonData: [Pokemon] { get }
+    /// `true` while fetching is in-flight.
     var isLoading: Bool { get }
-    /// How many summaries have been loaded so far. Used for the progress label.
-    var loadedCount: Int { get }
-    /// Total summaries the endpoint will return when fully paged.
-    var totalCount: Int { get }
     /// Currently selected tab in the parent `TabView`.
     var selectedTab: Tabs { get set }
     /// Current pokedex grid layout (3 cols vs 4 cols).
     var grid: GridLayout { get set }
 
-    /// Resume from cached summaries, then fetch any remaining pages.
+    /// Load all Pokemon: cache first, then network if needed.
     func requestPokemon() async
     /// Re-sort the in-memory `summaries` array.
     func sort(by type: SortType) async
@@ -30,28 +24,21 @@ protocol PokedexViewModelProtocol {
 
 // MARK: - Implementation
 
-/// Live implementation of `PokedexViewModelProtocol`. Drives the paginated
-/// summary load, the cached-then-network resume behaviour, and the active
-/// sort + grid layout state for the toolbar.
+/// Live implementation of `PokedexViewModelProtocol`. Uses
+/// `PokemonGridFetcher` for the cache-or-API dance.
 @Observable
 final class PokedexViewModel {
-    /// Fetcher that owns the cache-or-API choreography for the pokedex
-    /// list. Composition over conformance: the view model **has** a
-    /// fetcher rather than **is** a fetcher.
-    private let fetcher: PokemonPageFetcher
     private let storageReader: DataStorageReader
+    private let pokemonService: PokemonServiceProtocol
 
-    var summaries:   [PokemonSummary] = []
+    var pokemonData: [Pokemon] = []
     var isLoading:   Bool = false
-    var loadedCount: Int = 0
-    var totalCount:  Int = 0
     var selectedTab: Tabs = .pokedex
     var grid:        GridLayout = .three
 
-    init(modelContext: ModelContext, pokemonService: PokemonServiceProtocol = PokemonService()) {
-        let storage = DataStorageReader(modelContainer: modelContext.container)
-        self.storageReader = storage
-        self.fetcher = PokemonPageFetcher(storage: storage, service: pokemonService)
+    init(modelContext: ModelContext, service: PokemonServiceProtocol = PokemonService()) {
+        storageReader = DataStorageReader(modelContainer: modelContext.container)
+        pokemonService = service
     }
 }
 
@@ -60,40 +47,47 @@ final class PokedexViewModel {
 extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {
         guard !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
 
-        // One-off cleanup: an earlier pagination rule persisted alt-form pokemon
-        // (mega/alolan/galarian/gmax, id ≥ 10000). Those have no
-        // `/pokemon-species/{id}` page and 404 on detail hydration, so purge
-        // them from the local cache. Cheap no-op once the rows are gone.
-        try? await storageReader.delete(
-            matching: #Predicate<PokemonSummary> { $0.id >= 10000 }
-        )
-
-        // `PaginatedDataFetcher.paginatedLoad()` yields the cached set first
-        // (possibly empty), then each network page as fresh rows land. The
-        // view model just appends and lets the grid render progressively.
-        // The fetcher handles the `syncedFully` flag so a returning user
-        // with a complete cache makes zero network calls.
-        var isFirstBatch = true
-        for await batch in fetcher.paginatedLoad() {
-            if isFirstBatch {
-                summaries = batch
-                isFirstBatch = false
-            } else {
-                summaries.append(contentsOf: batch)
-            }
-            loadedCount = summaries.count
-            totalCount = max(totalCount, summaries.count)
+        pokemonData = await withLoadingState {
+            await fetchDataFromStorageOrAPI()
         }
     }
 
     func sort(by type: SortType) async {
-        let sorted: [PokemonSummary] = await Task(priority: .userInitiated) { [weak self] in
+        let sorted: [Pokemon] = await Task(priority: .userInitiated) { [weak self] in
             guard let self else { return [] }
-            return self.summaries.sorted(by: type.summaryComparator)
+            return self.pokemonData.sorted(by: type.comparator)
         }.value
-        withAnimation(.snappy(duration: 0.25)) { summaries = sorted }
+        withAnimation(.snappy(duration: 0.25)) { pokemonData = sorted }
+    }
+}
+
+extension PokedexViewModel: DataFetcher {
+    typealias StoredData = Pokemon
+    typealias APIData = Pokemon
+    typealias ViewModel = Pokemon
+
+    func fetchStoredData() async throws -> [StoredData] {
+        try await storageReader.fetch(sortBy: SortDescriptor(\.id))
+    }
+
+    func fetchAPIData() async throws -> [APIData] {
+        try await pokemonService.requestAllPokemon()
+    }
+
+    func storeData(_ data: [StoredData]) async throws {
+        try await storageReader.store(data)
+    }
+
+    func transformToViewModel(_ data: StoredData) -> ViewModel { data }
+    func transformForStorage(_ data: APIData) -> StoredData { data }
+}
+
+// MARK: - Private loading function
+private extension PokedexViewModel {
+    func withLoadingState<T>(_ operation: () async throws -> T) async rethrows -> T {
+        isLoading = true
+        defer { isLoading = false }
+        return try await operation()
     }
 }

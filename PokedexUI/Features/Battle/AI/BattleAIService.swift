@@ -15,7 +15,7 @@ import FoundationModels
 /// Intelligence is unavailable or generation fails.
 protocol BattleAIServiceProtocol: Sendable {
     func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String]) async -> MoveDetail
-    func chooseOpponent(for player: PokemonSummary, playerTypes: [String], candidates: [PokemonSummary]) async -> PokemonSummary
+    func chooseOpponent(for player: Pokemon, playerTypes: [String], candidates: [Pokemon]) async -> Pokemon
     func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
 }
 
@@ -35,24 +35,26 @@ actor BattleAIService: BattleAIServiceProtocol {
         guard let first = moves.first else { return MoveDetail(name: "tackle") }
         guard isAvailable else { return moves.randomElement() ?? first }
         let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: defender.typeNames) }
-        let prompt = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves)
+        let (prompt, indexMap) = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves)
         print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name)), recent: \(recentMoves)")
         do {
             let raw = try await moveSession().respond(to: prompt, options: .init(temperature: 0.35)).content
             print("[llm] chooseMove: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
-            if let i = BattleAIResponseParser.firstInt(in: raw), moves.indices.contains(i) {
-                print("[llm] chooseMove: resolved to \(moves[i].name)")
-                return moves[i]
+            if let shuffledIdx = BattleAIResponseParser.firstInt(in: raw),
+               let originalIdx = indexMap[shuffledIdx],
+               moves.indices.contains(originalIdx) {
+                print("[llm] chooseMove: shuffled \(shuffledIdx) -> original \(originalIdx) (\(moves[originalIdx].name))")
+                return moves[originalIdx]
             }
         } catch { print("[llm error] chooseMove: \(error)") }
         return moves.randomElement() ?? first
     }
 
     func chooseOpponent(
-        for player: PokemonSummary,
+        for player: Pokemon,
         playerTypes: [String],
-        candidates: [PokemonSummary]
-    ) async -> PokemonSummary {
+        candidates: [Pokemon]
+    ) async -> Pokemon {
         let pool = candidates.filter { $0.id != player.id }
         guard let fallback = pool.randomElement() else { return player }
         guard isAvailable else { return fallback }
