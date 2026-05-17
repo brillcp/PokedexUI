@@ -48,7 +48,8 @@ private extension BattleView {
             Spacer()
             arena(state: state)
                 .padding(.horizontal)
-            logFeed.padding(.top)
+            logFeed
+                .padding(.vertical)
                 .padding(.horizontal)
             moveGrid(state: state)
         }
