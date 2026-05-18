@@ -41,14 +41,11 @@ final class PokedexViewModel {
     init(
         modelContext: ModelContext,
         service: PokemonServiceProtocol = PokemonService(),
-        hydrator: PokemonHydrator = .init()
+        hydrator: PokemonHydrator? = nil
     ) {
         storageReader = DataStorageReader(modelContainer: modelContext.container)
         pokemonService = service
-        pokemonHydrator = PokemonHydrator(pokemonService: service)
-        Task {
-            await pokemonHydrator.attach(modelContainer: modelContext.container)
-        }
+        pokemonHydrator = hydrator ?? PokemonHydrator(pokemonService: service)
     }
 }
 
@@ -116,9 +113,6 @@ private extension PokedexViewModel {
     func hydrate(_ pokemon: [Pokemon]) async -> [Pokemon] {
         await pokemonHydrator.hydrate(pokemon) { [weak self] loaded, total in
             guard total > 0 else { return }
-            // Second half of the bar (0.5 → 1.0) tracks species hydration so
-            // the indexing overlay shows one continuous 0 → 1 ramp across
-            // both bootstrap phases.
             self?.loadingProgress = 0.5 + 0.5 * Double(loaded) / Double(total)
         }
     }

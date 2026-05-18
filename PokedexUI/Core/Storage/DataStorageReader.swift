@@ -61,31 +61,4 @@ actor DataStorageReader {
         try context.save()
     }
 
-    /// Returns IDs of `Pokemon` rows matching a predicate. Used by the
-    /// hydrator to find rows that still need species enrichment.
-    func fetchIDs<M: PersistentModel>(_ type: M.Type, matching predicate: Predicate<M>) throws -> [Int] where M: Identifiable, M.ID == Int {
-        let context = modelContext
-        var descriptor = FetchDescriptor<M>(predicate: predicate)
-        descriptor.propertiesToFetch = []
-        let results = try context.fetch(descriptor)
-        return results.map(\.id)
-    }
-
-    /// Batch-merge species data onto existing `Pokemon` rows. Looks up each
-    /// row by id, applies the species fields, and saves once at the end.
-    func applySpecies(_ updates: [(Int, PokemonSpecies)]) throws {
-        let context = modelContext
-        let ids = Set(updates.map { $0.0 })
-        let descriptor = FetchDescriptor<Pokemon>(
-            predicate: #Predicate { ids.contains($0.id) }
-        )
-        let rows = try context.fetch(descriptor)
-        let byId = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0) })
-        for (id, species) in updates {
-            if let pokemon = byId[id] {
-                PokemonService.applySpecies(species, to: pokemon)
-            }
-        }
-        try context.save()
-    }
 }
