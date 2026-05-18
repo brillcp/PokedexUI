@@ -53,7 +53,7 @@ final class PokemonDetailViewModel {
 
     init(
         summary: Pokemon,
-        evolutionService: EvolutionServiceProtocol = EvolutionService.shared
+        evolutionService: EvolutionServiceProtocol
     ) {
         self.isBookmarked = summary.isBookmarked
         self.evolutionService = evolutionService

@@ -12,15 +12,12 @@ protocol EvolutionServiceProtocol: Sendable {
     func requestChain(id: String) async throws -> EvolutionChain
 }
 
-/// Actor so the in-memory chain cache is safe across concurrent detail views.
-/// Most pokemon share a chain with 1–2 others (Pichu/Pikachu/Raichu); after
-/// the first opens, the rest never hit the network.
+/// Actor so the in-memory chain cache is safe across concurrent detail
+/// views. Most pokemon share a chain with 1–2 others (Pichu/Pikachu/Raichu);
+/// after the first opens, the rest never hit the network. The single
+/// shared instance lives on `AppContainer.evolutionService`; callers reach
+/// it via the environment, not a `static let shared` lookup.
 final actor EvolutionService: EvolutionServiceProtocol {
-    /// Process-wide instance so every detail view model resolves against the
-    /// same cache by default. AppContainer also holds it; both paths land
-    /// here.
-    static let shared = EvolutionService()
-
     private let networkService: Network.Service
     private var cache: [String: EvolutionChain] = [:]
 

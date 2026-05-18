@@ -33,13 +33,14 @@ final class AppContainer {
         pokemonService:     PokemonServiceProtocol   = PokemonService(),
         moveService:        MoveServiceProtocol      = MoveService(),
         typeService:        TypeServiceProtocol      = TypeService(),
-        evolutionService:   EvolutionServiceProtocol = EvolutionService.shared,
+        evolutionService:   EvolutionServiceProtocol = EvolutionService(),
         itemService:        ItemServiceProtocol      = ItemService(),
         typeChart:          TypeChartLoader          = TypeChartLoader(),
         movePrefetcher:     MovePrefetcher           = MovePrefetcher(),
         spriteLoader:       SpriteLoader             = SpriteLoader(),
         imageColorAnalyzer: ImageColorAnalyzer       = ImageColorAnalyzer(),
         audioPlayer:        AudioPlayer              = AudioPlayer(),
+        haptic:             UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light),
         battleAI:           BattleAIServiceProtocol  = BattleAIService()
     ) {
         self.pokemonService     = pokemonService

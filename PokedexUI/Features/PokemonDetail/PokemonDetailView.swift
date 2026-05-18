@@ -65,7 +65,10 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         }
         .navigationDestination(item: $evolutionTarget) { target in
             PokemonDetailView<PokemonDetailViewModel>(
-                viewModel: PokemonDetailViewModel(summary: target)
+                viewModel: PokemonDetailViewModel(
+                    summary: target,
+                    evolutionService: container.evolutionService
+                )
             )
         }
         .applyDetailViewStyling(viewModel: viewModel, textColor: textColor, context: modelContext)
@@ -256,7 +259,7 @@ private extension PokemonDetailView {
 }
 
 #Preview {
-    let vm = PokemonDetailViewModel(summary: .pikachu)
+    let vm = PokemonDetailViewModel(summary: .pikachu, evolutionService: EvolutionService())
     PokemonDetailView(viewModel: vm)
         .colorScheme(.dark)
 }

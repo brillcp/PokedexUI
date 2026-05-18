@@ -5,6 +5,7 @@ import SwiftUI
 /// spinner on a cold start when the list is still empty.
 struct PokedexGridView: View {
     @Namespace private var namespace
+    @Environment(\.container) private var container
 
     let pokemon: [Pokemon]
     var grid: GridLayout = .three
@@ -30,8 +31,13 @@ struct PokedexGridView: View {
             }
         }
         .navigationDestination(for: Pokemon.self) { vm in
-            PokemonDetailView(viewModel: PokemonDetailViewModel(summary: vm))
-                .navigationTransition(.zoom(sourceID: vm.id, in: namespace))
+            PokemonDetailView(
+                viewModel: PokemonDetailViewModel(
+                    summary: vm,
+                    evolutionService: container.evolutionService
+                )
+            )
+            .navigationTransition(.zoom(sourceID: vm.id, in: namespace))
         }
     }
 }

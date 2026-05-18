@@ -285,13 +285,6 @@
 			path = Colors;
 			sourceTree = "<group>";
 		};
-		D5BA15022E70000000000503 /* Sprite */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Sprite;
-			sourceTree = "<group>";
-		};
 		D5E0000000000000000000A1 /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -404,7 +397,6 @@
 				9332C0E7273F3219003AF377 /* SpriteLoader.swift */,
 				D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */,
 				D5329F3A2E29351400DC38B3 /* AudioPlayer.swift */,
-				D5BA15022E70000000000503 /* Sprite */,
 			);
 			path = Services;
 			sourceTree = "<group>";

@@ -6,6 +6,7 @@ import SwiftData
 struct SearchView: View {
     @FocusState private var isSearchFocused: Bool
     @Namespace private var namespace
+    @Environment(\.container) private var container
     @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
 
     @State var viewModel: SearchViewModel
@@ -63,8 +64,13 @@ private extension SearchView {
         }
         .scrollIndicators(.hidden)
         .navigationDestination(for: Pokemon.self) { pokemon in
-            PokemonDetailView(viewModel: PokemonDetailViewModel(summary: pokemon))
-                .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
+            PokemonDetailView(
+                viewModel: PokemonDetailViewModel(
+                    summary: pokemon,
+                    evolutionService: container.evolutionService
+                )
+            )
+            .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
         }
     }
 
