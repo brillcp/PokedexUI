@@ -45,6 +45,8 @@ private struct IndexingOverlay: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            ProgressView()
+                .opacity(progress >= 1.0 ? 1.0 : 0.0)
             ProgressView(value: progress)
                 .tint(.pokedexRed)
                 .frame(width: 200)
