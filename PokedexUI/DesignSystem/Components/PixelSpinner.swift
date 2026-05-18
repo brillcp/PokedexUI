@@ -20,9 +20,9 @@ struct PixelSpinner: View {
     init(
         size: CGFloat = 28,
         color: Color = .white,
-        lineCount: Int = 11,
-        lineWidth: CGFloat = 3,
-        lineLength: CGFloat = 7
+        lineCount: Int = 8,
+        lineWidth: CGFloat = 2.5,
+        lineLength: CGFloat = 8
     ) {
         self.size = size
         self.color = color
