@@ -9,9 +9,8 @@ import SwiftData
 /// Stays `@MainActor @Observable` because SwiftUI views (`WeaknessGridView`)
 /// still bind to its `chart` property directly. Off-main consumers grab
 /// `chart` once on entry and pass the captured value by parameter.
-@MainActor
 @Observable
-final class TypeChartLoader {
+final class TypeChartLoader: Sendable {
     private let typeService: TypeServiceProtocol
     private var storage: DataStorageReader?
     private var isLoading = false
@@ -20,7 +19,7 @@ final class TypeChartLoader {
     /// on this and render nothing until populated.
     private(set) var chart: TypeChart?
 
-    nonisolated init(typeService: TypeServiceProtocol = TypeService()) {
+    init(typeService: TypeServiceProtocol = TypeService()) {
         self.typeService = typeService
     }
 

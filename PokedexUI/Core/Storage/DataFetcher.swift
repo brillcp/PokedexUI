@@ -88,7 +88,7 @@ private extension DataFetcher {
 /// extension method runs the cache-or-API dance, preserves the caller's
 /// input order, and drops keys that resolved neither from cache nor from
 /// the network.
-protocol BatchDataFetcher<Key, ViewModel> {
+protocol BatchDataFetcher<Key, ViewModel>: Sendable {
     /// Lookup key. Usually a `String` name or `Int` id.
     associatedtype Key: Hashable
     /// Shape persisted on disk.

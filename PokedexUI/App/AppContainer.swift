@@ -30,18 +30,17 @@ final class AppContainer {
     let battleAI:           BattleAIServiceProtocol
 
     init(
-        pokemonService:     PokemonServiceProtocol  = PokemonService(),
-        moveService:        MoveServiceProtocol     = MoveService(),
-        typeService:        TypeServiceProtocol     = TypeService(),
+        pokemonService:     PokemonServiceProtocol   = PokemonService(),
+        moveService:        MoveServiceProtocol      = MoveService(),
+        typeService:        TypeServiceProtocol      = TypeService(),
         evolutionService:   EvolutionServiceProtocol = EvolutionService.shared,
-        itemService:        ItemServiceProtocol     = ItemService(),
-        typeChart:          TypeChartLoader         = TypeChartLoader(),
-        movePrefetcher:     MovePrefetcher          = MovePrefetcher(),
-        spriteLoader:       SpriteLoader            = SpriteLoader(),
-        imageColorAnalyzer: ImageColorAnalyzer      = ImageColorAnalyzer(),
-        audioPlayer:        AudioPlayer             = AudioPlayer(),
-        haptic:             UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light),
-        battleAI:           BattleAIServiceProtocol = BattleAIService(),
+        itemService:        ItemServiceProtocol      = ItemService(),
+        typeChart:          TypeChartLoader          = TypeChartLoader(),
+        movePrefetcher:     MovePrefetcher           = MovePrefetcher(),
+        spriteLoader:       SpriteLoader             = SpriteLoader(),
+        imageColorAnalyzer: ImageColorAnalyzer       = ImageColorAnalyzer(),
+        audioPlayer:        AudioPlayer              = AudioPlayer(),
+        battleAI:           BattleAIServiceProtocol  = BattleAIService()
     ) {
         self.pokemonService     = pokemonService
         self.moveService        = moveService

@@ -4,7 +4,7 @@ import SwiftData
 /// endpoint. Persisted as a `@Model` so list responses can be cached even
 /// before the per-item detail is fetched.
 @Model
-final class APIItem: Decodable {
+final class APIItem: Decodable, Sendable {
     var name: String
     var url: String
 
