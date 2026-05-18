@@ -111,44 +111,57 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     // MARK: - Preparation
 
     func prepare(modelContext: ModelContext) async {
-        do {
-            let player   = PokemonViewModel(pokemon: playerSummary)
-            let opponent = PokemonViewModel(pokemon: opponentSummary)
-            self.playerPokemon   = player
-            self.opponentPokemon = opponent
+        let player   = PokemonViewModel(pokemon: playerSummary)
+        let opponent = PokemonViewModel(pokemon: opponentSummary)
+        self.playerPokemon   = player
+        self.opponentPokemon = opponent
 
-            // Both 40-move samples in parallel. Player pool ranked
-            // strongest-first so the most useful picks surface at the top.
-            async let playerMoves   = fetchMoves(for: player,   modelContext: modelContext)
-            async let opponentMoves = fetchMoves(for: opponent, modelContext: modelContext)
-            self.playerMovePool = (try? await playerMoves).map(Self.rankedByImpact) ?? []
-            let opponentPool    = (try? await opponentMoves) ?? []
+        // Both move samples in parallel. Player pool ranked strongest-first
+        // so the most useful picks surface at the top of the grid.
+        async let playerMovesTask   = fetchMoves(for: player,   modelContext: modelContext)
+        async let opponentMovesTask = fetchMoves(for: opponent, modelContext: modelContext)
+        let playerMoves  = (try? await playerMovesTask)  ?? []
+        let opponentPool = (try? await opponentMovesTask) ?? []
 
-            // Kick off the AI loadout pick in a detached background task .
-            // player can browse + pick their own 4 while the model thinks.
-            // Battle button stays disabled until `opponentLoadout` is non-nil.
-            await typeChartLoader.loadIfNeeded()
-            let chart = typeChartLoader.chart ?? TypeChart(rows: [])
-            // Snapshot the combatants on main (PokemonViewModel.stats reads
-            // @Model fields). `BattleCombatant` is Sendable so the Task can
-            // pass it through freely.
-            let fighter = BattleCombatant(pokemon: opponent, moves: [])
-            let foe     = BattleCombatant(pokemon: player,   moves: [])
-            Task { [aiService, opponentPool, chart, fighter, foe] in
-                let picks = await aiService.chooseLoadout(
-                    for: fighter,
-                    against: foe,
-                    moves: opponentPool,
-                    typeChart: chart
-                )
-                await MainActor.run {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        self.opponentLoadout = picks
-                    }
+        guard playerMoves.count >= maxSelections else {
+            errorMessage = "Couldn't load \(playerSummary.name)'s movepool. Check your connection and try again."
+            return
+        }
+        guard opponentPool.count >= maxSelections else {
+            errorMessage = "Couldn't load \(opponentSummary.name)'s movepool. Check your connection and try again."
+            return
+        }
+
+        await typeChartLoader.loadIfNeeded()
+        guard let chart = typeChartLoader.chart else {
+            errorMessage = "Couldn't load the type chart. Check your connection and try again."
+            return
+        }
+
+        self.playerMovePool = Self.rankedByImpact(playerMoves)
+
+        // Snapshot the combatants on main (`PokemonViewModel.stats` reads
+        // `@Model` fields). `BattleCombatant` is Sendable so the Task can
+        // pass it through freely.
+        let fighter = BattleCombatant(pokemon: opponent, moves: [])
+        let foe     = BattleCombatant(pokemon: player,   moves: [])
+        let selectionTarget = maxSelections
+        Task { [aiService, opponentPool, chart, fighter, foe] in
+            let picks = await aiService.chooseLoadout(
+                for: fighter,
+                against: foe,
+                moves: opponentPool,
+                typeChart: chart
+            )
+            await MainActor.run {
+                guard picks.count >= selectionTarget else {
+                    self.errorMessage = "Opponent couldn't pick a loadout."
+                    return
+                }
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    self.opponentLoadout = picks
                 }
             }
-        } catch {
-            self.errorMessage = "Couldn't load battle: \(error.localizedDescription)"
         }
     }
 
