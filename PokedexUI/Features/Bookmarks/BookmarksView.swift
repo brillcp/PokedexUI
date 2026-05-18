@@ -11,14 +11,14 @@ struct BookmarksView: View {
 
     var body: some View {
         NavigationStack {
-            if bookmarks.isEmpty {
-                Text("No favourites")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .font(.pixel14)
-            } else {
-                PokedexGridView(pokemon: bookmarks)
-            }
+            PokedexGridView(pokemon: bookmarks)
+                .overlay {
+                    if bookmarks.isEmpty {
+                        Text("No favourites")
+                            .foregroundStyle(.secondary)
+                            .font(.pixel14)
+                    }
+                }
         }
     }
 }

@@ -9,6 +9,12 @@ extension String {
             .folding(options: .diacriticInsensitive, locale: .current)
             .firstUppercased
     }
+
+    func matches(query: String) -> Bool {
+        let normalizedSelf = normalize
+        let normalizedQuery = query.normalize
+        return normalizedSelf.range(of: normalizedQuery, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+    }
 }
 
 extension StringProtocol {

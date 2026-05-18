@@ -57,6 +57,7 @@ struct DetailRowStat: View {
     var body: some View {
         let maxValue = max(value, 100)
         let clampedValue = max(value, 0)
+        let progress = Double(clampedValue) / Double(maxValue)
 
         HStack {
             Text(abbreviatedTitle)
@@ -65,17 +66,10 @@ struct DetailRowStat: View {
                 .lineLimit(1)
             Text("\(clampedValue)")
                 .frame(width: 32)
-            Gauge(value: Double(clampedValue), in: 0...Double(maxValue)) {
-                EmptyView()
-            } currentValueLabel: {
-                EmptyView()
-            } minimumValueLabel: {
-                Text("")
-            } maximumValueLabel: {
-                Text("\(maxValue)")
-            }
-            .gaugeStyle(.linearCapacity)
-            .tint(textColor)
+            ProgressView(value: progress)
+                .tint(textColor)
+            Text("\(maxValue)")
+                .foregroundStyle(.secondary)
         }
         .padding(.vertical)
     }

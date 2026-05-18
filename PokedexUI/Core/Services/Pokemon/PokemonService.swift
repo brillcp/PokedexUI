@@ -8,7 +8,15 @@ protocol PokemonServiceProtocol {
     /// Fetches all national-dex ids from `/pokemon?limit=1150`, then
     /// downloads `/pokemon/{id}` for each concurrently. Returns the full
     /// array sorted by id.
-    func requestAllPokemon() async throws -> [Pokemon]
+    func requestAllPokemon(onProgress: (@Sendable (Int, Int) async -> Void)?) async throws -> [Pokemon]
+
+    func requestPokemonSpecies(id: Int) async throws -> PokemonSpecies
+}
+
+extension PokemonServiceProtocol {
+    func requestAllPokemon() async throws -> [Pokemon] {
+        try await requestAllPokemon(onProgress: nil)
+    }
 }
 
 // MARK: - Concrete implementation
@@ -16,13 +24,23 @@ protocol PokemonServiceProtocol {
 /// Default `Networking`-backed implementation.
 final class PokemonService: PokemonServiceProtocol {
     private let networkService: APIService<Config>
+    private let service: Network.Service
 
-    init(networkService: APIService<Config> = .init(config: Config())) {
+    init(networkService: APIService<Config> = .init(config: Config()), service: Network.Service = .default) {
         self.networkService = networkService
+        self.service = service
     }
 
-    func requestAllPokemon() async throws -> [Pokemon] {
-        try await networkService.requestData()
+    func requestAllPokemon(onProgress: (@Sendable (Int, Int) async -> Void)?) async throws -> [Pokemon] {
+        try await networkService.requestData(onProgress: onProgress)
+    }
+
+    func requestPokemonSpecies(id: Int) async throws -> PokemonSpecies {
+        let species: PokemonSpecies = try await service.request(
+            PokemonRequest.species("\(id)")
+        )
+
+        return species
     }
 }
 

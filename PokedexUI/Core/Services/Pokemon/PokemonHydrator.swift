@@ -10,6 +10,10 @@ import SwiftData
 ///
 /// Pokemon data is immutable, so after the first successful run on a device
 /// we never hit the network again.
+extension Notification.Name {
+    static let pokemonHydrationComplete = Notification.Name("pokemonHydrationComplete")
+}
+
 actor PokemonHydrator {
     private let pokemonService: PokemonServiceProtocol
     private var storage: DataStorageReader?
@@ -55,6 +59,7 @@ actor PokemonHydrator {
 
             await hydrateSpecies(ids: needsSpecies, storage: storage)
             isComplete = true
+            NotificationCenter.default.post(name: .pokemonHydrationComplete, object: nil)
         } catch {
             print("PokemonHydrator: failed: \(error)")
         }
@@ -65,7 +70,6 @@ actor PokemonHydrator {
 
 private extension PokemonHydrator {
     func hydrateSpecies(ids: [Int], storage: DataStorageReader) async {
-        /*
         print("PokemonHydrator: enriching \(ids.count) pokemon with species data")
         let batchSize = 50
 
@@ -105,6 +109,5 @@ private extension PokemonHydrator {
                 }
             }
         }
-         */
     }
 }

@@ -74,7 +74,8 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
             PokedexGridView(
                 pokemon: viewModel.pokemonData,
                 grid: viewModel.grid,
-                isLoading: viewModel.isLoading
+                isLoading: viewModel.isLoading,
+                loadingProgress: viewModel.loadingProgress
             )
             .applyPokedexStyling(title: Tabs.pokedex.title)
             .toolbar { PokedexToolbar(viewModel: viewModel) }

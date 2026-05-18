@@ -17,12 +17,9 @@ struct HPCard: View, Equatable {
                     Chip(status.displayName, style: .custom(background: statusColor.opacity(0.4), foreground: statusColor))
                 }
             }
-            Gauge(value: Double(currentHP), in: 0...Double(maxHP)) {
-                EmptyView()
-            } currentValueLabel: { EmptyView() }
-            .gaugeStyle(.linearCapacity)
-            .tint(hpTint)
-            .animation(.easeOut(duration: 0.4), value: currentHP)
+            ProgressView(value: Double(currentHP), total: Double(maxHP))
+                .tint(hpTint)
+                .animation(.easeOut(duration: 0.4), value: currentHP)
             Text("\(currentHP) / \(maxHP)")
                 .font(.pixel12)
                 .foregroundStyle(.secondary)

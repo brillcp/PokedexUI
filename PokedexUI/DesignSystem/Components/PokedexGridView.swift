@@ -9,6 +9,7 @@ struct PokedexGridView: View {
     let pokemon: [Pokemon]
     var grid: GridLayout = .three
     var isLoading: Bool = false
+    var loadingProgress: Double = 0
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -25,13 +26,31 @@ struct PokedexGridView: View {
         }
         .overlay {
             if isLoading && pokemon.isEmpty {
-                ProgressView()
-                    .tint(.white)
+                IndexingOverlay(progress: loadingProgress)
             }
         }
         .navigationDestination(for: Pokemon.self) { vm in
             PokemonDetailView(viewModel: PokemonDetailViewModel(summary: vm))
                 .navigationTransition(.zoom(sourceID: vm.id, in: namespace))
+        }
+    }
+}
+
+// MARK: - Indexing overlay
+
+/// Full-screen overlay shown during first-load API fetch with a
+/// determinate progress bar and percentage label.
+private struct IndexingOverlay: View {
+    let progress: Double
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView(value: progress)
+                .tint(.pokedexRed)
+                .frame(width: 200)
+            Text("Indexing Pokedex \(Int(progress * 100))%")
+                .font(.pixel14)
+                .foregroundStyle(.secondary)
         }
     }
 }
