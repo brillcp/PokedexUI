@@ -32,6 +32,13 @@ final actor MovePrefetcher {
         }
     }
 
+    /// One-shot bootstrap: wire the storage and kick off the prefetch.
+    /// Idempotent (both inner calls guard against repeat work).
+    func warmUp(modelContainer: ModelContainer) async {
+        attach(modelContainer: modelContainer)
+        await prefetchIfNeeded()
+    }
+
     /// One-shot prefetch. Safe to call repeatedly: the first invocation drives
     /// the download, subsequent calls early-return.
     ///

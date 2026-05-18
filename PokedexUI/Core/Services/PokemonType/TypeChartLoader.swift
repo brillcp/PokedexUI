@@ -31,6 +31,13 @@ final class TypeChartLoader {
         }
     }
 
+    /// One-shot bootstrap: wire the storage and hydrate the chart.
+    /// Idempotent (both inner calls guard against repeat work).
+    func warmUp(modelContainer: ModelContainer) async {
+        attach(modelContainer: modelContainer)
+        await loadIfNeeded()
+    }
+
     /// Hydrate from disk if available, otherwise fetch from the API once and persist.
     func loadIfNeeded() async {
         guard !isLoading, chart == nil else { return }
