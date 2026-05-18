@@ -95,7 +95,6 @@ struct OpponentPickerView: View {
                 )
             }
         }
-        .task { await warmBattleCaches() }
     }
 
 }
@@ -113,38 +112,46 @@ private extension OpponentPickerView {
         .padding(.horizontal, 24)
     }
 
-    /// Sample the candidate pool, hand off to the AI, and push the picked
-    /// opponent. Button flips to "Thinking" while the model runs; service
-    /// has its own random-pick fallback on model failure.
+    /// Pre-flight check on the main actor (corpus available, no AI run in
+    /// flight), snapshot what the AI needs into Sendable structs on main,
+    /// then cross to the actor for the model call. Tap path stays on main
+    /// only long enough to build snapshots; the AI inference, the move
+    /// prefetch, and the type chart load all run in parallel off-main. Once
+    /// the AI returns, we map the picked id back to a SwiftData `Pokemon`.
     func pickSmart() {
         guard !allPokemon.isEmpty, !isAIThinking else { return }
         isAIThinking = true
-        Task {
-            let candidates = Array(allPokemon.shuffled())
-            let pick = await container.battleAI.chooseOpponent(
-                for: player,
-                playerTypes: playerTypes,
-                candidates: candidates
-            )
-            isAIThinking = false
-            setupOpponent = pick
-        }
-    }
 
-    /// Kick off the two battle-side bootstraps the moment the picker opens so
-    /// they overlap with the user scrolling/picking. The type chart is small
-    /// and structured (loads inside `.task`); the move prefetch is ~900 rows
-    /// and runs detached so it survives a quick dismiss. Both call sites guard
-    /// against repeat work, so re-entering the picker is a no-op.
-    func warmBattleCaches() async {
+        let pool = Array(allPokemon.shuffled().prefix(40))
+        let playerSnapshot = PokemonAISnapshot.player(player, fallbackTypes: playerTypes)
+        let candidateSnapshots = pool.map(PokemonAISnapshot.candidate)
+        let aiService = container.battleAI
         let modelContainer = modelContext.container
         let appContainer = container
+
+        // Warm the battle-side caches in parallel with the AI inference so
+        // the loadout view doesn't pay a cold-start once the user lands.
         Task.detached(priority: .background) {
             await appContainer.movePrefetcher.attach(modelContainer: modelContainer)
             await appContainer.movePrefetcher.prefetchIfNeeded()
         }
-        await appContainer.typeChart.attach(modelContainer: modelContainer)
-        await appContainer.typeChart.loadIfNeeded()
+        Task { @MainActor in
+            await appContainer.typeChart.attach(modelContainer: modelContainer)
+            await appContainer.typeChart.loadIfNeeded()
+        }
+
+        Task {
+            let pickedId = await aiService.chooseOpponent(
+                player: playerSnapshot,
+                candidates: candidateSnapshots
+            )
+            isAIThinking = false
+            if let pickedId, let match = allPokemon.first(where: { $0.id == pickedId }) {
+                setupOpponent = match
+            } else {
+                setupOpponent = pool.randomElement()
+            }
+        }
     }
 }
 

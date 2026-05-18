@@ -15,7 +15,11 @@ import FoundationModels
 /// Intelligence is unavailable or generation fails.
 protocol BattleAIServiceProtocol: Sendable {
     func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String]) async -> MoveDetail
-    func chooseOpponent(for player: Pokemon, playerTypes: [String], candidates: [Pokemon]) async -> Pokemon
+    /// Pick an opponent id from the supplied candidate snapshots. The caller
+    /// maps the returned id back to a SwiftData `Pokemon` on the main actor.
+    /// Returns `nil` when the model is unavailable or can't decide; callers
+    /// should fall back to a random pick.
+    func chooseOpponent(player: PokemonAISnapshot, candidates: [PokemonAISnapshot]) async -> Int?
     func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
 }
 
@@ -51,24 +55,23 @@ actor BattleAIService: BattleAIServiceProtocol {
     }
 
     func chooseOpponent(
-        for player: Pokemon,
-        playerTypes: [String],
-        candidates: [Pokemon]
-    ) async -> Pokemon {
+        player: PokemonAISnapshot,
+        candidates: [PokemonAISnapshot]
+    ) async -> Int? {
         let pool = candidates.filter { $0.id != player.id }
-        guard let fallback = pool.randomElement() else { return player }
-        guard isAvailable else { return fallback }
-        let prompt = prompts.buildOpponentPrompt(player: player, playerTypes: playerTypes, candidates: pool)
-        print("[llm] chooseOpponent: for \(player.name) (\(playerTypes.joined(separator: "/"))) from \(pool.count) candidates")
+        guard !pool.isEmpty else { return nil }
+        guard isAvailable else { return pool.randomElement()?.id }
+        let prompt = prompts.buildOpponentPrompt(player: player, candidates: pool)
+        print("[llm] chooseOpponent: for \(player.name) (\(player.typeNames.joined(separator: "/"))) from \(pool.count) candidates")
         do {
             let raw = try await opponentSession().respond(to: prompt, options: .init(temperature: 0.5)).content
             print("[llm] chooseOpponent: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
-            if let id = BattleAIResponseParser.firstInt(in: raw), let picked = pool.first(where: { $0.id == id }) {
-                print("[llm] chooseOpponent: resolved to \(picked.name)")
-                return picked
+            if let id = BattleAIResponseParser.firstInt(in: raw), pool.contains(where: { $0.id == id }) {
+                print("[llm] chooseOpponent: resolved to id \(id)")
+                return id
             }
         } catch { print("[llm error] chooseOpponent: \(error)") }
-        return fallback
+        return pool.randomElement()?.id
     }
 
     func chooseLoadout(

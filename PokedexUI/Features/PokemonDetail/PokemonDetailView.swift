@@ -61,17 +61,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             }
         }
         .navigationDestination(item: $battleLaunch) { launch in
-            BattleView(
-                viewModel: BattleViewModel(
-                    player: launch.player,
-                    opponent: launch.opponent,
-                    playerMoves: launch.playerMoves,
-                    opponentMoves: launch.opponentMoves,
-                    typeChart: container.typeChart,
-                    audioPlayer: container.audioPlayer,
-                    aiService: container.battleAI
-                )
-            )
+            BattleView(viewModel: launch.viewModel)
         }
         .navigationDestination(item: $evolutionTarget) { target in
             PokemonDetailView<PokemonDetailViewModel>(

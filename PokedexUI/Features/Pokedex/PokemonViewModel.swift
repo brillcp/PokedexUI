@@ -75,7 +75,7 @@ extension PokemonViewModel {
     var captureRate: Int { pokemon.captureRate }
     var evolutionChainId: String? { pokemon.evolutionChainId }
     var baseStatTotal: Int { pokemon.stats.map(\.baseStat).reduce(0, +) }
-    var typeNames: [String] { pokemon.types.map { $0.type.name } }
+    var typeNames: [String] { derived.typeNames(types: pokemon.types) }
     var isLegendary: Bool { pokemon.isLegendary }
     var isMythical: Bool { pokemon.isMythical }
 }
@@ -86,6 +86,7 @@ extension PokemonViewModel {
 /// turning the viewmodel itself into a class.
 private final class Derived {
     var cachedStatLookup: [String: Int]?
+    var cachedTypeNames: [String]?
     var cachedSearchHaystack: String?
     var cachedTypes: String?
     var cachedAbilities: String?
@@ -96,6 +97,13 @@ private final class Derived {
         let map = Dictionary(uniqueKeysWithValues: stats.map { ($0.stat.name, $0.baseStat) })
         cachedStatLookup = map
         return map
+    }
+
+    func typeNames(types: [Type]) -> [String] {
+        if let cached = cachedTypeNames { return cached }
+        let names = types.map { $0.type.name }
+        cachedTypeNames = names
+        return names
     }
 
     func searchHaystack(rawName: String, types: [Type]) -> String {

@@ -35,18 +35,23 @@ struct BattleSetupView: View {
 private extension BattleSetupView {
     /// Build the launch payload and bubble it up. Both sides commit to 4
     /// moves before this fires; `canStart` guards both player + AI readiness.
+    /// The `BattleViewModel` is constructed here, before the navigation push
+    /// fires, so the combatant snapshotting cost doesn't land mid-transition.
     func startBattle() {
         guard let player = viewModel.playerPokemon,
               let opponent = viewModel.opponentPokemon,
               let opponentMoves = viewModel.opponentLoadout
         else { return }
-        let launch = BattleLaunch(
+        let battleViewModel = BattleViewModel(
             player: player,
             opponent: opponent,
             playerMoves: viewModel.playerMoves(),
-            opponentMoves: opponentMoves
+            opponentMoves: opponentMoves,
+            typeChart: container.typeChart,
+            audioPlayer: container.audioPlayer,
+            aiService: container.battleAI
         )
-        onStart(launch)
+        onStart(BattleLaunch(viewModel: battleViewModel))
     }
 
     var content: some View {
@@ -296,7 +301,7 @@ private extension BattleSetupView {
 
     var battleButton: some View {
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
-        let label = remaining > 0 ? "Pick \(remaining) more" : "Start"
+        let label = remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move": "moves")" : "Start"
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
             title: label,

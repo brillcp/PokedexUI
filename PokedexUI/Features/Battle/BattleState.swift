@@ -73,7 +73,7 @@ struct BattleCombatant: Sendable {
     let moves: [MoveDetail]
 
     init(pokemon: PokemonViewModel, moves: [MoveDetail]) {
-        let stats = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
+        let stats = pokemon.statLookup
         let baseHP = stats["hp"] ?? 50
         self.id = pokemon.id
         self.name = pokemon.name
