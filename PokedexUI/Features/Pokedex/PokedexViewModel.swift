@@ -40,7 +40,6 @@ final class PokedexViewModel {
     init(modelContext: ModelContext, service: PokemonServiceProtocol = PokemonService()) {
         storageReader = DataStorageReader(modelContainer: modelContext.container)
         pokemonService = service
-        observeHydration()
     }
 }
 
@@ -51,35 +50,22 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         guard !isLoading else { return }
         isLoading = true
 
-        if let cached = try? await storageReader.fetch(sortBy: SortDescriptor<Pokemon>(\.id)),
-           !cached.isEmpty {
+        let cached = await fetchStoredDataSafely()
+        if let cached, !cached.isEmpty {
             pokemonData = cached
             isLoading = false
             return
         }
 
         do {
-            let pokemon = try await pokemonService.requestAllPokemon { [weak self] loaded, total in
-                await MainActor.run {
-                    self?.loadingProgress = Double(loaded) / Double(total)
-                }
-            }
+            let pokemon = try await fetchAPIData()
+            try await storeData(pokemon)
             pokemonData = pokemon
-            isLoading = false
-
-            Task(priority: .background) { [storageReader] in
-                try? await storageReader.store(pokemon)
-            }
         } catch {
-            isLoading = false
             print("PokedexViewModel: fetch failed: \(error)")
         }
-    }
 
-    func refreshFromStorage() async {
-        guard let fresh = try? await storageReader.fetch(sortBy: SortDescriptor<Pokemon>(\.id)),
-              !fresh.isEmpty else { return }
-        pokemonData = fresh
+        isLoading = false
     }
 
     func sort(by type: SortType) async {
@@ -91,18 +77,38 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     }
 }
 
-// MARK: - Hydration observer
+// MARK: - DataFetcher
+
+extension PokedexViewModel: DataFetcher {
+    func fetchStoredData() async throws -> [Pokemon] {
+        try await storageReader.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
+    }
+
+    func fetchAPIData() async throws -> [Pokemon] {
+        try await pokemonService.requestAllPokemon { [weak self] loaded, total in
+            await MainActor.run {
+                self?.loadingProgress = Double(loaded) / Double(total)
+            }
+        }
+    }
+
+    func storeData(_ data: [Pokemon]) async throws {
+        try await storageReader.store(data)
+    }
+
+    func transformToViewModel(_ data: Pokemon) -> Pokemon { data }
+    func transformForStorage(_ data: Pokemon) -> Pokemon { data }
+}
+
+// MARK: - Private
 
 private extension PokedexViewModel {
-    func observeHydration() {
-        NotificationCenter.default.addObserver(
-            forName: .pokemonHydrationComplete,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                await self?.refreshFromStorage()
-            }
+    func fetchStoredDataSafely() async -> [Pokemon]? {
+        do {
+            return try await fetchStoredData()
+        } catch {
+            print("PokedexViewModel: cache read failed: \(error)")
+            return nil
         }
     }
 }

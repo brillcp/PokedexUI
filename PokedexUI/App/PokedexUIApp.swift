@@ -22,29 +22,15 @@ struct PokedexUIApp: App {
 
 // MARK: - Root view
 
-/// Hosts the `PokedexView` and kicks off bootstrap tasks at app launch:
-/// type chart hydration, bulk move prefetch, and species hydration. Each
-/// early-returns on subsequent launches once its cache is full.
+/// Hosts the `PokedexView`. No background workers run at launch; the view
+/// model handles the full fetch-store-display cycle.
 private struct RootView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.container) private var container
 
     var body: some View {
         PokedexView(
             viewModel: PokedexViewModel(modelContext: modelContext),
             itemListViewModel: ItemListViewModel(modelContext: modelContext)
         )
-        .task {
-            container.typeChart.attach(modelContainer: modelContext.container)
-            await container.typeChart.loadIfNeeded()
-        }
-        .task(priority: .background) {
-            await container.movePrefetcher.attach(modelContainer: modelContext.container)
-            await container.movePrefetcher.prefetchIfNeeded()
-        }
-        .task(priority: .background) {
-            await container.pokemonHydrator.attach(modelContainer: modelContext.container)
-            await container.pokemonHydrator.hydrateIfNeeded()
-        }
     }
 }

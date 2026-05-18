@@ -40,8 +40,6 @@ actor PokemonHydrator {
         defer { isLoading = false }
 
         do {
-            // Wait for initial fetch to persist Pokemon rows before checking
-            // species needs. On subsequent launches rows exist immediately.
             var needsSpecies: [Int] = []
             for _ in 0..<30 {
                 needsSpecies = try await storage.fetchIDs(
@@ -57,9 +55,15 @@ actor PokemonHydrator {
                 return
             }
 
-            await hydrateSpecies(ids: needsSpecies, storage: storage)
+            let start = CFAbsoluteTimeGetCurrent()
+            let speciesMap = await hydrateSpecies(ids: needsSpecies, storage: storage)
+            let elapsed = CFAbsoluteTimeGetCurrent() - start
+            print("PokemonHydrator: species fetch + persist took \(String(format: "%.1f", elapsed))s")
             isComplete = true
-            NotificationCenter.default.post(name: .pokemonHydrationComplete, object: nil)
+            NotificationCenter.default.post(
+                name: .pokemonHydrationComplete,
+                object: speciesMap
+            )
         } catch {
             print("PokemonHydrator: failed: \(error)")
         }
@@ -69,30 +73,30 @@ actor PokemonHydrator {
 // MARK: - Private
 
 private extension PokemonHydrator {
-    func hydrateSpecies(ids: [Int], storage: DataStorageReader) async {
+    static let persistBatchSize = 50
+
+    func hydrateSpecies(ids: [Int], storage: DataStorageReader) async -> [Int: PokemonSpecies] {
         print("PokemonHydrator: enriching \(ids.count) pokemon with species data")
-        let batchSize = 50
+
+        var allSpecies: [Int: PokemonSpecies] = [:]
 
         await withTaskGroup(of: (Int, PokemonSpecies)?.self) { group in
-            var collected: [(Int, PokemonSpecies)] = []
-
             for id in ids {
                 group.addTask { [pokemonService] in
-                    guard let species = try? await pokemonService.requestPokemonSpecies(id: id) else {
-                        return nil
-                    }
+                    guard let species = try? await pokemonService.requestPokemonSpecies(id: id) else { return nil }
                     return (id, species)
                 }
             }
 
+            var collected: [(Int, PokemonSpecies)] = []
             for await result in group {
-                if let result {
-                    collected.append(result)
-                }
-                if collected.count >= batchSize {
+                guard let result else { continue }
+                collected.append(result)
+                allSpecies[result.0] = result.1
+
+                if collected.count >= Self.persistBatchSize {
                     do {
                         try await storage.applySpecies(collected)
-                        print("PokemonHydrator: enriched batch of \(collected.count) species")
                     } catch {
                         print("PokemonHydrator: species batch failed: \(error)")
                     }
@@ -101,13 +105,10 @@ private extension PokemonHydrator {
             }
 
             if !collected.isEmpty {
-                do {
-                    try await storage.applySpecies(collected)
-                    print("PokemonHydrator: enriched final batch of \(collected.count) species")
-                } catch {
-                    print("PokemonHydrator: species final batch failed: \(error)")
-                }
+                try? await storage.applySpecies(collected)
             }
         }
+
+        return allSpecies
     }
 }

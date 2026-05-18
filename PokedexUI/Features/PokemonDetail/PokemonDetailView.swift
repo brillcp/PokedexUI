@@ -233,7 +233,7 @@ private extension PokemonDetailView {
 // MARK: - Information Sections
 private extension PokemonDetailView {
     func statsSection(pokemon: PokemonViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading) {
             Divider()
                 .foregroundStyle(textColor)
                 .frame(height: 2)
