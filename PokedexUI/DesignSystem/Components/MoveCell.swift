@@ -24,8 +24,7 @@ struct MoveCell: View, Equatable {
             header
             footer
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 12)
+        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .overlay(overlay)
