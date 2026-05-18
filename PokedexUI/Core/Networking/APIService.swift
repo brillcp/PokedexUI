@@ -80,6 +80,18 @@ extension APIService {
     }
 }
 
+// MARK: - Single-resource fetch
+
+extension APIService {
+    /// Issues a one-off request through the same `Network.Service` the actor
+    /// owns. Lets a service unify "list + parallel detail" (`requestData`)
+    /// and per-id lookups behind a single networking dependency instead of
+    /// dragging a bare `Network.Service` alongside the `APIService` actor.
+    func request<T: Decodable & Sendable>(_ requestable: Requestable) async throws -> T {
+        try await networkService.request(requestable)
+    }
+}
+
 // MARK: - Parameter keys
 
 /// Centralised query-parameter keys used by paginated PokeAPI endpoints.

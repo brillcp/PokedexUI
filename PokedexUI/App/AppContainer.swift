@@ -23,7 +23,6 @@ final class AppContainer {
 
     let typeChart:          TypeChartLoader
     let movePrefetcher:     MovePrefetcher
-    let pokemonHydrator:    PokemonHydrator
     let spriteLoader:       SpriteLoader
     let imageColorAnalyzer: ImageColorAnalyzer
     let audioPlayer:        AudioPlayer
@@ -38,7 +37,6 @@ final class AppContainer {
         itemService:        ItemServiceProtocol     = ItemService(),
         typeChart:          TypeChartLoader         = TypeChartLoader(),
         movePrefetcher:     MovePrefetcher          = MovePrefetcher(),
-        pokemonHydrator:    PokemonHydrator         = PokemonHydrator(),
         spriteLoader:       SpriteLoader            = SpriteLoader(),
         imageColorAnalyzer: ImageColorAnalyzer      = ImageColorAnalyzer(),
         audioPlayer:        AudioPlayer             = AudioPlayer(),
@@ -52,7 +50,6 @@ final class AppContainer {
         self.itemService        = itemService
         self.typeChart          = typeChart
         self.movePrefetcher     = movePrefetcher
-        self.pokemonHydrator    = pokemonHydrator
         self.spriteLoader       = spriteLoader
         self.imageColorAnalyzer = imageColorAnalyzer
         self.audioPlayer        = audioPlayer

@@ -26,7 +26,7 @@ final class APIItem: Decodable {
 
 /// Paginated PokeAPI list envelope. Used by every endpoint that returns
 /// `{ count, results }`.
-struct APIResponse: Decodable {
+struct APIResponse: Decodable, Sendable {
     /// Total number of items the endpoint can return. Used by paginated
     /// flows to know when to stop requesting more pages.
     let count: Int?

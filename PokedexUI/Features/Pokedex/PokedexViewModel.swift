@@ -30,7 +30,6 @@ protocol PokedexViewModelProtocol {
 final class PokedexViewModel {
     private let storageReader: DataStorageReader
     private let pokemonService: PokemonServiceProtocol
-    private let pokemonHydrator: PokemonHydrator
 
     var pokemonData: [Pokemon] = []
     var isLoading: Bool = false
@@ -40,12 +39,10 @@ final class PokedexViewModel {
 
     init(
         modelContext: ModelContext,
-        service: PokemonServiceProtocol = PokemonService(),
-        hydrator: PokemonHydrator? = nil
+        service: PokemonServiceProtocol = PokemonService()
     ) {
         storageReader = DataStorageReader(modelContainer: modelContext.container)
         pokemonService = service
-        pokemonHydrator = hydrator ?? PokemonHydrator(pokemonService: service)
     }
 }
 
@@ -65,9 +62,8 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
         do {
             let pokemon = try await fetchAPIData()
-            let hydrated = await hydrate(pokemon)
-            try await storeData(hydrated)
-            pokemonData = hydrated
+            try await storeData(pokemon)
+            pokemonData = pokemon
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")
         }
@@ -92,10 +88,8 @@ extension PokedexViewModel: DataFetcher {
     }
 
     func fetchAPIData() async throws -> [Pokemon] {
-        try await pokemonService.requestAllPokemon { [weak self] loaded, total in
-            // First half of the bar (0 → 0.5) covers the pokemon detail
-            // download; species hydration fills the second half.
-            self?.loadingProgress = 0.5 * Double(loaded) / Double(total)
+        try await pokemonService.requestAllPokemon { [weak self] progress in
+            self?.loadingProgress = progress
         }
     }
 
@@ -110,13 +104,6 @@ extension PokedexViewModel: DataFetcher {
 // MARK: - Private
 
 private extension PokedexViewModel {
-    func hydrate(_ pokemon: [Pokemon]) async -> [Pokemon] {
-        await pokemonHydrator.hydrate(pokemon) { [weak self] loaded, total in
-            guard total > 0 else { return }
-            self?.loadingProgress = 0.5 + 0.5 * Double(loaded) / Double(total)
-        }
-    }
-
     func fetchStoredDataSafely() async -> [Pokemon]? {
         do {
             return try await fetchStoredData()

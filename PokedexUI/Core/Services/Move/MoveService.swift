@@ -16,11 +16,17 @@ protocol MoveServiceProtocol: Sendable {
     func requestAllMoveNames() async throws -> [String]
 }
 
-/// Default `Networking`-backed implementation.
+/// Default `APIService`-backed implementation. Routes every call through
+/// the same `APIService<Config>` instance so the service has one network
+/// dependency, matching `PokemonService` and `TypeService`. The `Config`
+/// stub satisfies the generic constraint; this service drives detail
+/// fetches through `APIService.request(_:)` rather than the bulk
+/// `requestData` path because the move prefetcher needs explicit chunking
+/// to stay polite with PokeAPI.
 final class MoveService: MoveServiceProtocol {
-    private let networkService: Network.Service
+    private let networkService: APIService<Config>
 
-    init(networkService: Network.Service = .default) {
+    init(networkService: APIService<Config> = .init(config: Config())) {
         self.networkService = networkService
     }
 
@@ -49,6 +55,25 @@ final class MoveService: MoveServiceProtocol {
         // growth without ever needing pagination here.
         let response: APIResponse = try await networkService.request(MoveRequest.list(limit: 2000))
         return response.results.map(\.name)
+    }
+}
+
+// MARK: - ServiceConfiguration
+
+extension MoveService {
+    /// Stub config so `APIService<Config>` can be constructed. The bulk
+    /// `requestData` path is intentionally unused: the prefetcher chunks
+    /// move downloads in groups of 25 to avoid blasting PokeAPI with ~900
+    /// simultaneous connections, which `requestData`'s flat fan-out would.
+    struct Config: ServiceConfiguration {
+        typealias ResponseType = MoveDetail
+        typealias OutputModel = MoveDetail
+
+        func createRequest() -> Requestable { MoveRequest.list(limit: 2000) }
+        func createDetailRequest(from urlComponent: String) -> Requestable {
+            MoveRequest.detail(urlComponent)
+        }
+        func transformResponse(_ response: [MoveDetail]) -> [MoveDetail] { response }
     }
 }
 

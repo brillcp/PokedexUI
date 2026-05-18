@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0D6273F1DA6003AF377 /* PokemonService.swift */; };
-		D5BA16002E70000000000601 /* PokemonHydrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA16012E70000000000602 /* PokemonHydrator.swift */; };
 		9332C0E0273F2A36003AF377 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0DF273F2A36003AF377 /* Color.swift */; };
 		9332C0E8273F3219003AF377 /* SpriteLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0E7273F3219003AF377 /* SpriteLoader.swift */; };
 		9332C0EA273F51E1003AF377 /* AsyncSpriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9332C0E9273F51E1003AF377 /* AsyncSpriteView.swift */; };
@@ -100,7 +99,6 @@
 
 /* Begin PBXFileReference section */
 		9332C0D6273F1DA6003AF377 /* PokemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonService.swift; sourceTree = "<group>"; };
-		D5BA16012E70000000000602 /* PokemonHydrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonHydrator.swift; sourceTree = "<group>"; };
 		9332C0DF273F2A36003AF377 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9332C0E7273F3219003AF377 /* SpriteLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteLoader.swift; sourceTree = "<group>"; };
 		9332C0E9273F51E1003AF377 /* AsyncSpriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncSpriteView.swift; sourceTree = "<group>"; };
@@ -410,7 +408,6 @@
 			children = (
 				D57366112E21160900FE4ED0 /* PokemonRequest.swift */,
 				9332C0D6273F1DA6003AF377 /* PokemonService.swift */,
-				D5BA16012E70000000000602 /* PokemonHydrator.swift */,
 			);
 			path = Pokemon;
 			sourceTree = "<group>";
@@ -723,7 +720,6 @@
 				D58C0DFB2E398709003098EC /* BookmarksView.swift in Sources */,
 				9332C0E0273F2A36003AF377 /* Color.swift in Sources */,
 				9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */,
-				D5BA16002E70000000000601 /* PokemonHydrator.swift in Sources */,
 				D54F5AA22E1D9FF800411759 /* PokemonViewModel.swift in Sources */,
 				D5164F752E22707700E3EC8D /* String.swift in Sources */,
 				D545C2F42E242F5E007F1BBA /* ItemDetailViewModel.swift in Sources */,

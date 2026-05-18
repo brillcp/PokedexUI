@@ -33,9 +33,7 @@ struct SearchView: View {
         }
         .scrollDismissesKeyboard(.immediately)
         .onChange(of: viewModel.query) { _, _ in
-            withAnimation(.bouncy(duration: 0.25)) {
-                viewModel.updateFilteredPokemon()
-            }
+            viewModel.updateFilteredPokemon()
         }
       }
 }

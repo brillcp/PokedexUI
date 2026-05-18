@@ -33,7 +33,18 @@ final class SearchViewModel {
     private static let recentSearchesKey = "search.recentSearches"
     private static let maxRecentSearches = 8
 
-    private var pokemon: [Pokemon] = []
+    /// Pokemon + a normalized search haystack pre-built once when the corpus
+    /// lands. Concatenates name, types, genus, habitat, and abilities so the
+    /// keystroke-time filter is a flat substring scan instead of triggering
+    /// SwiftData relationship faults + repeated `normalize` allocations on
+    /// every row, every keystroke.
+    private struct Entry {
+        let pokemon: Pokemon
+        let haystack: String
+    }
+
+    private var entries: [Entry] = []
+    private var indexTask: Task<Void, Never>?
     private let defaults: UserDefaults
 
     /// The filtered data.
@@ -58,9 +69,12 @@ final class SearchViewModel {
 
 extension SearchViewModel: SearchViewModelProtocol {
     func updateCorpus(_ corpus: [Pokemon]) {
-        pokemon = corpus
         if suggestedPokemon.isEmpty && !corpus.isEmpty {
             suggestedPokemon = Array(corpus.shuffled().prefix(2))
+        }
+        indexTask?.cancel()
+        indexTask = Task { [weak self] in
+            await self?.rebuildIndex(corpus: corpus)
         }
     }
 
@@ -76,21 +90,8 @@ extension SearchViewModel: SearchViewModelProtocol {
             return
         }
 
-        filtered = pokemon.filter { pokemon in
-            let name = pokemon.name.normalize
-            let types = pokemon.types.map(\.type.name.normalize)
-            let kind = pokemon.genus ?? ""
-            let habitat = pokemon.habitat ?? ""
-            let abilities = pokemon.abilities.map(\.ability.name.normalize)
-            let moves = pokemon.moves.map(\.move.name.normalize)
-            return queryTerms.allSatisfy { term in
-                name.matches(query: term) ||
-                types.contains(where: { $0.matches(query: term) }) ||
-                kind.matches(query: term) ||
-                habitat.matches(query: term) ||
-                abilities.contains(where: { $0.matches(query: term) }) ||
-                moves.contains(where: { $0.matches(query: term) })
-            }
+        filtered = entries.compactMap { entry in
+            queryTerms.allSatisfy { entry.haystack.contains($0) } ? entry.pokemon : nil
         }
     }
 
@@ -108,5 +109,39 @@ extension SearchViewModel: SearchViewModelProtocol {
     func clearRecentSearches() {
         recentSearches.removeAll()
         defaults.removeObject(forKey: Self.recentSearchesKey)
+    }
+}
+
+// MARK: - Private
+
+private extension SearchViewModel {
+    /// Walks the corpus in chunks, building each pokemon's haystack and
+    /// yielding to the main run loop between batches so the SwiftData
+    /// relationship faults (types, abilities) don't block the keyboard
+    /// while the user is typing. Re-runs cheap rebuilds when the corpus
+    /// updates.
+    @MainActor
+    func rebuildIndex(corpus: [Pokemon]) async {
+        var built: [Entry] = []
+        built.reserveCapacity(corpus.count)
+        for (index, pokemon) in corpus.enumerated() {
+            if Task.isCancelled { return }
+            built.append(Entry(pokemon: pokemon, haystack: Self.buildHaystack(for: pokemon)))
+            if index % 100 == 99 { await Task.yield() }
+        }
+        if Task.isCancelled { return }
+        entries = built
+        if !query.isEmpty {
+            updateFilteredPokemon()
+        }
+    }
+
+    static func buildHaystack(for pokemon: Pokemon) -> String {
+        var parts: [String] = [pokemon.name.normalize]
+        parts.append(contentsOf: pokemon.types.map(\.type.name.normalize))
+        if let genus = pokemon.genus { parts.append(genus.normalize) }
+        if let habitat = pokemon.habitat { parts.append(habitat.normalize) }
+        parts.append(contentsOf: pokemon.abilities.map(\.ability.name.normalize))
+        return parts.joined(separator: " ")
     }
 }
