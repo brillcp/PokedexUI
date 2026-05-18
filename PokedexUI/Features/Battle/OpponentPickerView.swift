@@ -22,10 +22,10 @@ struct OpponentPickerView: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
     @Query private var allPokemon: [Pokemon]
-    @State private var rows: [Row] = []
-    /// `true` while the AI service is picking. Disables both bottom buttons
-    /// so Random can't race the model response.
-    @State private var isAIThinking = false
+    /// Pre-baked AI choice. Kicked off in `.task` the moment the corpus
+    /// lands so the model is usually done by the time the user reaches
+    /// the bottom button; tapping "Random" then becomes instant.
+    @State private var preselectedOpponent: Pokemon?
     /// When non-nil, pushes `BattleSetupView` onto this view's nav stack.
     @State private var setupOpponent: Pokemon?
 
@@ -55,14 +55,14 @@ struct OpponentPickerView: View {
                     ],
                     spacing: 2
                 ) {
-                    ForEach(rows) { row in
+                    ForEach(allPokemon, id: \.id) { pokemon in
                         Button {
-                            select(rowId: row.id)
+                            setupOpponent = pokemon
                         } label: {
                             PokemonSpriteCard(
-                                id: row.id,
-                                name: row.name,
-                                spriteURL: row.spriteURL
+                                id: pokemon.id,
+                                name: pokemon.name.capitalized,
+                                spriteURL: pokemon.frontSprite
                             )
                         }
                         .buttonStyle(.plain)
@@ -96,11 +96,7 @@ struct OpponentPickerView: View {
                 )
             }
         }
-        .task(id: allPokemon.count) {
-            // Materialise plain-struct rows once; subsequent body renders never
-            // touch the SwiftData getters.
-            rows = allPokemon.map(Row.init)
-        }
+        .task(id: allPokemon.count) { await prebakeOpponent() }
         .task { await warmBattleCaches() }
     }
 
@@ -110,24 +106,35 @@ struct OpponentPickerView: View {
 
 private extension OpponentPickerView {
     var pickerButton: some View {
-        PrimaryCapsuleButton(
-            icon: isAIThinking ? "hourglass" : "sparkles.2",
-            title: isAIThinking ? "Thinking" : "Random",
-            isEnabled: !isAIThinking,
-            action: pickSmart
+        let ready = preselectedOpponent != nil
+        return PrimaryCapsuleButton(
+            icon: ready ? "sparkles.2" : "hourglass",
+            title: ready ? "Random" : "Thinking",
+            isEnabled: ready,
+            action: pickPreselected
         )
         .padding(.horizontal, 24)
     }
 
-    /// Convert a row id back into the underlying summary and push setup.
-    func select(rowId: Int) {
-        guard let match = allPokemon.first(where: { $0.id == rowId }) else { return }
-        setupOpponent = match
+    /// Push the pre-baked AI pick. Button is disabled until the pick lands
+    /// so this never fires with a nil opponent.
+    func pickPreselected() {
+        guard let pick = preselectedOpponent else { return }
+        setupOpponent = pick
     }
 
-    func pickRandom() {
-        guard let pick = allPokemon.randomElement() else { return }
-        setupOpponent = pick
+    /// Kick off the AI opponent pick the moment the corpus is available.
+    /// The result lands on `preselectedOpponent` and the bottom button
+    /// flips from "Thinking" to "Random". User taps → instant push.
+    func prebakeOpponent() async {
+        guard preselectedOpponent == nil, !allPokemon.isEmpty else { return }
+        let candidates = Array(allPokemon.shuffled())
+        let pick = await container.battleAI.chooseOpponent(
+            for: player,
+            playerTypes: playerTypes,
+            candidates: candidates
+        )
+        preselectedOpponent = pick
     }
 
     /// Kick off the two battle-side bootstraps the moment the picker opens so
@@ -145,41 +152,9 @@ private extension OpponentPickerView {
         await appContainer.typeChart.attach(modelContainer: modelContainer)
         await appContainer.typeChart.loadIfNeeded()
     }
-
-    /// Sample a smaller candidate pool first (the AI prompt has a token
-    /// budget, so feeding it 1025 names is wasteful), then hand off to the AI.
-    /// The service has an internal fallback to a random pick on model failure.
-    func pickSmart() {
-        isAIThinking = true
-        Task {
-            let candidates = Array(allPokemon.shuffled())
-            let pick = await container.battleAI.chooseOpponent(
-                for: player,
-                playerTypes: playerTypes,
-                candidates: candidates
-            )
-            isAIThinking = false
-            setupOpponent = pick
-        }
-    }
 }
 
-// MARK: - Row + cell
-
-extension OpponentPickerView {
-    /// Display snapshot. Plain value type, no SwiftData getters in body path.
-    struct Row: Identifiable, Hashable {
-        let id: Int
-        let name: String
-        let spriteURL: String
-
-        init(_ summary: Pokemon) {
-            self.id = summary.id
-            self.name = summary.name.capitalized
-            self.spriteURL = summary.frontSprite
-        }
-    }
-}
+// MARK: - Cell
 
 /// Sprite-over-name grid cell shared by the opponent picker and the search
 /// empty-state suggestions. Caller wraps in a `Button` / `NavigationLink` to
