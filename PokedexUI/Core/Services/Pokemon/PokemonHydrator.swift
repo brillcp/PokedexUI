@@ -31,39 +31,62 @@ actor PokemonHydrator {
         }
     }
 
-    /// Enriches all `Pokemon` rows that lack species data (habitat, flavor
-    /// text, genus, evolution chain, etc.) by fetching `/pokemon-species/{id}`.
-    func hydrateIfNeeded() async {
-        guard !isLoading, !isComplete else { return }
-        guard let storage else { return }
+    /// In-memory species merge for the bootstrap path. Fetches
+    /// `/pokemon-species/{id}` for every supplied pokemon in parallel and
+    /// applies the result directly to the model instance, no storage
+    /// round-trip. `onProgress` fires once per request (success or failure)
+    /// with `(processed, total)`. Returns the same array (mutated) for
+    /// caller convenience. Caller should `store` the result after.
+    ///
+    /// Use this when the rows are not yet persisted: hydrating before the
+    /// single bulk `store` call avoids writing ~1150 pre-hydration rows
+    /// followed by re-writing every row during a second pass.
+    func hydrate(
+        _ pokemon: [Pokemon],
+        onProgress: (@Sendable (Int, Int) async -> Void)? = nil
+    ) async -> [Pokemon] {
+        let total = pokemon.count
+        guard total > 0 else { return pokemon }
+        let byId = Dictionary(uniqueKeysWithValues: pokemon.map { ($0.id, $0) })
+        var processed = 0
+        await withTaskGroup(of: (Int, PokemonSpecies)?.self) { group in
+            for instance in pokemon {
+                let id = instance.id
+                group.addTask { [pokemonService] in
+                    guard let species = try? await pokemonService.requestPokemonSpecies(id: id) else { return nil }
+                    return (id, species)
+                }
+            }
+            for await result in group {
+                processed += 1
+                if let result, let target = byId[result.0] {
+                    PokemonService.applySpecies(result.1, to: target)
+                }
+                await onProgress?(processed, total)
+            }
+        }
+        return pokemon
+    }
+
+    /// Enriches persisted `Pokemon` rows that lack species data (habitat,
+    /// flavor text, genus, evolution chain, etc.) by fetching
+    /// `/pokemon-species/{id}`. Migration path for installs that already
+    /// have rows in the store without species fields (pre-`hydrate(_:)`
+    /// bootstrap). `onProgress` mirrors `hydrate(_:)`.
+    func hydrateIfNeeded(onProgress: (@Sendable (Int, Int) async -> Void)? = nil) async {
+        guard let storage, !isLoading, !isComplete else { return }
+
         isLoading = true
         defer { isLoading = false }
 
         do {
-            var needsSpecies: [Int] = []
-            for _ in 0..<30 {
-                needsSpecies = try await storage.fetchIDs(
-                    Pokemon.self,
-                    matching: #Predicate<Pokemon> { $0.habitat == nil && $0.flavorText == nil }
-                )
-                if !needsSpecies.isEmpty { break }
-                try await Task.sleep(for: .seconds(2))
-            }
-
-            guard !needsSpecies.isEmpty else {
-                isComplete = true
-                return
-            }
-
-            let start = CFAbsoluteTimeGetCurrent()
-            let speciesMap = await hydrateSpecies(ids: needsSpecies, storage: storage)
-            let elapsed = CFAbsoluteTimeGetCurrent() - start
-            print("PokemonHydrator: species fetch + persist took \(String(format: "%.1f", elapsed))s")
-            isComplete = true
-            NotificationCenter.default.post(
-                name: .pokemonHydrationComplete,
-                object: speciesMap
+            let needsSpecies = try await storage.fetchIDs(
+                Pokemon.self,
+                matching: #Predicate<Pokemon> { $0.habitat == nil && $0.flavorText == nil }
             )
+
+            await hydrateSpecies(ids: needsSpecies, storage: storage, onProgress: onProgress)
+            isComplete = true
         } catch {
             print("PokemonHydrator: failed: \(error)")
         }
@@ -73,11 +96,15 @@ actor PokemonHydrator {
 // MARK: - Private
 
 private extension PokemonHydrator {
-    static let persistBatchSize = 50
-
-    func hydrateSpecies(ids: [Int], storage: DataStorageReader) async -> [Int: PokemonSpecies] {
+    func hydrateSpecies(
+        ids: [Int],
+        storage: DataStorageReader,
+        onProgress: (@Sendable (Int, Int) async -> Void)?
+    ) async {
         print("PokemonHydrator: enriching \(ids.count) pokemon with species data")
 
+        let total = ids.count
+        var processed = 0
         var allSpecies: [Int: PokemonSpecies] = [:]
 
         await withTaskGroup(of: (Int, PokemonSpecies)?.self) { group in
@@ -90,11 +117,11 @@ private extension PokemonHydrator {
 
             var collected: [(Int, PokemonSpecies)] = []
             for await result in group {
-                guard let result else { continue }
-                collected.append(result)
-                allSpecies[result.0] = result.1
+                processed += 1
+                if let result {
+                    collected.append(result)
+                    allSpecies[result.0] = result.1
 
-                if collected.count >= Self.persistBatchSize {
                     do {
                         try await storage.applySpecies(collected)
                     } catch {
@@ -102,13 +129,12 @@ private extension PokemonHydrator {
                     }
                     collected.removeAll(keepingCapacity: true)
                 }
+                await onProgress?(processed, total)
             }
 
             if !collected.isEmpty {
                 try? await storage.applySpecies(collected)
             }
         }
-
-        return allSpecies
     }
 }

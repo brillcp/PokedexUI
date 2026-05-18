@@ -30,6 +30,7 @@ protocol PokedexViewModelProtocol {
 final class PokedexViewModel {
     private let storageReader: DataStorageReader
     private let pokemonService: PokemonServiceProtocol
+    private let pokemonHydrator: PokemonHydrator
 
     var pokemonData: [Pokemon] = []
     var isLoading: Bool = false
@@ -37,9 +38,17 @@ final class PokedexViewModel {
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
 
-    init(modelContext: ModelContext, service: PokemonServiceProtocol = PokemonService()) {
+    init(
+        modelContext: ModelContext,
+        service: PokemonServiceProtocol = PokemonService(),
+        hydrator: PokemonHydrator = .init()
+    ) {
         storageReader = DataStorageReader(modelContainer: modelContext.container)
         pokemonService = service
+        pokemonHydrator = PokemonHydrator(pokemonService: service)
+        Task {
+            await pokemonHydrator.attach(modelContainer: modelContext.container)
+        }
     }
 }
 
@@ -59,8 +68,9 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
         do {
             let pokemon = try await fetchAPIData()
-            try await storeData(pokemon)
-            pokemonData = pokemon
+            let hydrated = await hydrate(pokemon)
+            try await storeData(hydrated)
+            pokemonData = hydrated
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")
         }
@@ -86,9 +96,9 @@ extension PokedexViewModel: DataFetcher {
 
     func fetchAPIData() async throws -> [Pokemon] {
         try await pokemonService.requestAllPokemon { [weak self] loaded, total in
-            await MainActor.run {
-                self?.loadingProgress = Double(loaded) / Double(total)
-            }
+            // First half of the bar (0 → 0.5) covers the pokemon detail
+            // download; species hydration fills the second half.
+            self?.loadingProgress = 0.5 * Double(loaded) / Double(total)
         }
     }
 
@@ -103,6 +113,16 @@ extension PokedexViewModel: DataFetcher {
 // MARK: - Private
 
 private extension PokedexViewModel {
+    func hydrate(_ pokemon: [Pokemon]) async -> [Pokemon] {
+        await pokemonHydrator.hydrate(pokemon) { [weak self] loaded, total in
+            guard total > 0 else { return }
+            // Second half of the bar (0.5 → 1.0) tracks species hydration so
+            // the indexing overlay shows one continuous 0 → 1 ramp across
+            // both bootstrap phases.
+            self?.loadingProgress = 0.5 + 0.5 * Double(loaded) / Double(total)
+        }
+    }
+
     func fetchStoredDataSafely() async -> [Pokemon]? {
         do {
             return try await fetchStoredData()

@@ -19,8 +19,7 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
         .scrollIndicators(.hidden)
         .overlay {
             if viewModel.isLoading {
-                ProgressView()
-                    .tint(.white)
+                PixelSpinner()
             }
         }
         .task { await viewModel.loadItems() }

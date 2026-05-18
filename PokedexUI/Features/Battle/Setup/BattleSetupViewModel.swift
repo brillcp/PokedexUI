@@ -81,7 +81,10 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     }
 
     var isReady: Bool {
-        playerPokemon != nil && opponentPokemon != nil && !playerMovePool.isEmpty
+        playerPokemon != nil
+            && opponentPokemon != nil
+            && !playerMovePool.isEmpty
+            && typeChartLoader.chart != nil
     }
 
     /// Player has 4 picks AND opponent loadout is ready.

@@ -69,10 +69,12 @@ private extension BattleSetupView {
     // MARK: - States
 
     var loadingState: some View {
-        ProgressView("Preparing battle…")
-            .tint(.white)
-            .font(.pixel14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(spacing: 16) {
+            PixelSpinner()
+            Text("Preparing battle…")
+                .font(.pixel14)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     func errorState(_ message: String) -> some View {

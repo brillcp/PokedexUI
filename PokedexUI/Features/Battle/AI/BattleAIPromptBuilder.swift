@@ -73,25 +73,34 @@ struct BattleAIPromptBuilder {
         """
     }
 
-    /// Player + roster summary for opponent selection. Player types are passed
-    /// in explicitly (the picker view forwards them) so the model can match a
-    /// challenger to the actual matchup, not just recall the player's typing
-    /// from training. Candidate roster is capped at 60 to stay under the
-    /// input token budget.
+    /// Player + roster summary for opponent selection. Hands the model the
+    /// player's typing, generation, legendary flag, base stat total and full
+    /// 6-stat line, plus the same compact profile for every candidate. With
+    /// that data the model can pick a thematically + mechanically interesting
+    /// fight (type-relevant, power-matched, iconic) instead of leaning on
+    /// training recall. Roster capped at 40 to stay under the input token
+    /// budget once each row carries types + BST + flags.
     func buildOpponentPrompt(
         player: Pokemon,
         playerTypes: [String],
         candidates: [Pokemon]
     ) -> String {
-        let capped = candidates.prefix(60)
-        let roster = capped.map { "- \($0.id): \($0.name)" }.joined(separator: "\n")
-        let typeLine = playerTypes.isEmpty
-            ? ""
-            : " (types: \(playerTypes.joined(separator: ", ")))"
+        let capped = candidates.prefix(40)
+        let pTypes = playerTypes.isEmpty ? player.types.map(\.type.name) : playerTypes
+        let roster = capped.map { candidate in
+            let types = candidate.types.map(\.type.name).joined(separator: "/")
+            return "- \(candidate.id): \(candidate.name) (\(types), BST \(baseStatTotal(candidate))\(flagSuffix(candidate)))"
+        }.joined(separator: "\n")
         return """
-        Pick a worthy opponent for \(player.name) (id \(player.id))\(typeLine) from this list.
+        Pick a worthy, exciting opponent for \(player.name).
 
-        Candidates:
+        Player: \(player.name) (id \(player.id))
+        - Types: \(pTypes.joined(separator: "/"))
+        - Generation: \(generationLabel(player))\(flagSuffix(player))
+        - Base stat total: \(baseStatTotal(player))
+        - Stats: \(compactStats(player))
+
+        Candidates (id: name (types, BST, flags)):
         \(roster)
 
         Return ONLY the exact pokedex id (integer) from the list above.
@@ -136,6 +145,35 @@ private extension BattleAIPromptBuilder {
             return String(Int(multiplier))
         }
         return String(format: "%.2f", multiplier)
+    }
+
+    func baseStatTotal(_ pokemon: Pokemon) -> Int {
+        pokemon.stats.map(\.baseStat).reduce(0, +)
+    }
+
+    func compactStats(_ pokemon: Pokemon) -> String {
+        let byName = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
+        let order: [(String, String)] = [
+            ("HP", "hp"),
+            ("ATK", "attack"),
+            ("DEF", "defense"),
+            ("SPA", "special-attack"),
+            ("SPD", "special-defense"),
+            ("SPE", "speed")
+        ]
+        return order.map { label, key in "\(label) \(byName[key] ?? 0)" }.joined(separator: "/")
+    }
+
+    func flagSuffix(_ pokemon: Pokemon) -> String {
+        if pokemon.isLegendary { return ", legendary" }
+        if pokemon.isMythical { return ", mythical" }
+        return ""
+    }
+
+    func generationLabel(_ pokemon: Pokemon) -> String {
+        pokemon.generationName?
+            .replacingOccurrences(of: "generation-", with: "Gen ")
+            .uppercased() ?? "?"
     }
 
     func statusDescription(_ status: BattleStatus) -> String {

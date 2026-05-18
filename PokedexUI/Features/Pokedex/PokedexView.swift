@@ -5,10 +5,7 @@ import SwiftUI
 /// Root tab host. Owns the four top-level tabs (pokedex grid, items list,
 /// favourites, search) and forwards the relevant view model to each. Generic
 /// so previews + tests can supply mocks for both pokedex and item list.
-struct PokedexView<
-    PokedexViewModel: PokedexViewModelProtocol,
-    ItemListViewModel: ItemListViewModelProtocol
->: View {
+struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemListViewModel: ItemListViewModelProtocol>: View {
     @State var viewModel: PokedexViewModel
     let itemListViewModel: ItemListViewModel
 
