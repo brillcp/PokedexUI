@@ -78,14 +78,18 @@ extension SearchViewModel: SearchViewModelProtocol {
 
         filtered = pokemon.filter { pokemon in
             let name = pokemon.name.normalize
-            let types = pokemon.types.map { $0.type.name.normalize }
+            let types = pokemon.types.map(\.type.name.normalize)
             let kind = pokemon.genus ?? ""
             let habitat = pokemon.habitat ?? ""
+            let abilities = pokemon.abilities.map(\.ability.name.normalize)
+            let moves = pokemon.moves.map(\.move.name.normalize)
             return queryTerms.allSatisfy { term in
                 name.matches(query: term) ||
                 types.contains(where: { $0.matches(query: term) }) ||
                 kind.matches(query: term) ||
-                habitat.matches(query: term)
+                habitat.matches(query: term) ||
+                abilities.contains(where: { $0.matches(query: term) }) ||
+                moves.contains(where: { $0.matches(query: term) })
             }
         }
     }
