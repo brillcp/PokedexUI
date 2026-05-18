@@ -79,8 +79,11 @@ extension SearchViewModel: SearchViewModelProtocol {
         filtered = pokemon.filter { pokemon in
             let name = pokemon.name.normalize
             let types = pokemon.types.map { $0.type.name.normalize }
+            let kind = pokemon.genus ?? ""
             return queryTerms.allSatisfy { term in
-                name.contains(term) || types.contains(where: { $0.contains(term) })
+                name.matches(query: term) ||
+                types.contains(where: { $0.matches(query: term) }) ||
+                kind.matches(query: term)
             }
         }
     }

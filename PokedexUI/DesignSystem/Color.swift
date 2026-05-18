@@ -44,7 +44,7 @@ enum CornerRadius {
     /// Small inline pills: type tags, generation badges, effectiveness
     /// markers, status chips. The 4-point radius reads as "squared" next to
     /// the pixel font; capsules look too modern at chip size.
-    static let chip: CGFloat = 4.0
+    static let chip: CGFloat = 2.0
     /// Larger containers: fighter cards, HP cards, move cells, type matchup
     /// blocks, the flavor-text bubble. Slightly more rounded than chips so
     /// the visual hierarchy reads at a glance.

@@ -69,7 +69,7 @@ private extension SearchView {
 
     var suggestedSection: some View {
         VStack(alignment: .leading, spacing: 8.0) {
-            sectionHeader(title: "Suggested Pokemon", systemImage: "sparkles.2")
+            sectionHeader(title: "Suggestions", systemImage: "sparkles.2")
                 .padding(.horizontal, 16.0)
             suggestedGrid
         }
