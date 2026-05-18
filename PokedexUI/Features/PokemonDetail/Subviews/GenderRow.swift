@@ -11,9 +11,7 @@ struct GenderRow: View {
             Text("Gender")
                 .foregroundStyle(.secondary)
                 .frame(width: 82, alignment: .leading)
-            if rate < 0 {
-                Text("Genderless")
-            } else {
+            if rate > 0 {
                 let female = Double(rate) / 8.0
                 let male = 1.0 - female
                 VStack(alignment: .leading, spacing: 4) {

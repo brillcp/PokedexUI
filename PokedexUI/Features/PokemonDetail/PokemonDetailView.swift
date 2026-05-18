@@ -123,7 +123,9 @@ private extension PokemonDetailView {
                 DetailRow(title: "Habitat", subtitle: habitat)
             }
             DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
-            GenderRow(rate: pokemon.genderRate, textColor: textColor)
+            if pokemon.genderRate > 0 {
+                GenderRow(rate: pokemon.genderRate, textColor: textColor)
+            }
             WeaknessGridView(
                 pokemon: pokemon,
                 typeChart: container.typeChart,
