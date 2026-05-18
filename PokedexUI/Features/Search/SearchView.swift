@@ -110,7 +110,7 @@ private extension SearchView {
     var recentSection: some View {
         VStack(alignment: .leading, spacing: 8.0) {
             HStack {
-                sectionHeader(title: "Recent Searches", systemImage: "clock.arrow.circlepath")
+                sectionHeader(title: "Recent", systemImage: "clock.arrow.circlepath")
                 Spacer()
                 Button("Clear", action: viewModel.clearRecentSearches)
                     .font(.pixel12)
