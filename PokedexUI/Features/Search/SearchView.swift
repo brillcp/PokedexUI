@@ -31,7 +31,7 @@ struct SearchView: View {
         .onChange(of: corpus) { _, newCorpus in
             viewModel.updateCorpus(newCorpus)
         }
-        .scrollDismissesKeyboard(.interactively)
+        .scrollDismissesKeyboard(.immediately)
         .onChange(of: isSearchFocused) { old, new in
             if old, !new, !viewModel.query.isEmpty {
                 viewModel.recordSearch()
@@ -93,20 +93,21 @@ private extension SearchView {
                     .buttonStyle(.plain)
                 }
             }
+            .padding(.vertical)
         }
         .padding(.horizontal)
     }
 
     var suggestedSection: some View {
-        VStack(alignment: .leading, spacing: 8.0) {
-            sectionHeader(title: "Suggestions", systemImage: "sparkles.2")
+        VStack(alignment: .leading) {
+            sectionHeader(title: "Suggested", systemImage: "sparkles.2")
                 .padding(.horizontal)
             suggestedGrid
         }
     }
 
     var recentSection: some View {
-        VStack(alignment: .leading, spacing: 8.0) {
+        VStack(alignment: .leading) {
             HStack {
                 sectionHeader(title: "Recent Searches", systemImage: "clock.arrow.circlepath")
                 Spacer()
