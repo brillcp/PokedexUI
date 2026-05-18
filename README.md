@@ -1,4 +1,4 @@
-![icon](https://github.com/user-attachments/assets/5abf1763-b290-4f12-a661-986e58fbeaad)
+![icon](https://github.com/user-attachments/assets/d7a242d8-5392-4718-9b0a-4a4392f66d82)
 
 ![swift](https://img.shields.io/badge/Swift-6.0%2B-green)
 ![release](https://img.shields.io/github/v/release/brillcp/pokedexui)
@@ -16,9 +16,10 @@ It's meant as a reference codebase. If you're a senior iOS engineer looking for 
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
-<img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/69ad1345-0323-4850-8e4f-36ff596c33ee" />
+<img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/7a3be5ca-9b71-4107-9544-91738bb5291c" />
 
 ---
+
 
 # Architecture 🏛
 
