@@ -12,14 +12,11 @@ struct PrimaryCapsuleButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: icon)
-                Text(title)
-            }
-            .font(.pixel17)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical)
-            .foregroundStyle(.white)
+            Label(title, systemImage: icon)
+                .font(.pixel17)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical)
+                .foregroundStyle(.white)
         }
         .glassEffect(.clear.tint(.pokedexRed?.opacity(0.8)).interactive(), in: Capsule())
         .opacity(isEnabled ? 1 : 0.6)

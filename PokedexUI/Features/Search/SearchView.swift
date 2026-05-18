@@ -51,7 +51,7 @@ private extension SearchView {
                 if !viewModel.recentSearches.isEmpty {
                     recentSection
                 } else {
-                    Text("Search Pokemon and types")
+                    Text("Search Pokemon, types, habitats or abilities")
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.top, 80.0)
                 }

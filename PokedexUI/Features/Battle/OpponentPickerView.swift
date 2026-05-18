@@ -22,10 +22,9 @@ struct OpponentPickerView: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
     @Query private var allPokemon: [Pokemon]
-    /// Pre-baked AI choice. Kicked off in `.task` the moment the corpus
-    /// lands so the model is usually done by the time the user reaches
-    /// the bottom button; tapping "Random" then becomes instant.
-    @State private var preselectedOpponent: Pokemon?
+    /// `true` while the AI is running on a button-tap. Disables the button
+    /// + flips the label to "Thinking" so the user sees the work happen.
+    @State private var isAIThinking = false
     /// When non-nil, pushes `BattleSetupView` onto this view's nav stack.
     @State private var setupOpponent: Pokemon?
 
@@ -96,7 +95,6 @@ struct OpponentPickerView: View {
                 )
             }
         }
-        .task(id: allPokemon.count) { await prebakeOpponent() }
         .task { await warmBattleCaches() }
     }
 
@@ -106,35 +104,31 @@ struct OpponentPickerView: View {
 
 private extension OpponentPickerView {
     var pickerButton: some View {
-        let ready = preselectedOpponent != nil
-        return PrimaryCapsuleButton(
-            icon: ready ? "sparkles.2" : "hourglass",
-            title: ready ? "Random" : "Thinking",
-            isEnabled: ready,
-            action: pickPreselected
+        PrimaryCapsuleButton(
+            icon: isAIThinking ? "hourglass" : "sparkles.2",
+            title: isAIThinking ? "Thinking" : "Random",
+            isEnabled: !isAIThinking,
+            action: pickSmart
         )
         .padding(.horizontal, 24)
     }
 
-    /// Push the pre-baked AI pick. Button is disabled until the pick lands
-    /// so this never fires with a nil opponent.
-    func pickPreselected() {
-        guard let pick = preselectedOpponent else { return }
-        setupOpponent = pick
-    }
-
-    /// Kick off the AI opponent pick the moment the corpus is available.
-    /// The result lands on `preselectedOpponent` and the bottom button
-    /// flips from "Thinking" to "Random". User taps → instant push.
-    func prebakeOpponent() async {
-        guard preselectedOpponent == nil, !allPokemon.isEmpty else { return }
-        let candidates = Array(allPokemon.shuffled())
-        let pick = await container.battleAI.chooseOpponent(
-            for: player,
-            playerTypes: playerTypes,
-            candidates: candidates
-        )
-        preselectedOpponent = pick
+    /// Sample the candidate pool, hand off to the AI, and push the picked
+    /// opponent. Button flips to "Thinking" while the model runs; service
+    /// has its own random-pick fallback on model failure.
+    func pickSmart() {
+        guard !allPokemon.isEmpty, !isAIThinking else { return }
+        isAIThinking = true
+        Task {
+            let candidates = Array(allPokemon.shuffled())
+            let pick = await container.battleAI.chooseOpponent(
+                for: player,
+                playerTypes: playerTypes,
+                candidates: candidates
+            )
+            isAIThinking = false
+            setupOpponent = pick
+        }
     }
 
     /// Kick off the two battle-side bootstraps the moment the picker opens so
