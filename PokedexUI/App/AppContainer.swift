@@ -26,7 +26,6 @@ final class AppContainer {
     let spriteLoader:       SpriteLoader
     let imageColorAnalyzer: ImageColorAnalyzer
     let audioPlayer:        AudioPlayer
-    let haptic:             UIImpactFeedbackGenerator
     let battleAI:           BattleAIServiceProtocol
 
     init(
@@ -40,7 +39,6 @@ final class AppContainer {
         spriteLoader:       SpriteLoader             = SpriteLoader(),
         imageColorAnalyzer: ImageColorAnalyzer       = ImageColorAnalyzer(),
         audioPlayer:        AudioPlayer              = AudioPlayer(),
-        haptic:             UIImpactFeedbackGenerator = UIImpactFeedbackGenerator(style: .light),
         battleAI:           BattleAIServiceProtocol  = BattleAIService()
     ) {
         self.pokemonService     = pokemonService
@@ -48,13 +46,12 @@ final class AppContainer {
         self.typeService        = typeService
         self.evolutionService   = evolutionService
         self.itemService        = itemService
-        self.typeChart          = typeChart
         self.movePrefetcher     = movePrefetcher
         self.spriteLoader       = spriteLoader
         self.imageColorAnalyzer = imageColorAnalyzer
         self.audioPlayer        = audioPlayer
-        self.haptic             = haptic
         self.battleAI           = battleAI
+        self.typeChart          = typeChart
     }
 
     /// The default container used by the live app. Resolved lazily on first

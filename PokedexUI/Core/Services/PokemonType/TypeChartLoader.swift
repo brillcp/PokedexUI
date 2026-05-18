@@ -6,11 +6,12 @@ import SwiftData
 /// downstream consumers (`BattleAIService`, `BattleEngine`, AI prompt builder)
 /// can read that value off-main without any actor hop.
 ///
-/// Stays `@MainActor @Observable` because SwiftUI views (`WeaknessGridView`)
-/// still bind to its `chart` property directly. Off-main consumers grab
-/// `chart` once on entry and pass the captured value by parameter.
+/// `@MainActor @Observable` because SwiftUI views (`WeaknessGridView`,
+/// battle setup matchup row) bind to `chart` synchronously. Off-main
+/// consumers grab `chart` once on entry and pass the captured value by
+/// parameter — `TypeChart` itself is a pure Sendable struct.
 @Observable
-final class TypeChartLoader: Sendable {
+final class TypeChartLoader {
     private let typeService: TypeServiceProtocol
     private var storage: DataStorageReader?
     private var isLoading = false
