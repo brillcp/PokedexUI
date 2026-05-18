@@ -16,7 +16,7 @@ It's meant as a reference codebase. If you're a senior iOS engineer looking for 
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
-<img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/451ad765-9be9-4643-afc2-6baccf661e91" />
+<img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/69ad1345-0323-4850-8e4f-36ff596c33ee" />
 
 ---
 
