@@ -33,6 +33,13 @@ final class SearchViewModel {
     private static let recentSearchesKey = "search.recentSearches"
     private static let maxRecentSearches = 8
 
+    static let suggestedTerms = [
+        "cave", "fire", "water", "psychic", "dragon",
+        "forest", "sea",
+        "mouse", "bird", "legendary",
+        "electric bug", "ghost dark"
+    ]
+
     /// Pokemon + a normalized search haystack pre-built once when the corpus
     /// lands. Concatenates name, types, genus, habitat, and abilities so the
     /// keystroke-time filter is a flat substring scan instead of triggering
@@ -141,6 +148,8 @@ private extension SearchViewModel {
         parts.append(contentsOf: pokemon.types.map(\.type.name.normalize))
         if let genus = pokemon.genus { parts.append(genus.normalize) }
         if let habitat = pokemon.habitat { parts.append(habitat.normalize) }
+        if pokemon.isLegendary { parts.append("legendary") }
+        if pokemon.isMythical { parts.append("mythical") }
         parts.append(contentsOf: pokemon.abilities.map(\.ability.name.normalize))
         return parts.joined(separator: " ")
     }

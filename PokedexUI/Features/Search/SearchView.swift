@@ -33,6 +33,11 @@ struct SearchView: View {
             viewModel.updateCorpus(newCorpus)
         }
         .scrollDismissesKeyboard(.immediately)
+        .onChange(of: isSearchFocused) { old, new in
+            if old, !new, !viewModel.query.isEmpty {
+                viewModel.recordSearch()
+            }
+        }
         .onChange(of: viewModel.query) { _, _ in
             viewModel.updateFilteredPokemon()
         }
@@ -49,6 +54,7 @@ private extension SearchView {
                 if !viewModel.suggestedPokemon.isEmpty {
                     suggestedSection
                 }
+                suggestedTermsSection
                 if !viewModel.recentSearches.isEmpty {
                     recentSection
                 } else {
@@ -56,11 +62,11 @@ private extension SearchView {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .multilineTextAlignment(.center)
                         .padding(.top, 80.0)
+                        .padding(.horizontal)
                         .lineHeight(.loose)
                 }
             }
-            .padding(.horizontal)
-            .padding(.top, 8.0)
+            .padding(.top)
         }
         .scrollIndicators(.hidden)
         .navigationDestination(for: Pokemon.self) { pokemon in
@@ -74,10 +80,28 @@ private extension SearchView {
         }
     }
 
+    var suggestedTermsSection: some View {
+        VStack(alignment: .leading, spacing: 8.0) {
+            sectionHeader(title: "Try searching for", systemImage: "magnifyingglass")
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70), spacing: 6.0)], spacing: 6.0) {
+                ForEach(SearchViewModel.suggestedTerms, id: \.self) { term in
+                    Button {
+                        viewModel.query = term
+                        viewModel.recordSearch()
+                    } label: {
+                        Chip(term, style: .accent, size: .medium)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+
     var suggestedSection: some View {
         VStack(alignment: .leading, spacing: 8.0) {
             sectionHeader(title: "Suggestions", systemImage: "sparkles.2")
-                .padding(.horizontal, 16.0)
+                .padding(.horizontal)
             suggestedGrid
         }
     }
@@ -86,13 +110,13 @@ private extension SearchView {
         VStack(alignment: .leading, spacing: 8.0) {
             HStack {
                 sectionHeader(title: "Recent Searches", systemImage: "clock.arrow.circlepath")
+                    .padding(.horizontal)
                 Spacer()
                 Button("Clear", action: viewModel.clearRecentSearches)
                     .font(.pixel12)
                     .foregroundStyle(Color.pokedexRed ?? .red)
             }
-            .padding(.horizontal, 16.0)
-            VStack(spacing: 1.0) {
+            VStack(spacing: 2.0) {
                 ForEach(viewModel.recentSearches, id: \.self) { term in
                     Button {
                         viewModel.query = term
@@ -102,8 +126,8 @@ private extension SearchView {
                                 .foregroundStyle(.white)
                             Spacer()
                         }
-                        .padding(.horizontal, 16.0)
-                        .padding(.vertical, 12.0)
+                        .padding(.horizontal)
+                        .padding(.vertical)
                         .frame(maxWidth: .infinity)
                         .background(Color.cardBackground)
                     }
