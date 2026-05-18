@@ -53,9 +53,12 @@ private extension SearchView {
                 } else {
                     Text("Search Pokemon, types, habitats or abilities")
                         .frame(maxWidth: .infinity, alignment: .center)
+                        .multilineTextAlignment(.center)
                         .padding(.top, 80.0)
+                        .lineHeight(.loose)
                 }
             }
+            .padding(.horizontal)
             .padding(.top, 8.0)
         }
         .scrollIndicators(.hidden)
