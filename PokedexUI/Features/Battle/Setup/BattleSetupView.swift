@@ -319,7 +319,7 @@ private extension BattleSetupView {
     let vm = BattleSetupViewModel(
         player: player,
         opponent: opponent,
-        moveService: MockMoveService(),
+        movePrefetcher: MovePrefetcher(),
         aiService: BattleAIService(),
         typeChart: TypeChartLoader()
     )

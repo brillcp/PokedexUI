@@ -40,7 +40,8 @@ struct SearchView: View {
         .onChange(of: viewModel.query) { _, _ in
             viewModel.updateFilteredPokemon()
         }
-      }
+        .sensoryFeedback(.impact(weight: .light), trigger: viewModel.query)
+    }
 }
 
 // MARK: - Subviews
@@ -63,6 +64,7 @@ private extension SearchView {
                         .padding(.top, 80.0)
                         .padding(.horizontal)
                         .lineHeight(.loose)
+                        .foregroundStyle(.secondary)
                 }
             }
             .padding(.top)
@@ -80,7 +82,7 @@ private extension SearchView {
     }
 
     var suggestedTermsSection: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8.0) {
             sectionHeader(title: "Try searching for", systemImage: "magnifyingglass")
             FlowLayout(spacing: 6.0) {
                 ForEach(SearchViewModel.suggestedTerms, id: \.self) { term in
@@ -93,13 +95,12 @@ private extension SearchView {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.vertical)
         }
         .padding(.horizontal)
     }
 
     var suggestedSection: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8.0) {
             sectionHeader(title: "Suggested", systemImage: "sparkles.2")
                 .padding(.horizontal)
             suggestedGrid
@@ -107,7 +108,7 @@ private extension SearchView {
     }
 
     var recentSection: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8.0) {
             HStack {
                 sectionHeader(title: "Recent Searches", systemImage: "clock.arrow.circlepath")
                 Spacer()
@@ -162,13 +163,6 @@ private extension SearchView {
                     .tint(.white)
                 }
             }
-        }
-    }
-
-    func dismissSearch(_ oldValue: Bool, _ newValue: Bool) {
-        guard oldValue, !newValue, viewModel.query.isEmpty else { return }
-        withTransaction(.init(animation: .default)) {
-            selectedTab = .pokedex
         }
     }
 }

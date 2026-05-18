@@ -82,7 +82,7 @@ struct OpponentPickerView: View {
                     viewModel: BattleSetupViewModel(
                         player: player,
                         opponent: opp,
-                        moveService: container.moveService,
+                        movePrefetcher: container.movePrefetcher,
                         aiService: container.battleAI,
                         typeChart: container.typeChart
                     ),

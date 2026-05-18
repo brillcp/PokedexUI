@@ -62,20 +62,20 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
     private var selectionOrder: [String] = []
     var errorMessage: String?
 
-    private let moveService:    MoveServiceProtocol
-    private let aiService:      BattleAIServiceProtocol
+    private let movePrefetcher:  MovePrefetcher
+    private let aiService:       BattleAIServiceProtocol
     private let typeChartLoader: TypeChartLoader
 
     init(
         player: Pokemon,
         opponent: Pokemon,
-        moveService: MoveServiceProtocol,
+        movePrefetcher: MovePrefetcher,
         aiService: BattleAIServiceProtocol,
         typeChart: TypeChartLoader
     ) {
         self.playerSummary  = player
         self.opponentSummary = opponent
-        self.moveService    = moveService
+        self.movePrefetcher = movePrefetcher
         self.aiService      = aiService
         self.typeChartLoader = typeChart
     }
@@ -116,12 +116,13 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
         self.playerPokemon   = player
         self.opponentPokemon = opponent
 
-        // Both move samples in parallel. Player pool ranked strongest-first
-        // so the most useful picks surface at the top of the grid.
-        async let playerMovesTask   = fetchMoves(for: player,   modelContext: modelContext)
-        async let opponentMovesTask = fetchMoves(for: opponent, modelContext: modelContext)
-        let playerMoves  = (try? await playerMovesTask)  ?? []
-        let opponentPool = (try? await opponentMovesTask) ?? []
+        // Make sure every move is persisted in SwiftData before reading.
+        // `warmUp` is idempotent: returns instantly once the prefetch has
+        // run, otherwise waits for the bulk download to finish here.
+        await movePrefetcher.warmUp(modelContainer: modelContext.container)
+
+        let playerMoves  = fetchMoves(for: player,   modelContext: modelContext)
+        let opponentPool = fetchMoves(for: opponent, modelContext: modelContext)
 
         guard playerMoves.count >= maxSelections else {
             errorMessage = "Couldn't load \(playerSummary.name)'s movepool. Check your connection and try again."
@@ -186,15 +187,17 @@ private extension BattleSetupViewModel {
         }
     }
 
-    /// Sample up to 40 moves from the pokemon's full movepool and resolve
-    /// each against the SwiftData `MoveDetail` cache (filled by
-    /// `MovePrefetcher` at app start), with the network as the fall-back.
-    /// The `BatchDataFetcher` extension owns the cache-or-API choreography.
-    func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) async throws -> [MoveDetail] {
+    /// Sample up to 60 names from the pokemon's full movepool and read the
+    /// matching `MoveDetail` rows out of SwiftData. The `MovePrefetcher`
+    /// awaited above guarantees the rows are persisted (or the prepare
+    /// flow has already surfaced an error).
+    func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) -> [MoveDetail] {
         let names = pokemon.pokemon.moves.map(\.move.name)
         guard !names.isEmpty else { return [] }
-        let capped = Array(names.shuffled().prefix(60))
-        let fetcher = MoveBatchFetcher(context: modelContext, service: moveService)
-        return await fetcher.fetch(keys: capped)
+        let capped = Set(names.shuffled().prefix(60))
+        let descriptor = FetchDescriptor<MoveDetail>(
+            predicate: #Predicate { capped.contains($0.name) }
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 }
