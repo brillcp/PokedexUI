@@ -1,9 +1,17 @@
 import SwiftUI
 
 /// Process-wide composition root. Owns the concrete dependencies the app
-/// needs and hands them to views + viewmodels through a single environment
-/// entry. Tests and previews swap in a custom container to inject mocks
-/// without touching call sites.
+/// needs and hands them to views + view models through a single
+/// environment entry. Tests and previews swap in a custom container to
+/// inject mocks without touching call sites.
+///
+/// Membership rules:
+/// * Networking-backed services are listed here when a view model or
+///   fetcher pulls them out of the container explicitly. Services that
+///   are only ever constructed inside another worker (e.g. `MoveService`
+///   inside `MovePrefetcher`) don't need to live on the container.
+/// * Long-lived workers (loaders, caches, audio, AI) always live here;
+///   they're stateful singletons the whole app shares.
 ///
 /// This is the single answer to the **Dependency Inversion** + **easy
 /// testing** claims in the README: every layer below `App/` depends on
@@ -14,8 +22,6 @@ final class AppContainer {
     // MARK: - Networking-backed services
 
     let pokemonService:   PokemonServiceProtocol
-    let moveService:      MoveServiceProtocol
-    let typeService:      TypeServiceProtocol
     let evolutionService: EvolutionServiceProtocol
     let itemService:      ItemServiceProtocol
 
@@ -30,8 +36,6 @@ final class AppContainer {
 
     init(
         pokemonService:     PokemonServiceProtocol   = PokemonService(),
-        moveService:        MoveServiceProtocol      = MoveService(),
-        typeService:        TypeServiceProtocol      = TypeService(),
         evolutionService:   EvolutionServiceProtocol = EvolutionService(),
         itemService:        ItemServiceProtocol      = ItemService(),
         typeChart:          TypeChartLoader          = TypeChartLoader(),
@@ -42,8 +46,6 @@ final class AppContainer {
         battleAI:           BattleAIServiceProtocol  = BattleAIService()
     ) {
         self.pokemonService     = pokemonService
-        self.moveService        = moveService
-        self.typeService        = typeService
         self.evolutionService   = evolutionService
         self.itemService        = itemService
         self.movePrefetcher     = movePrefetcher

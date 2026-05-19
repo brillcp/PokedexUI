@@ -76,4 +76,3 @@ extension MoveService {
         func transformResponse(_ response: [MoveDetail]) -> [MoveDetail] { response }
     }
 }
-

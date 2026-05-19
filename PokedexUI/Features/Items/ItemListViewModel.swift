@@ -28,11 +28,12 @@ final class ItemListViewModel {
     /// Indicates whether a data request is in progress.
     var isLoading: Bool = false
 
-    /// Initializes a new instance of `ItemsListViewModel` with an optional item service.
-    /// - Parameter itemService: The service used to fetch items. Defaults to a new `ItemService`.
-    init(modelContext: ModelContext, itemService: ItemServiceProtocol = ItemService()) {
-        let storage = DataStorageReader(modelContainer: modelContext.container)
-        self.fetcher = ItemFetcher(storage: storage, service: itemService)
+    /// - Parameters:
+    ///   - modelContext: SwiftData context that backs the `ItemFetcher`'s
+    ///     storage reader.
+    ///   - container: Composition root the fetcher reads `itemService` from.
+    init(modelContext: ModelContext, container: AppContainer) {
+        self.fetcher = ItemFetcher(modelContext: modelContext, container: container)
     }
 }
 

@@ -34,7 +34,10 @@ private struct RootView: View {
                 modelContext: modelContext,
                 container: container
             ),
-            itemListViewModel: ItemListViewModel(modelContext: modelContext)
+            itemListViewModel: ItemListViewModel(
+                modelContext: modelContext,
+                container: container
+            )
         )
     }
 }

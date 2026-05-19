@@ -99,9 +99,9 @@ struct ItemFetcher: DataFetcher {
     private let storage: DataStorageReader
     private let service: ItemServiceProtocol
 
-    init(storage: DataStorageReader, service: ItemServiceProtocol = ItemService()) {
-        self.storage = storage
-        self.service = service
+    init(modelContext: ModelContext, container: AppContainer) {
+        self.storage = DataStorageReader(modelContainer: modelContext.container)
+        self.service = container.itemService
     }
 
     func fetchStoredData() async throws -> [ItemData] {

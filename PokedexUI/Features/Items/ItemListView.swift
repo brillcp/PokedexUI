@@ -45,5 +45,5 @@ private extension ItemListView {
 #Preview {
     @Previewable
     @Environment(\.modelContext) var modelContext
-    ItemListView(viewModel: ItemListViewModel(modelContext: modelContext))
+    ItemListView(viewModel: ItemListViewModel(modelContext: modelContext, container: .live))
 }

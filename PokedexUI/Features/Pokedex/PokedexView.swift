@@ -133,6 +133,6 @@ private extension TabView {
     @Environment(\.modelContext) var modelContext
     PokedexView(
         viewModel: PokedexViewModel(modelContext: modelContext, container: .live),
-        itemListViewModel: ItemListViewModel(modelContext: modelContext)
+        itemListViewModel: ItemListViewModel(modelContext: modelContext, container: .live)
     )
 }

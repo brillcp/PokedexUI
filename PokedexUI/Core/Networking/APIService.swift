@@ -53,13 +53,16 @@ actor APIService<Config: ServiceConfiguration & Sendable> {
 extension APIService {
     /// Requests a list of results, then downloads and decodes all corresponding detail objects in parallel.
     ///
-    /// - Parameter onProgress: Optional callback fired after each detail lands. Receives (loaded, total).
+    /// - Parameter onTick: Optional callback fired once after each detail
+    ///   response lands. Callers driving an aggregated progress counter
+    ///   tick a shared total on every call; raw (loaded, total) tuples
+    ///   aren't useful here because the bootstrap mixes this output with
+    ///   work from other services.
     /// - Returns: An array of transformed output models defined by the configuration.
     /// - Throws: Any error thrown by the network service or decoding pipeline.
-    func requestData(onProgress: (@Sendable (Int, Int) async -> Void)? = nil) async throws -> [Config.OutputModel] {
+    func requestData(onTick: (@Sendable () async -> Void)? = nil) async throws -> [Config.OutputModel] {
         let request = config.createRequest()
         let response: APIResponse = try await networkService.request(request)
-        let total = response.results.count
 
         let details = try await withThrowingTaskGroup(of: Config.ResponseType.self) { group in
             for result in response.results {
@@ -72,7 +75,7 @@ extension APIService {
             var collected = [Config.ResponseType]()
             for try await detail in group {
                 collected.append(detail)
-                await onProgress?(collected.count, total)
+                await onTick?()
             }
             return collected
         }

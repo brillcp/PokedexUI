@@ -45,9 +45,7 @@ final class PokemonService: PokemonServiceProtocol {
     }
 
     func requestPokemonDetails(onTick: (@Sendable () async -> Void)?) async throws -> [Pokemon] {
-        try await networkService.requestData { _, _ in
-            await onTick?()
-        }
+        try await networkService.requestData(onTick: onTick)
     }
 
     func hydrateSpecies(_ pokemon: [Pokemon], onTick: (@Sendable () async -> Void)?) async {
@@ -88,7 +86,7 @@ extension PokemonService {
         }
 
         func transformResponse(_ response: [Pokemon]) -> [Pokemon] {
-            response.filter { $0.id < 10_000 }.sorted { $0.id < $1.id }
+            response.sorted { $0.id < $1.id }
         }
     }
 }
