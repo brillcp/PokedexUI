@@ -34,15 +34,6 @@ struct BattlerSprite: View {
             : CGSize(width: -20, height: 10)
     }
 
-    /// Slight horizontal nudge so the "-N" label doesn't sit dead-center
-    /// over the sprite's head. Player nudges right, opponent nudges left
-    /// so the popup mirrors the lunge direction on either side.
-    private var damagePopupOffset: CGSize {
-        side == .player
-            ? CGSize(width: 22, height: 36)
-            : CGSize(width: -22, height: 36)
-    }
-
     var body: some View {
         AsyncImage(url: url.flatMap(URL.init(string:))) { image in
             image.resizable().aspectRatio(contentMode: .fit)
@@ -83,7 +74,7 @@ private extension BattlerSprite {
     @ViewBuilder
     var damagePopup: some View {
         if let amount = damageAmount, damageTick > 0 {
-            DamagePopup(amount: amount, baseOffset: damagePopupOffset)
+            DamagePopup(amount: amount)
                 .id(damageTick)
         }
     }
@@ -94,8 +85,9 @@ private extension BattlerSprite {
 /// supplies a new `.id()` the previous instance is destroyed and a fresh
 /// one runs the animation from scratch.
 private struct DamagePopup: View {
+    private let baseOffset: CGSize = CGSize(width: 0, height: 24)
+
     let amount: Int
-    let baseOffset: CGSize
 
     @State private var verticalOffset: CGFloat = 0
     @State private var opacity: Double = 0

@@ -13,8 +13,8 @@ struct BattleView: View {
             .foregroundStyle(.white)
             .task { await viewModel.prepare() }
             .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.attackTick)
-            .sensoryFeedback(.success, trigger: viewModel.opponentShakeTick)
-            .sensoryFeedback(.error, trigger: viewModel.playerShakeTick)
+            .sensoryFeedback(.success, trigger: viewModel.animator.opponentCues.shakeTick)
+            .sensoryFeedback(.error, trigger: viewModel.animator.playerCues.shakeTick)
             .sensoryFeedback(trigger: viewModel.winner) { _, new in
                 switch new {
                 case .player: return .success
@@ -48,7 +48,7 @@ private extension BattleView {
             Spacer()
             arena(state: state)
                 .padding(.horizontal)
-            logFeed
+            BattleLogFeed(log: viewModel.log, thinking: viewModel.aiThinking)
                 .padding(.vertical)
                 .padding(.horizontal)
             moveGrid(state: state)
@@ -84,15 +84,17 @@ private extension BattleView {
     }
 
     func sprite(url: String?, side: BattleSide) -> some View {
-        BattlerSprite(
+        let animator = viewModel.animator
+        let cues = animator.cues(for: side)
+        return BattlerSprite(
             url: url,
             side: side,
-            isAttacking: viewModel.attackingSide == side,
-            isFainted: viewModel.faintedSide == side,
-            hasEntered: viewModel.hasEntered,
-            shakeTick: side == .player ? viewModel.playerShakeTick : viewModel.opponentShakeTick,
-            damageAmount: side == .player ? viewModel.playerDamageAmount : viewModel.opponentDamageAmount,
-            damageTick: side == .player ? viewModel.playerDamageTick : viewModel.opponentDamageTick,
+            isAttacking: animator.attackingSide == side,
+            isFainted: animator.faintedSide == side,
+            hasEntered: animator.hasEntered,
+            shakeTick: cues.shakeTick,
+            damageAmount: cues.damageAmount,
+            damageTick: cues.damageTick,
             isWinner: viewModel.winner == side
         )
     }
@@ -128,48 +130,6 @@ private extension BattleView {
                 )
             }
         }
-    }
-
-    /// GameBoy-style fixed window: always 5 lines tall, showing the most
-    /// recent 5. Each real entry carries a stable identity (its absolute
-    /// index in `log`) so a fresh line gets `.transition(.move + .opacity)`
-    /// instead of swapping in place. Placeholders use negative ids (also
-    /// stable) and animate out from the top as real lines push them
-    /// off-screen.
-    var logFeed: some View {
-        let lineCount = 5
-        let lineHeight: CGFloat = 16
-        let thinking = viewModel.aiThinking
-        let realCapacity = thinking ? lineCount - 1 : lineCount
-        let logCount = viewModel.log.count
-        let firstVisible = max(0, logCount - realCapacity)
-        var rows: [(id: Int, text: AttributedString)] = (firstVisible..<logCount).map { ($0, viewModel.log[$0]) }
-        let placeholderCount = max(0, realCapacity - rows.count)
-        let placeholders: [(id: Int, text: AttributedString)] = (0..<placeholderCount).map { (-($0 + 1), AttributedString("")) }
-        rows = placeholders + rows
-        // Stable id for the thinking row, distinct from log indices and
-        // placeholders so SwiftUI animates it in/out cleanly.
-        if thinking {
-            rows.append((-9999, AttributedString(" ")))
-        }
-        return VStack(alignment: .leading, spacing: 4) {
-            ForEach(rows, id: \.id) { row in
-                Text(row.text)
-                    .font(.pixel12)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .frame(height: lineHeight, alignment: .leading)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
-                            removal: .move(edge: .top).combined(with: .opacity)
-                        )
-                    )
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .animation(.easeOut, value: logCount)
-        .animation(.easeOut, value: thinking)
     }
 
     func moveGrid(state: BattleState) -> some View {
