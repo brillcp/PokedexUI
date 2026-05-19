@@ -73,14 +73,19 @@ private extension PokemonDetailView {
         viewModel.color?.isLight ?? false ? Color.darkGrey : .white
     }
 
+    var divider: some View {
+        Divider()
+            .frame(minHeight: 1)
+            .overlay(textColor.opacity(0.4))
+    }
+
     /// Everything below the sprite (action buttons + content) fades in
     /// together once the lazy pokemon hydration call resolves. Sprite stays
     /// visible from frame one (driven by `viewModel.summary`).
     @ViewBuilder
     func loadedSection() -> some View {
         let pokemon = viewModel.pokemon
-        VStack(spacing: 32) {
-            actionButtons(pokemon: pokemon)
+        VStack(spacing: 0) {
             loadedContent(pokemon: pokemon)
         }
     }
@@ -90,6 +95,7 @@ private extension PokemonDetailView {
     /// `contentSection()` can swap it in with an opacity transition.
     func loadedContent(pokemon: PokemonViewModel) -> some View {
         Group {
+            actionButtons(pokemon: pokemon)
             speciesHeader(pokemon: pokemon)
 
             if let flavorText = pokemon.flavorText?.pretty {
@@ -120,7 +126,7 @@ private extension PokemonDetailView {
             rowSection(title: "Abilities", data: pokemon.abilities)
             rowSection(title: "Moves", data: pokemon.moves)
             statsSection(pokemon: pokemon)
-            Divider().foregroundStyle(textColor)
+            divider
             EvolutionChainView(
                 stages: viewModel.evolutionStages,
                 textColor: textColor,
@@ -128,7 +134,7 @@ private extension PokemonDetailView {
             )
         }
         .padding(.horizontal, 24)
-        .padding(.bottom)
+        .padding(.bottom, 32.0)
         .foregroundStyle(textColor)
         .lineHeight(.loose)
         .transition(.scale)
@@ -209,7 +215,6 @@ private extension PokemonDetailView {
             }
         }
         .tint(textColor)
-        .padding(.horizontal, 24)
     }
 }
 
@@ -217,9 +222,7 @@ private extension PokemonDetailView {
 private extension PokemonDetailView {
     func statsSection(pokemon: PokemonViewModel) -> some View {
         VStack(alignment: .leading) {
-            Divider()
-                .foregroundStyle(textColor)
-                .frame(height: 2)
+            divider
             ForEach(pokemon.stats) { stat in
                 DetailRowStat(
                     title: stat.stat.name,
