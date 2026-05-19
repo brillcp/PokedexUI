@@ -48,7 +48,7 @@ private extension BattleView {
             Spacer()
             arena(state: state)
                 .padding(.horizontal)
-            BattleLogFeed(log: viewModel.log, thinking: viewModel.aiThinking)
+            BattleLogFeed(log: viewModel.log)
                 .padding(.vertical)
                 .padding(.horizontal)
             moveGrid(state: state)

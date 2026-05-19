@@ -16,9 +16,6 @@ extension BattleViewModel {
         else { return }
         animator.attackTick += 1
         isResolvingTurn = true
-        withAnimation(.easeInOut(duration: 0.15)) {
-            aiThinking = true
-        }
 
         // Ask the on-device AI for the opponent's move. The brain wraps
         // the service + rolling history; service falls back to a random
@@ -30,9 +27,6 @@ extension BattleViewModel {
             moves:     snapshot.opponent.moves,
             typeChart: typeChart
         )
-        withAnimation(.easeInOut(duration: 0.15)) {
-            aiThinking = false
-        }
         let events = engine.resolveRound(playerMove: move, opponentMove: opponentMove)
         for event in events {
             let line = formatter.format(

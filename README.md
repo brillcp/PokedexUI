@@ -32,7 +32,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Storage-First**: SwiftData is the source of truth; the network is a backfill mechanism.
 - ✅ **Actor-Based Concurrency**: every long-lived worker is an actor; SwiftUI-bound types are `@MainActor @Observable`.
 - ✅ **Clean Separation**: App / Features / Core / DesignSystem layers with one-way dependencies (App can see everything, Core depends on nothing).
-- ✅ **Type Safety**: generics, `@Generable` AI outputs, `@Attribute(.unique)` on every persisted entity.
+- ✅ **Type Safety**: generics, `@Generable` AI outputs, `@Attribute(.unique)` on every top-level cache entity (Pokemon, MoveDetail, TypeDetail, ItemData, EvolutionChainEntity). Nested rows ride on cascade.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
 - ✅ **On-Device AI**: Apple `FoundationModels` integrated with structured output and deterministic fallbacks.
 

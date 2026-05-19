@@ -29,10 +29,6 @@ final class BattleViewModel {
     var state:  BattleState?
     var log:    [AttributedString] = []
     var isResolvingTurn  = false
-    /// `true` while the AI is deciding the opponent's next move. Drives a
-    /// "…" placeholder line in the battle log so the player sees activity
-    /// during the round-trip.
-    var aiThinking: Bool = false
     var winner: BattleSide?
     var errorMessage: String?
 

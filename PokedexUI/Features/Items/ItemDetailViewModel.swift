@@ -9,7 +9,13 @@ protocol ItemDetailViewModelProtocol {
 }
 
 // MARK: -
-/// View model that provides details and metadata for a single item, conforming to `ItemdetailViewModelProtocol`.
+/// View model that provides details and metadata for a single item,
+/// conforming to `ItemDetailViewModelProtocol`. The underlying `ItemData`
+/// is immutable for the view's lifetime, but the type is still
+/// `@MainActor @Observable` so it matches every other SwiftUI-bound view
+/// model in the app.
+@MainActor
+@Observable
 final class ItemDetailViewModel {
     /// The raw item data backing this view model.
     let item: ItemData

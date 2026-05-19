@@ -133,7 +133,8 @@ private extension BattleSetupView {
 
             Text(summary.name)
                 .font(.pixel14)
-                .lineLimit(1)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
 
             HStack(spacing: 4) {
                 ForEach(pokemon.typeNames, id: \.self) { type in
@@ -146,8 +147,8 @@ private extension BattleSetupView {
 
             statGrid(pokemon: pokemon)
         }
-        .padding(.vertical)
-        .frame(maxWidth: .infinity)
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.cardBackground)
     }
 
@@ -179,7 +180,6 @@ private extension BattleSetupView {
                 }
             }
         }
-        .padding(.horizontal, 6)
     }
 
     // MARK: - Type matchup
@@ -301,14 +301,19 @@ private extension BattleSetupView {
     // MARK: - Battle button
 
     var battleButton: some View {
-        let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
-        let label = remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move": "moves")" : "Start"
-        return PrimaryCapsuleButton(
-            icon: "bolt.fill",
-            title: label,
-            isEnabled: viewModel.canStart,
-            action: startBattle
-        )
+        HStack {
+            let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
+            let label = remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move": "moves")" : "Start"
+            PrimaryCapsuleButton(
+                icon: "bolt.fill",
+                title: label,
+                isEnabled: viewModel.canStart,
+                action: startBattle
+            )
+            DetailButton(icon: "die.face.5.fill") {
+
+            }
+        }
         .padding(.horizontal, 24)
         .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }

@@ -5,17 +5,13 @@ import SwiftUI
 /// blank placeholders pushed up off-screen above. Each real entry carries
 /// its absolute index in `log` as a stable id so a fresh line animates in
 /// with `.move + .opacity` instead of swapping in place; placeholders use
-/// negative ids that are equally stable. When `thinking` is true a
-/// reserved row at the bottom carries a distinct id so the "…" indicator
-/// animates in and out without disturbing the surrounding rows.
+/// negative ids that are equally stable.
 struct BattleLogFeed: View {
     let log: [AttributedString]
-    let thinking: Bool
 
     var body: some View {
-        let rows = assembledRows
         VStack(alignment: .leading, spacing: 4) {
-            ForEach(rows, id: \.id) { row in
+            ForEach(assembledRows, id: \.id) { row in
                 Text(row.text)
                     .font(.pixel12)
                     .lineLimit(1)
@@ -31,7 +27,6 @@ struct BattleLogFeed: View {
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .animation(.easeOut, value: log.count)
-        .animation(.easeOut, value: thinking)
     }
 }
 
@@ -40,26 +35,16 @@ struct BattleLogFeed: View {
 private extension BattleLogFeed {
     static let lineCount = 5
     static let lineHeight: CGFloat = 16
-    /// Sentinel id for the thinking row. Chosen far enough from log
-    /// indices (positive) and placeholders (small negatives) that
-    /// SwiftUI can't accidentally match it during a diff.
-    static let thinkingRowID = -9999
 
     typealias Row = (id: Int, text: AttributedString)
 
     /// Build the row list bottom-up: real log entries first, blank
-    /// placeholders prepended to pad up to capacity, optional thinking
-    /// row appended last.
+    /// placeholders prepended to pad up to capacity.
     var assembledRows: [Row] {
-        let realCapacity = thinking ? Self.lineCount - 1 : Self.lineCount
-        let firstVisible = max(0, log.count - realCapacity)
-        var rows: [Row] = (firstVisible..<log.count).map { ($0, log[$0]) }
-        let placeholderCount = max(0, realCapacity - rows.count)
+        let firstVisible = max(0, log.count - Self.lineCount)
+        let real: [Row] = (firstVisible..<log.count).map { ($0, log[$0]) }
+        let placeholderCount = max(0, Self.lineCount - real.count)
         let placeholders: [Row] = (0..<placeholderCount).map { (-($0 + 1), AttributedString("")) }
-        rows = placeholders + rows
-        if thinking {
-            rows.append((Self.thinkingRowID, AttributedString(" ")))
-        }
-        return rows
+        return placeholders + real
     }
 }
