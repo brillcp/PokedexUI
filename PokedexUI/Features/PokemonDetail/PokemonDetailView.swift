@@ -75,8 +75,8 @@ private extension PokemonDetailView {
 
     var divider: some View {
         Divider()
-            .frame(minHeight: 1)
-            .overlay(textColor.opacity(0.4))
+            .frame(minHeight: 1.5)
+            .overlay(.secondary)
     }
 
     /// Everything below the sprite (action buttons + content) fades in
