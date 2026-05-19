@@ -150,7 +150,7 @@ private extension BattleView {
         // Stable id for the thinking row, distinct from log indices and
         // placeholders so SwiftUI animates it in/out cleanly.
         if thinking {
-            rows.append((-9999, AttributedString("...")))
+            rows.append((-9999, AttributedString(" ")))
         }
         return VStack(alignment: .leading, spacing: 4) {
             ForEach(rows, id: \.id) { row in
