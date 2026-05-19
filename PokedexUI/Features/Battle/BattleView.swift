@@ -91,6 +91,8 @@ private extension BattleView {
             isFainted: viewModel.faintedSide == side,
             hasEntered: viewModel.hasEntered,
             shakeTick: side == .player ? viewModel.playerShakeTick : viewModel.opponentShakeTick,
+            damageAmount: side == .player ? viewModel.playerDamageAmount : viewModel.opponentDamageAmount,
+            damageTick: side == .player ? viewModel.playerDamageTick : viewModel.opponentDamageTick,
             isWinner: viewModel.winner == side
         )
     }
@@ -141,14 +143,14 @@ private extension BattleView {
         let realCapacity = thinking ? lineCount - 1 : lineCount
         let logCount = viewModel.log.count
         let firstVisible = max(0, logCount - realCapacity)
-        var rows: [(id: Int, text: String)] = (firstVisible..<logCount).map { ($0, viewModel.log[$0]) }
+        var rows: [(id: Int, text: AttributedString)] = (firstVisible..<logCount).map { ($0, viewModel.log[$0]) }
         let placeholderCount = max(0, realCapacity - rows.count)
-        let placeholders: [(id: Int, text: String)] = (0..<placeholderCount).map { (-($0 + 1), "") }
+        let placeholders: [(id: Int, text: AttributedString)] = (0..<placeholderCount).map { (-($0 + 1), AttributedString("")) }
         rows = placeholders + rows
         // Stable id for the thinking row, distinct from log indices and
         // placeholders so SwiftUI animates it in/out cleanly.
         if thinking {
-            rows.append((-9999, "..."))
+            rows.append((-9999, AttributedString("...")))
         }
         return VStack(alignment: .leading, spacing: 4) {
             ForEach(rows, id: \.id) { row in
@@ -210,9 +212,7 @@ private extension BattleView {
                         .init(name: "move4")
                     ],
                     opponentMoves: [],
-                    typeChart: TypeChartLoader(),
-                    audioPlayer: AudioPlayer(),
-                    aiService: BattleAIService()
+                    container: .live
                 )
             )
         }

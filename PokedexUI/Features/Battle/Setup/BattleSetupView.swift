@@ -47,9 +47,7 @@ private extension BattleSetupView {
             opponent: opponent,
             playerMoves: viewModel.playerMoves(),
             opponentMoves: opponentMoves,
-            typeChart: container.typeChart,
-            audioPlayer: container.audioPlayer,
-            aiService: container.battleAI
+            container: container
         )
         onStart(BattleLaunch(viewModel: battleViewModel))
     }
