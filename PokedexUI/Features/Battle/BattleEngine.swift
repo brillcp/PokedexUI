@@ -74,6 +74,7 @@ final class BattleEngine {
 private extension BattleEngine {
     func performAction(side: BattleSide, move: MoveDetail, events: inout [BattleEvent]) {
         events.append(.used(side, moveName: move.displayName))
+        let baselineEventCount = events.count
 
         // Sleep check: decrement counter, skip turn if still asleep.
         if combatant(side).status == .sleep {
@@ -181,6 +182,9 @@ private extension BattleEngine {
             }
             mutate(target) { $0.applyStage(statName, delta: delta) }
             events.append(.statChanged(target, stat: statName, delta: delta))
+        }
+        if events.count == baselineEventCount {
+            events.append(.damaged(side.opposite, amount: 0, effectiveness: 0, crit: false))
         }
     }
 
