@@ -34,13 +34,13 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Clean Separation**: App / Features / Core / DesignSystem layers with one-way dependencies (App can see everything, Core depends on nothing).
 - ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every top-level cache entity (Pokemon, MoveDetail, TypeDetail, ItemData, EvolutionChainEntity). Nested rows ride on cascade.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
-- ✅ **On-Device AI**: Apple `FoundationModels` integrated with structured output and deterministic fallbacks.
+- ✅ **On-Device AI**: Apple `FoundationModels` integrated with plain-text generation, an integer-extracting parser, and deterministic fallbacks at every call site.
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
 - **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor (~80 LOC) that delegates cue timing to `BattleAnimator`, AI history to `OpponentBrain`, log rendering to `BattleLogFormatter`, and round playback to its own `+Round` extension.
 - **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
-- **L**iskov Substitution: every protocol has at least one concrete implementation plus a mock used in previews. Substitution is the default path.
+- **L**iskov Substitution: every service is reached through its `Protocol` typealias on `AppContainer`, so previews and tests can swap the concrete actor for any conforming type without touching call sites.
 - **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`; `BattleSetupView` reads pool + selection state. No god-protocol shared across consumers.
 - **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`; no `static let shared` lookups in feature code.
 
@@ -111,15 +111,15 @@ Tests and previews swap in a custom container with mocks; the rest of the app is
 
 ## Storage
 
-Five `@Model` types, all deduped on a unique key:
+Five top-level `@Model` types, each deduped on a unique key. Nested rows (stats, abilities, sprites, moves, etc.) live under their parent and ride on cascade delete.
 
-- `PokemonSummary` (id-unique): id, name, bookmark flag, persisted dominant sprite color
-- `Pokemon` (id-unique): full hydrated detail, stats, sprites, moves, species fields
+- `Pokemon` (id-unique): full hydrated detail, stats, sprites, moves, species fields, bookmark flag
 - `MoveDetail` (name-unique): power, accuracy, type, damage class, ailment
 - `TypeDetail` (name-unique): damage relations for the 18 elemental types
 - `ItemData` (id-unique): item catalogue
+- `EvolutionChainEntity` (id-unique): evolution chain rows keyed by chain id
 
-The pokedex grid renders from `PokemonSummary` only; full `Pokemon` rows are loaded lazily on tap and cached forever, since Pokémon data is immutable.
+The pokedex grid renders from `Pokemon` rows; full hydration runs once at app launch and is cached forever, since Pokémon data is immutable.
 
 ---
 
@@ -197,7 +197,7 @@ Battle view
        Events animate (lunge, shake, damage, faint)
 ```
 
-The AI's per-turn move pick runs while a "..." placeholder appears in the battle log, so the player always sees activity. The battle screen never holds the loadout sheet open: every preflight task either completes before the player commits, or runs lazily inside the battle view itself.
+The battle screen never holds the loadout sheet open: every preflight task either completes before the player commits, or runs lazily inside the battle view itself. The move grid is disabled while the AI resolves the opponent's pick so the player can't double-tap into a stale turn.
 
 ---
 
@@ -208,7 +208,7 @@ Pixel font, gameboy-style aesthetic, glass effects:
 - **`Chip`**: small inline pill used for type tags, generation badges, status pills, effectiveness markers. Always a 4-point corner radius (capsules look too modern next to the pixel font).
 - **`MoveCell`**: shared between the battle move grid and the loadout move picker, switched via a `Mode` enum.
 - **`TypeColor`**: centralized type → color map used by every move chip, type tag, and weakness grid row.
-- **`PokedexGridView`**: 2-column or 3-column grid of `PokemonSummary` rows used by the pokedex, search, and bookmarks tabs.
+- **`PokedexGridView`**: 2-column or 3-column grid of `Pokemon` rows used by the pokedex, search, and bookmarks tabs.
 
 ---
 
