@@ -35,8 +35,7 @@ struct SecondaryCapsuleButton: View {
         Button(action: action) {
             Label(title, systemImage: icon)
                 .font(.pixel14)
-                .frame(height: 24.0)
-                .padding(.vertical, 10)
+                .padding(.vertical, 11)
                 .padding(.horizontal)
                 .foregroundStyle(color)
         }
