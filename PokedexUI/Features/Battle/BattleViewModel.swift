@@ -262,11 +262,23 @@ private extension BattleViewModel {
             withAnimation(.easeOut(duration: 0.10)) { attackingSide = side }
             try? await Task.sleep(for: .milliseconds(110))
             withAnimation(.spring(response: 0.18, dampingFraction: 0.4)) { attackingSide = nil }
-        case .damaged(let side, _, _, _),
-             .recoil(let side, _):
-            switch side {
-            case .player:   playerShakeTick += 1
-            case .opponent: opponentShakeTick += 1
+        case .damaged(let side, let amount, let effectiveness, _):
+            // Immunity ("It had no effect"): skip the shake + impact
+            // haptic so the defender doesn't visually flinch on a zero
+            // hit. Same for any zero-amount damage event.
+            if effectiveness > 0, amount > 0 {
+                switch side {
+                case .player:   playerShakeTick += 1
+                case .opponent: opponentShakeTick += 1
+                }
+            }
+            try? await Task.sleep(for: .milliseconds(250))
+        case .recoil(let side, let amount):
+            if amount > 0 {
+                switch side {
+                case .player:   playerShakeTick += 1
+                case .opponent: opponentShakeTick += 1
+                }
             }
             try? await Task.sleep(for: .milliseconds(250))
         case .fainted(let side):

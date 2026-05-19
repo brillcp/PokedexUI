@@ -34,6 +34,15 @@ struct BattlerSprite: View {
             : CGSize(width: -20, height: 10)
     }
 
+    /// Slight horizontal nudge so the "-N" label doesn't sit dead-center
+    /// over the sprite's head. Player nudges right, opponent nudges left
+    /// so the popup mirrors the lunge direction on either side.
+    private var damagePopupOffset: CGSize {
+        side == .player
+            ? CGSize(width: 22, height: 36)
+            : CGSize(width: -22, height: 36)
+    }
+
     var body: some View {
         AsyncImage(url: url.flatMap(URL.init(string:))) { image in
             image.resizable().aspectRatio(contentMode: .fit)
@@ -49,6 +58,7 @@ struct BattlerSprite: View {
         )
         .opacity(isFainted ? 0 : 1)
         .overlay(alignment: .top) { damagePopup }
+        .animation(.easeOut(duration: 0.6), value: damageTick)
         .animation(.spring(response: 0.35, dampingFraction: 0.5), value: shakeTick)
         .animation(.easeOut(duration: 0.5), value: isFainted)
         .onChange(of: isWinner) { _, newValue in
@@ -67,41 +77,39 @@ struct BattlerSprite: View {
 
 private extension BattlerSprite {
     /// Floating "-N" pop over the sprite. Keyed by `damageTick` so two
-    /// hits in a row with the same amount still retrigger the animation
-    /// — `.id(...)` makes SwiftUI treat each tick as a brand-new view.
+    /// hits in a row with the same amount still retrigger: `.id(...)`
+    /// makes SwiftUI tear down the old view (with its removal transition)
+    /// and insert a fresh one (with its insertion transition). The
+    /// surrounding `.animation(_:value: damageTick)` on the sprite is
+    /// what makes those transitions actually animate instead of snapping.
     @ViewBuilder
     var damagePopup: some View {
         if let amount = damageAmount, damageTick > 0 {
-            DamagePopup(amount: amount)
+            DamagePopup(amount: amount, offset: damagePopupOffset)
                 .id(damageTick)
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: 24)),
+                        removal: .opacity.combined(with: .offset(y: -24))
+                    )
+                )
         }
     }
 }
 
-/// Single-shot label that fades up + out the moment it appears. Owns its
-/// own `@State` so the lifecycle is contained: when the parent supplies a
-/// new `.id()` the old instance is torn down and a fresh one runs through
-/// the animation again.
+/// Floating "-N" label rendered above the sprite. Stateless: position +
+/// fade are driven entirely by the parent's `.transition`, which the
+/// `.animation(_:value: damageTick)` on `BattlerSprite` brings to life
+/// every time a new tick replaces the previous label.
 private struct DamagePopup: View {
     let amount: Int
-
-    @State private var offset: CGFloat = 0
-    @State private var opacity: Double = 0
+    let offset: CGSize
 
     var body: some View {
         Text("-\(amount)")
             .font(.pixel14)
             .foregroundStyle(Color.pokedexRed)
             .shadow(color: .black.opacity(0.6), radius: 1, x: 0, y: 1)
-            .offset(y: offset)
-            .opacity(opacity)
-            .onAppear {
-                offset = 0
-                opacity = 1
-                withAnimation(.easeOut(duration: 0.8)) {
-                    offset = -48
-                    opacity = 0
-                }
-            }
+            .offset(offset)
     }
 }
