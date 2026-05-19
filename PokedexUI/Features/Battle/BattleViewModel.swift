@@ -140,7 +140,7 @@ final class BattleViewModel {
             #endif
             apply(event)
             await playAnimation(for: event)
-            try? await Task.sleep(for: .milliseconds(500))
+            try? await Task.sleep(for: .milliseconds(650))
             if case .ended(let w) = event {
                 winner = w ?? .player
                 await playWinnerCry()

@@ -135,7 +135,7 @@ private extension BattleView {
     /// stable) and animate out from the top as real lines push them
     /// off-screen.
     var logFeed: some View {
-        let lineCount = 4
+        let lineCount = 5
         let lineHeight: CGFloat = 16
         let thinking = viewModel.aiThinking
         let realCapacity = thinking ? lineCount - 1 : lineCount
@@ -166,8 +166,8 @@ private extension BattleView {
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .animation(.easeOut(duration: 0.25), value: logCount)
-        .animation(.easeOut(duration: 0.25), value: thinking)
+        .animation(.easeOut, value: logCount)
+        .animation(.easeOut, value: thinking)
     }
 
     func moveGrid(state: BattleState) -> some View {
