@@ -58,7 +58,6 @@ struct BattlerSprite: View {
         )
         .opacity(isFainted ? 0 : 1)
         .overlay(alignment: .top) { damagePopup }
-        .animation(.easeOut(duration: 0.6), value: damageTick)
         .animation(.spring(response: 0.35, dampingFraction: 0.5), value: shakeTick)
         .animation(.easeOut(duration: 0.5), value: isFainted)
         .onChange(of: isWinner) { _, newValue in
@@ -77,39 +76,44 @@ struct BattlerSprite: View {
 
 private extension BattlerSprite {
     /// Floating "-N" pop over the sprite. Keyed by `damageTick` so two
-    /// hits in a row with the same amount still retrigger: `.id(...)`
-    /// makes SwiftUI tear down the old view (with its removal transition)
-    /// and insert a fresh one (with its insertion transition). The
-    /// surrounding `.animation(_:value: damageTick)` on the sprite is
-    /// what makes those transitions actually animate instead of snapping.
+    /// hits in a row with the same amount still retrigger — `.id(...)`
+    /// makes SwiftUI tear down the old view and insert a fresh one,
+    /// which kicks `DamagePopup.onAppear` and runs the self-contained
+    /// fade-up animation again.
     @ViewBuilder
     var damagePopup: some View {
         if let amount = damageAmount, damageTick > 0 {
-            DamagePopup(amount: amount, offset: damagePopupOffset)
+            DamagePopup(amount: amount, baseOffset: damagePopupOffset)
                 .id(damageTick)
-                .transition(
-                    .asymmetric(
-                        insertion: .opacity.combined(with: .offset(y: 24)),
-                        removal: .opacity.combined(with: .offset(y: -24))
-                    )
-                )
         }
     }
 }
 
-/// Floating "-N" label rendered above the sprite. Stateless: position +
-/// fade are driven entirely by the parent's `.transition`, which the
-/// `.animation(_:value: damageTick)` on `BattlerSprite` brings to life
-/// every time a new tick replaces the previous label.
+/// Single-shot label that floats up + fades the moment it appears. Owns
+/// its own `@State` so the lifecycle is contained: when the parent
+/// supplies a new `.id()` the previous instance is destroyed and a fresh
+/// one runs the animation from scratch.
 private struct DamagePopup: View {
     let amount: Int
-    let offset: CGSize
+    let baseOffset: CGSize
+
+    @State private var verticalOffset: CGFloat = 0
+    @State private var opacity: Double = 0
 
     var body: some View {
         Text("-\(amount)")
             .font(.pixel14)
             .foregroundStyle(Color.pokedexRed)
             .shadow(color: .black.opacity(0.6), radius: 1, x: 0, y: 1)
-            .offset(offset)
+            .offset(x: baseOffset.width, y: baseOffset.height + verticalOffset)
+            .opacity(opacity)
+            .onAppear {
+                verticalOffset = 0
+                opacity = 1
+                withAnimation(.easeOut(duration: 1.2)) {
+                    verticalOffset = -48
+                    opacity = 0
+                }
+            }
     }
 }
