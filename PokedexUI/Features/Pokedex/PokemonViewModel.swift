@@ -6,7 +6,7 @@ import SwiftUI
 /// All derived display values (stat lookup, normalized search haystack,
 /// comma-joined name lists) are computed once in `init` and stored as `let`
 /// properties. With ~1150 pokemon hydrated at app launch the eager cost is
-/// well under 50ms total, and the struct stays a pure value type — no
+/// well under 50ms total, and the struct stays a pure value type. No
 /// reference-typed cache box sneaking inside.
 struct PokemonViewModel {
     let id: Int

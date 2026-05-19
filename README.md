@@ -38,10 +38,10 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
-- **S**ingle Responsibility: each service, prefetcher, and view model has one job. The few large classes (`BattleViewModel`, `PokemonDetailViewModel`) own a tightly-related concern (battle round playback, detail hydration) but lean on actors and helpers for everything outside their slice.
+- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor (~80 LOC) that delegates cue timing to `BattleAnimator`, AI history to `OpponentBrain`, log rendering to `BattleLogFormatter`, and round playback to its own `+Round` extension.
 - **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
-- **L**iskov Substitution: every protocol has at least one concrete implementation plus a mock (`MockMoveService`, etc.) used in previews. Substitution is the default path.
-- **I**nterface Segregation: `PokemonViewModelProtocol` composed from `IdentifiablePokemon` + `PokemonStatsProviding` + `PokemonDisplayData`, so consumers only see what they need (a grid cell pulls 4 props, the battle engine pulls 3, the detail view pulls 19).
+- **L**iskov Substitution: every protocol has at least one concrete implementation plus a mock used in previews. Substitution is the default path.
+- **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`; `BattleSetupView` reads pool + selection state. No god-protocol shared across consumers.
 - **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`; no `static let shared` lookups in feature code.
 
 ```
@@ -76,10 +76,10 @@ Every long-lived worker is an actor unless it has to bind to SwiftUI directly:
 | `AudioPlayer`              | `actor`                    | AVFoundation playback                                        |
 | `EvolutionService`         | `actor`                    | Process-wide chain-id memo                                   |
 | `MovePrefetcher`           | `actor`                    | One-shot background download                                 |
-| `SpriteColorPrefetcher`    | `actor`                    | One-shot background analysis                                 |
 | `DataStorageReader`        | `@ModelActor`              | Isolated SwiftData `ModelContext`                            |
 | `APIService<Config>`       | `actor`                    | Generic network actor over `Requestable`                     |
 | `TypeChartLoader`          | `@MainActor @Observable`   | `WeaknessGridView` reads its `chart` synchronously in body   |
+| `BattleAnimator`           | `@MainActor @Observable`   | Owns cue mutation + `withAnimation` blocks for the arena    |
 | View models                | `@MainActor @Observable`   | SwiftUI binding                                              |
 | `BattleEngine`             | `@MainActor`               | `withAnimation` callbacks see consistent state               |
 
@@ -92,16 +92,15 @@ A single `AppContainer` is the composition root. Every service, prefetcher, and 
 ```swift
 @MainActor
 final class AppContainer {
-    let pokemonService:        PokemonServiceProtocol
-    let moveService:           MoveServiceProtocol
-    let battleAI:              BattleAIServiceProtocol
-    let typeChart:             TypeChartLoader
-    let movePrefetcher:        MovePrefetcher
-    let spriteColorPrefetcher: SpriteColorPrefetcher
-    let spriteLoader:          SpriteLoader
-    let imageColorAnalyzer:    ImageColorAnalyzer
-    let audioPlayer:           AudioPlayer
-    // ...
+    let pokemonService:     PokemonServiceProtocol
+    let evolutionService:   EvolutionServiceProtocol
+    let itemService:        ItemServiceProtocol
+    let battleAI:           BattleAIServiceProtocol
+    let typeChart:          TypeChartLoader
+    let movePrefetcher:     MovePrefetcher
+    let spriteLoader:       SpriteLoader
+    let imageColorAnalyzer: ImageColorAnalyzer
+    let audioPlayer:        AudioPlayer
     static let live = AppContainer()
 }
 
@@ -137,7 +136,7 @@ PokedexUI uses `SystemLanguageModel.default` in three places:
 1. **Opponent picking** ("Smart pick" button in the picker sheet)
    The model receives the player's name and types plus a roster of 60 candidate pokemon and returns a `pokedex id` representing a worthy matchup.
 2. **Loadout selection** (background task during the loadout screen)
-   The model receives the opponent's typing, the player's typing, and a 40-move sample of the opponent's full movepool with pre-computed type-effectiveness multipliers. It returns 4 zero-based indices — the moves the opponent brings into battle.
+   The model receives the opponent's typing, the player's typing, and a 40-move sample of the opponent's full movepool with pre-computed type-effectiveness multipliers. It returns 4 zero-based indices: the moves the opponent brings into battle.
 3. **Per-turn move selection** (every time the player commits a move)
    The model receives both combatants' current HP, status, and types, plus the opponent's 4 chosen moves with effectiveness multipliers, and returns the index of the move to play.
 
@@ -145,7 +144,7 @@ All three calls share one `LanguageModelSession` instance per battle (so the mod
 
 ## How the prompts are built
 
-`BattleAIPromptBuilder` constructs each prompt as a compact text snapshot. The model never has to recall the type chart from training: every damaging move row carries a pre-computed `×N vs defender` multiplier, so the model just compares numbers. Status moves are flagged explicitly. The system prompt lives in [`BattleAIInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIInstructions.md) and is loaded once when the service initializes.
+`BattleAIPromptBuilder` constructs each prompt as a compact text snapshot. The model never has to recall the type chart from training: every damaging move row carries a pre-computed `×N vs defender` multiplier, so the model just compares numbers. Status moves are flagged explicitly. System prompts live in [`PokedexUI/Features/Battle/AI/`](PokedexUI/Features/Battle/AI/), split per task: [`BattleAIMoveInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIMoveInstructions.md), [`BattleAILoadoutInstructions.md`](PokedexUI/Features/Battle/AI/BattleAILoadoutInstructions.md), [`BattleAIOpponentInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIOpponentInstructions.md). Each is loaded once when its session initializes.
 
 Structured output uses Apple's `@Generable` macro:
 
@@ -161,10 +160,10 @@ No JSON parsing, no string matching, no typo failures. The model returns a stron
 
 ## Why on-device?
 
-- **Zero latency to the network** — every inference happens locally.
-- **Free** — no API tokens, no rate limits.
-- **Private** — battle state never leaves the device.
-- **Available offline** — the app stays playable once the PokeAPI data is cached.
+- **Zero latency to the network**: every inference happens locally.
+- **Free**: no API tokens, no rate limits.
+- **Private**: battle state never leaves the device.
+- **Available offline**: the app stays playable once the PokeAPI data is cached.
 
 This is the kind of feature `FoundationModels` was built for: small, structured, latency-sensitive decisions on top of well-defined data.
 
@@ -178,11 +177,9 @@ Three background workers fill the on-disk cache at app launch so the UI never wa
 | ----------------------- | ----------------------------------------- | ---------------- |
 | `TypeChartLoader`       | 18 type damage relations                  | App launch       |
 | `MovePrefetcher`        | ~937 moves (full PokeAPI move catalogue)  | App launch, background priority |
-| `SpriteColorPrefetcher` | Dominant color for every pokemon sprite   | App launch, background priority |
+| `EvolutionService`      | Evolution chains for hydrated pokemon     | App launch, background priority |
 
-The pokedex grid itself paginates `/pokemon?offset=N&limit=200` in chunks of 200, so the first page lands well under a second. Subsequent app launches read everything from SwiftData with zero network calls.
-
-Detail-view gradient colors are the most visible payoff: the sprite color prefetcher walks every `PokemonSummary` missing a `colorHex`, runs the image color analyzer, and persists the hex back to SwiftData. By the time the user taps any pokemon, the gradient renders on frame 1 with no compute pass.
+Sprite colors are resolved lazily on first display through `ImageColorAnalyzer` (an actor) and cached in-process by pokemon id, so a detail view that opens the same pokemon twice runs the pixel scan once. The pokedex grid itself paginates `/pokemon?offset=N&limit=200` in chunks of 200, so the first page lands well under a second. Subsequent app launches read everything from SwiftData with zero network calls.
 
 ---
 

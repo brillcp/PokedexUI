@@ -67,7 +67,7 @@ struct BattlerSprite: View {
 
 private extension BattlerSprite {
     /// Floating "-N" pop over the sprite. Keyed by `damageTick` so two
-    /// hits in a row with the same amount still retrigger — `.id(...)`
+    /// hits in a row with the same amount still retrigger: `.id(...)`
     /// makes SwiftUI tear down the old view and insert a fresh one,
     /// which kicks `DamagePopup.onAppear` and runs the self-contained
     /// fade-up animation again.

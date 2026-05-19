@@ -7,7 +7,7 @@ import Foundation
 /// what produced the multi-second hang + crash on tap.
 ///
 /// Scope is the picker only. Once a battle starts, in-round state lives on
-/// `BattleCombatant`, which is unrelated — different lifecycle, different
+/// `BattleCombatant`, which is unrelated: different lifecycle, different
 /// fields (HP / status / moves vs. legendary / generation flags).
 struct OpponentCandidateSnapshot: Sendable {
     let id: Int
