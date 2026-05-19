@@ -26,10 +26,14 @@ struct PokedexUIApp: App {
 /// model handles the full fetch-store-display cycle.
 private struct RootView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.container) private var container
 
     var body: some View {
         PokedexView(
-            viewModel: PokedexViewModel(modelContext: modelContext),
+            viewModel: PokedexViewModel(
+                modelContext: modelContext,
+                container: container
+            ),
             itemListViewModel: ItemListViewModel(modelContext: modelContext)
         )
     }

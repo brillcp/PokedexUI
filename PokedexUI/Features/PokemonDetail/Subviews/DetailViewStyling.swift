@@ -37,6 +37,5 @@ extension View {
                 )
                 .ignoresSafeArea()
             }
-            .ignoresSafeArea(edges: .bottom)
     }
 }

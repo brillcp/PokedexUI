@@ -132,7 +132,7 @@ private extension TabView {
     @Previewable
     @Environment(\.modelContext) var modelContext
     PokedexView(
-        viewModel: PokedexViewModel(modelContext: modelContext),
+        viewModel: PokedexViewModel(modelContext: modelContext, container: .live),
         itemListViewModel: ItemListViewModel(modelContext: modelContext)
     )
 }

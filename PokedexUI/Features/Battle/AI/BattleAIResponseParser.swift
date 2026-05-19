@@ -5,7 +5,7 @@ import Foundation
 ///
 /// Kept separate from `BattleAIService` (session/network) and
 /// `BattleAIPromptBuilder` (prompt formatting) so each type has one reason to
-/// change (SRP). All methods are static — there is no state.
+/// change (SRP).
 enum BattleAIResponseParser {
 
     // MARK: - Response parsing

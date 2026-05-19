@@ -18,7 +18,29 @@ struct PrimaryCapsuleButton: View {
                 .padding(.vertical)
                 .foregroundStyle(.white)
         }
-        .glassEffect(.clear.tint(.pokedexRed?.opacity(0.8)).interactive(), in: Capsule())
+        .glassEffect(.clear.tint(.pokedexRed.opacity(0.8)).interactive(), in: Capsule())
+        .opacity(isEnabled ? 1 : 0.6)
+        .disabled(!isEnabled)
+    }
+}
+
+struct SecondaryCapsuleButton: View {
+    let icon: String
+    let title: String
+    let color: Color
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label(title, systemImage: icon)
+                .font(.pixel14)
+                .frame(height: 24.0)
+                .padding(.vertical, 10)
+                .padding(.horizontal)
+                .foregroundStyle(color)
+        }
+        .glassEffect(.clear.interactive(), in: Capsule())
         .opacity(isEnabled ? 1 : 0.6)
         .disabled(!isEnabled)
     }

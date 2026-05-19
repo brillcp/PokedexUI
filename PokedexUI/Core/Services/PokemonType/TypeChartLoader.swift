@@ -9,7 +9,7 @@ import SwiftData
 /// `@MainActor @Observable` because SwiftUI views (`WeaknessGridView`,
 /// battle setup matchup row) bind to `chart` synchronously. Off-main
 /// consumers grab `chart` once on entry and pass the captured value by
-/// parameter — `TypeChart` itself is a pure Sendable struct.
+/// parameter: `TypeChart` itself is a pure Sendable struct.
 @Observable
 final class TypeChartLoader {
     private let typeService: TypeServiceProtocol
@@ -32,10 +32,13 @@ final class TypeChartLoader {
     }
 
     /// One-shot bootstrap: wire the storage and hydrate the chart.
-    /// Idempotent (both inner calls guard against repeat work).
-    func warmUp(modelContainer: ModelContainer) async {
+    /// Idempotent (both inner calls guard against repeat work). Optional
+    /// `onTick` fires once when the chart is loaded, so callers driving a
+    /// shared progress counter count this small batch alongside the rest.
+    func warmUp(modelContainer: ModelContainer, onTick: (@Sendable () async -> Void)? = nil) async {
         attach(modelContainer: modelContainer)
         await loadIfNeeded()
+        await onTick?()
     }
 
     /// Hydrate from disk if available, otherwise fetch from the API once and persist.

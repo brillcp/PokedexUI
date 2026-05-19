@@ -38,6 +38,15 @@ actor DataStorageReader {
         return storedPokemon
     }
 
+    /// Fetches every persisted object of type `M` matching `predicate`.
+    /// Used when the caller needs to look up specific rows rather than the
+    /// full sorted set returned by `fetch(sortBy:)`.
+    func fetch<M: PersistentModel>(predicate: Predicate<M>) throws -> [M] {
+        let context = modelContext
+        let descriptor = FetchDescriptor<M>(predicate: predicate)
+        return try context.fetch(descriptor)
+    }
+
     /// Deletes every persisted object of the given type and saves the context.
     /// Swallows the case where the entity is not in the current schema; that
     /// only happens after a migration mismatch and there is nothing to delete.

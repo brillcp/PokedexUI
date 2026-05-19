@@ -78,6 +78,7 @@ private extension BattleSetupView {
             PixelSpinner()
             Text("Preparing battle…")
                 .font(.pixel14)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -93,11 +94,10 @@ private extension BattleSetupView {
 
     var loadout: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 2) {
+            VStack {
                 matchupRow
                 typeMatchup
                 movePicker
-                Spacer(minLength: 96)
             }
         }
         .scrollIndicators(.hidden)
@@ -193,23 +193,27 @@ private extension BattleSetupView {
             Text("Type matchup")
                 .font(.pixel12)
                 .foregroundStyle(.secondary)
+                .padding(.horizontal)
 
-            matchupLine(
-                fromName: viewModel.playerSummary.name,
-                fromTypes: viewModel.playerPokemon?.typeNames ?? [],
-                toName: viewModel.opponentSummary.name,
-                toTypes: viewModel.opponentPokemon?.typeNames ?? []
-            )
-            matchupLine(
-                fromName: viewModel.opponentSummary.name,
-                fromTypes: viewModel.opponentPokemon?.typeNames ?? [],
-                toName: viewModel.playerSummary.name,
-                toTypes: viewModel.playerPokemon?.typeNames ?? []
-            )
+            VStack(alignment: .leading, spacing: 8) {
+                matchupLine(
+                    fromName: viewModel.playerSummary.name,
+                    fromTypes: viewModel.playerPokemon?.typeNames ?? [],
+                    toName: viewModel.opponentSummary.name,
+                    toTypes: viewModel.opponentPokemon?.typeNames ?? []
+                )
+                matchupLine(
+                    fromName: viewModel.opponentSummary.name,
+                    fromTypes: viewModel.opponentPokemon?.typeNames ?? [],
+                    toName: viewModel.playerSummary.name,
+                    toTypes: viewModel.playerPokemon?.typeNames ?? []
+                )
+            }
+            .padding()
+            .background(Color.cardBackground)
         }
-        .padding()
+        .padding(.vertical)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.cardBackground)
     }
 
     func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
@@ -263,7 +267,6 @@ private extension BattleSetupView {
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
             }
-            .padding(.top)
             .padding(.horizontal)
             let spacing: CGFloat = 2
             let columns = [

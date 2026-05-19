@@ -12,12 +12,8 @@ protocol PokemonDetailViewModelProtocol {
     var isLoadingDetails: Bool { get }
     /// Bookmark flag mirrors `Pokemon.isBookmarked` on disk.
     var isBookmarked: Bool { get }
-    /// Whether the sprite is flipped (showing the back view).
-    var isFlipped: Bool { get set }
     /// Cached front sprite image, if loaded.
-    var frontSprite: Image? { get }
-    /// Cached back sprite image, if loaded.
-    var backSprite: Image? { get }
+    var sprite: Image? { get }
     /// Dominant color extracted from the front sprite.
     var color: Color? { get }
     /// Linear evolution chain. Empty until `loadEvolutionChain` runs.
@@ -31,7 +27,7 @@ protocol PokemonDetailViewModelProtocol {
     /// Toggle the `isBookmarked` flag on the underlying summary row.
     func toggleBookmark(in context: ModelContext)
     /// Play the latest cry through the supplied audio player.
-    func playSound(with audioPlayer: AudioPlayer) async
+    func playCry(with audioPlayer: AudioPlayer) async
 }
 
 // MARK: - Implementation
@@ -43,9 +39,7 @@ final class PokemonDetailViewModel {
     var pokemon: PokemonViewModel
     var isLoadingDetails: Bool = false
     var isBookmarked: Bool
-    var isFlipped: Bool = false
-    var frontSprite: Image?
-    var backSprite: Image?
+    var sprite: Image?
     var color: Color?
     var evolutionStages: [EvolutionChain.Stage] = []
 
@@ -77,7 +71,7 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     func loadSpritesAndColor(withSpriteLoader spriteLoader: SpriteLoader,
                              imageColorAnalyzer: ImageColorAnalyzer) async {
         guard let image = await spriteLoader.spriteImage(from: pokemon.frontSprite) else { return }
-        frontSprite = Image(uiImage: image)
+        sprite = Image(uiImage: image)
         if color == nil,
            let uicolor = await imageColorAnalyzer.dominantColor(for: pokemon.id, image: image) {
             color = Color(uiColor: uicolor)
@@ -94,7 +88,7 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         try? context.save()
     }
 
-    func playSound(with audioPlayer: AudioPlayer) async {
+    func playCry(with audioPlayer: AudioPlayer) async {
         guard let cryURL = pokemon.latestCry else { return }
         await audioPlayer.play(from: cryURL)
     }

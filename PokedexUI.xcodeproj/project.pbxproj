@@ -82,7 +82,6 @@
 		D5BA140A2E70000000000412 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA140B2E70000000000413 /* FlowLayout.swift */; };
 		D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */; };
 		D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D503082E39305500AC4BC5 /* Tabs.swift */; };
-		D5D5030B2E39344500AC4BC5 /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */; };
 		D5D6250D2E2194230030867D /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D6250C2E2194230030867D /* ItemDetailView.swift */; };
 		D5E0000000000000000000C1 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000C2 /* AppContainer.swift */; };
 		D5E0000000000000000000C3 /* AppContainerKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000C4 /* AppContainerKey.swift */; };
@@ -177,7 +176,6 @@
 		D5BA140B2E70000000000413 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonDetailViewModel.swift; sourceTree = "<group>"; };
 		D5D503082E39305500AC4BC5 /* Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tabs.swift; sourceTree = "<group>"; };
-		D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
 		D5D6250C2E2194230030867D /* ItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailView.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000C2 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000C4 /* AppContainerKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerKey.swift; sourceTree = "<group>"; };
@@ -532,7 +530,6 @@
 			isa = PBXGroup;
 			children = (
 				D5E0000000000000000000BB /* Components */,
-				D5E0000000000000000000BC /* Modifiers */,
 				D5BA14062E70000000000407 /* Colors */,
 				9332C0DF273F2A36003AF377 /* Color.swift */,
 				D55D580B2E204BBC008F1B16 /* Font.swift */,
@@ -561,14 +558,6 @@
 				D5BA140B2E70000000000413 /* FlowLayout.swift */,
 			);
 			path = Components;
-			sourceTree = "<group>";
-		};
-		D5E0000000000000000000BC /* Modifiers */ = {
-			isa = PBXGroup;
-			children = (
-				D5D5030A2E39344500AC4BC5 /* ViewModifiers.swift */,
-			);
-			path = Modifiers;
 			sourceTree = "<group>";
 		};
 		D5E0000000000000000000DB /* Subviews */ = {
@@ -720,7 +709,6 @@
 				9332C0E8273F3219003AF377 /* SpriteLoader.swift in Sources */,
 				D5F41B762E256D5A000341D3 /* ItemRowView.swift in Sources */,
 				93F7F578274009B2002CEBB5 /* PokemonDetailView.swift in Sources */,
-				D5D5030B2E39344500AC4BC5 /* ViewModifiers.swift in Sources */,
 				D58C0DFB2E398709003098EC /* BookmarksView.swift in Sources */,
 				9332C0E0273F2A36003AF377 /* Color.swift in Sources */,
 				9332C0D7273F1DA6003AF377 /* PokemonService.swift in Sources */,

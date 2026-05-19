@@ -74,7 +74,7 @@ struct MoveCell: View, Equatable {
         case .battle:
             return AnyShapeStyle(Color.cardBackground)
         case .loadout(let selected):
-            let accent = Color.pokedexRed ?? .red
+            let accent = Color.pokedexRed
             return AnyShapeStyle(selected ? accent.opacity(0.4) : Color.cardBackground)
         }
     }
@@ -85,7 +85,7 @@ struct MoveCell: View, Equatable {
         case .battle:
             EmptyView()
         case .loadout(let selected):
-            let accent = Color.pokedexRed ?? .red
+            let accent = Color.pokedexRed
             Rectangle()
                 .stroke(selected ? accent.opacity(0.8) : .clear, lineWidth: 1)
         }

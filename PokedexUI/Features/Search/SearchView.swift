@@ -114,7 +114,7 @@ private extension SearchView {
                 Spacer()
                 Button("Clear", action: viewModel.clearRecentSearches)
                     .font(.pixel12)
-                    .foregroundStyle(Color.pokedexRed ?? .red)
+                    .foregroundStyle(Color.pokedexRed)
             }
             .padding(.horizontal)
             VStack(spacing: 2.0) {

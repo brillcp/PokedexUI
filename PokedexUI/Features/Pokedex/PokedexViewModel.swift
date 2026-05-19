@@ -24,12 +24,24 @@ protocol PokedexViewModelProtocol {
 
 // MARK: - Implementation
 
-/// Live implementation of `PokedexViewModelProtocol`. Cache-first with
-/// progress reporting on first-load API fetch.
+/// Live implementation of `PokedexViewModelProtocol`. Cache-first. All
+/// storage and network calls go through a `PokemonFetcher` (a `DataFetcher`
+/// conformer), mirroring the `ItemFetcher` pattern used by the items tab.
+/// The view model only owns UI state + the shared progress counter; the
+/// multi-phase orchestration lives on the fetcher.
 @Observable
 final class PokedexViewModel {
-    private let storageReader: DataStorageReader
-    private let pokemonService: PokemonServiceProtocol
+    /// Hardcoded denominator for the download progress bar. Sums the
+    /// expected unit count across every step:
+    /// * detail requests (~1024)
+    /// * species requests (~1024)
+    /// * evolution chains   (~540)
+    /// * type chart batch   (1)
+    /// PokeAPI's corpus is stable enough that a static estimate is fine;
+    /// the bar is clamped at 1.0 so minor drift doesn't matter.
+    private static let totalDownloadUnits: Int = 1024 + 1024 + 540 + 1
+
+    private let fetcher: PokemonFetcher
 
     var pokemonData: [Pokemon] = []
     var isLoading: Bool = false
@@ -37,12 +49,14 @@ final class PokedexViewModel {
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
 
-    init(
-        modelContext: ModelContext,
-        service: PokemonServiceProtocol = PokemonService()
-    ) {
-        storageReader = DataStorageReader(modelContainer: modelContext.container)
-        pokemonService = service
+    /// Shared counter that every service ticks through the fetcher.
+    /// Aggregate is the raw ratio against `totalDownloadUnits`; no
+    /// per-phase weights, no per-phase denominators that could shift
+    /// mid-flight.
+    private var downloadTicks: Int = 0
+
+    init(modelContext: ModelContext, container: AppContainer) {
+        self.fetcher = PokemonFetcher(modelContext: modelContext, container: container)
     }
 }
 
@@ -52,23 +66,29 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {
         guard !isLoading else { return }
         isLoading = true
+        defer { isLoading = false }
 
-        let cached = await fetchStoredDataSafely()
-        if let cached, !cached.isEmpty {
+        if let cached = try? await fetcher.fetchStoredData(), !cached.isEmpty {
             pokemonData = cached
-            isLoading = false
             return
         }
 
+        resetProgress()
+        let tick: @Sendable () async -> Void = { [weak self] in
+            await MainActor.run { self?.tickDownload() }
+        }
+
         do {
-            let pokemon = try await fetchAPIData()
-            try await storeData(pokemon)
-            pokemonData = pokemon
+            let bootstrap = try await fetcher.downloadEverything(onTick: tick)
+            // Force the bar to exactly 1.0 in case estimates were slightly
+            // off, then run all persists in one closing step. Spinner
+            // takes over because `loadingProgress >= 1.0`.
+            loadingProgress = 1.0
+            try await fetcher.persist(bootstrap)
+            pokemonData = bootstrap.pokemon
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")
         }
-
-        isLoading = false
     }
 
     func sort(by type: SortType) async {
@@ -80,36 +100,16 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     }
 }
 
-// MARK: - DataFetcher
-
-extension PokedexViewModel: DataFetcher {
-    func fetchStoredData() async throws -> [Pokemon] {
-        try await storageReader.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
-    }
-
-    func fetchAPIData() async throws -> [Pokemon] {
-        try await pokemonService.requestAllPokemon { [weak self] progress in
-            self?.loadingProgress = progress
-        }
-    }
-
-    func storeData(_ data: [Pokemon]) async throws {
-        try await storageReader.store(data)
-    }
-
-    func transformToViewModel(_ data: Pokemon) -> Pokemon { data }
-    func transformForStorage(_ data: Pokemon) -> Pokemon { data }
-}
-
 // MARK: - Private
 
 private extension PokedexViewModel {
-    func fetchStoredDataSafely() async -> [Pokemon]? {
-        do {
-            return try await fetchStoredData()
-        } catch {
-            print("PokedexViewModel: cache read failed: \(error)")
-            return nil
-        }
+    func resetProgress() {
+        downloadTicks = 0
+        loadingProgress = 0
+    }
+
+    func tickDownload() {
+        downloadTicks += 1
+        loadingProgress = min(1.0, Double(downloadTicks) / Double(Self.totalDownloadUnits))
     }
 }

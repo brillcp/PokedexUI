@@ -31,7 +31,6 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
                 spriteImage()
                 loadedSection()
             }
-            .animation(.linear(duration: 0.25), value: viewModel.isLoadingDetails)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .scrollIndicators(.hidden)
@@ -71,7 +70,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
 // MARK: - Main Content Sections
 private extension PokemonDetailView {
     var textColor: Color {
-        viewModel.color?.isLight ?? false ? .black : .white
+        viewModel.color?.isLight ?? false ? Color.darkGrey : .white
     }
 
     /// Everything below the sprite (action buttons + content) fades in
@@ -127,9 +126,9 @@ private extension PokemonDetailView {
                 textColor: textColor,
                 onSelect: navigateToEvolution
             )
-            Spacer().frame(height: 96)
         }
         .padding(.horizontal, 24)
+        .padding(.bottom)
         .foregroundStyle(textColor)
         .lineHeight(.loose)
         .transition(.scale)
@@ -188,12 +187,10 @@ private extension PokemonDetailView {
     }
 
     func spriteImage() -> some View {
-        (viewModel.isFlipped ? viewModel.backSprite : viewModel.frontSprite)?
+        viewModel.sprite?
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(height: 320)
-            .modifier(Perspective3D(isFlipped: $viewModel.isFlipped))
-            .animation(.bouncy(duration: 0.25, extraBounce: 0.1), value: viewModel.isFlipped)
     }
 }
 
@@ -203,11 +200,11 @@ private extension PokemonDetailView {
         HStack {
             if pokemon.latestCry != nil {
                 DetailButton(icon: "speaker.wave.3.fill") {
-                    Task { await viewModel.playSound(with: container.audioPlayer) }
+                    Task { await viewModel.playCry(with: container.audioPlayer) }
                 }
             }
             Spacer()
-            DetailButton(icon: "bolt.fill") {
+            SecondaryCapsuleButton(icon: "bolt.fill", title: "Battle", color: textColor) {
                 showOpponentPicker = true
             }
         }
