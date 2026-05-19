@@ -74,7 +74,7 @@ private extension SearchView {
             PokemonDetailView(
                 viewModel: PokemonDetailViewModel(
                     summary: pokemon,
-                    evolutionService: container.evolutionService
+                    container: container
                 )
             )
             .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))

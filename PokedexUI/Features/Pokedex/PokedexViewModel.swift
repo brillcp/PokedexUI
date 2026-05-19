@@ -65,14 +65,17 @@ final class PokedexViewModel {
 extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {
         guard !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
 
+        // Cache check stays outside the `isLoading` window so subsequent
+        // launches don't flash the indexing overlay before the SwiftData
+        // read returns.
         if let cached = try? await fetcher.fetchStoredData(), !cached.isEmpty {
             pokemonData = cached
             return
         }
 
+        isLoading = true
+        defer { isLoading = false }
         resetProgress()
         let tick: @Sendable () async -> Void = { [weak self] in
             await MainActor.run { self?.tickDownload() }
@@ -80,9 +83,6 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
         do {
             let bootstrap = try await fetcher.downloadEverything(onTick: tick)
-            // Force the bar to exactly 1.0 in case estimates were slightly
-            // off, then run all persists in one closing step. Spinner
-            // takes over because `loadingProgress >= 1.0`.
             loadingProgress = 1.0
             try await fetcher.persist(bootstrap)
             pokemonData = bootstrap.pokemon

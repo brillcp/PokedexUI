@@ -34,7 +34,7 @@ struct PokedexGridView: View {
             PokemonDetailView(
                 viewModel: PokemonDetailViewModel(
                     summary: vm,
-                    evolutionService: container.evolutionService
+                    container: container
                 )
             )
             .navigationTransition(.zoom(sourceID: vm.id, in: namespace))

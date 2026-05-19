@@ -35,13 +35,13 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         }
         .scrollIndicators(.hidden)
         .task(id: viewModel.pokemon.id) {
-            await viewModel.loadSpritesAndColor(
-                withSpriteLoader: container.spriteLoader,
-                imageColorAnalyzer: container.imageColorAnalyzer
-            )
+            await viewModel.loadSpritesAndColor()
         }
         .task(id: viewModel.pokemon.evolutionChainId) {
             await viewModel.loadEvolutionChain(context: modelContext)
+        }
+        .task {
+            await viewModel.loadTypeChartIfNeeded(modelContainer: modelContext.container)
         }
         .sheet(isPresented: $showOpponentPicker) {
             OpponentPickerView(
@@ -59,7 +59,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             PokemonDetailView<PokemonDetailViewModel>(
                 viewModel: PokemonDetailViewModel(
                     summary: target,
-                    evolutionService: container.evolutionService
+                    container: container
                 )
             )
         }
@@ -119,7 +119,7 @@ private extension PokemonDetailView {
             }
             WeaknessGridView(
                 pokemon: pokemon,
-                typeChart: container.typeChart,
+                typeChart: viewModel.typeChart,
                 textColor: textColor
             )
 
@@ -206,7 +206,7 @@ private extension PokemonDetailView {
         HStack {
             if pokemon.latestCry != nil {
                 DetailButton(icon: "speaker.wave.3.fill") {
-                    Task { await viewModel.playCry(with: container.audioPlayer) }
+                    Task { await viewModel.playCry() }
                 }
             }
             Spacer()
@@ -252,7 +252,7 @@ private extension PokemonDetailView {
 }
 
 #Preview {
-    let vm = PokemonDetailViewModel(summary: .pikachu, evolutionService: EvolutionService())
+    let vm = PokemonDetailViewModel(summary: .pikachu, container: .live)
     PokemonDetailView(viewModel: vm)
         .colorScheme(.dark)
 }
