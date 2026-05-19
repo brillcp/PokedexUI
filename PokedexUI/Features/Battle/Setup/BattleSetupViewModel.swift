@@ -198,6 +198,7 @@ private extension BattleSetupViewModel {
         let descriptor = FetchDescriptor<MoveDetail>(
             predicate: #Predicate { capped.contains($0.name) }
         )
-        return (try? modelContext.fetch(descriptor)) ?? []
+        let all = (try? modelContext.fetch(descriptor)) ?? []
+        return all.filter(\.isBattleReady)
     }
 }

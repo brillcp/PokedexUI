@@ -38,12 +38,25 @@ struct WeaknessGridView: View {
                         Text(row.label)
                             .frame(width: 36, alignment: .leading)
                             .foregroundStyle(textColor)
-                        Text(row.types.map { $0.capitalized }.joined(separator: ", "))
-                            .foregroundStyle(textColor.opacity(0.85))
+                        typeChips(row.types)
                     }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// Type-tinted chips matching the row in the detail view's main
+    /// `typesRow`. Wraps with `FlowLayout` so long buckets (e.g. ×1/2 for
+    /// dual-type pokemon) wrap onto multiple lines instead of clipping.
+    private func typeChips(_ types: [String]) -> some View {
+        FlowLayout(spacing: 4) {
+            ForEach(types, id: \.self) { type in
+                Chip(
+                    type.uppercased(),
+                    style: .custom(background: TypeColor.color(for: type))
+                )
+            }
         }
     }
 }

@@ -35,12 +35,6 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .scrollIndicators(.hidden)
-//        .task(id: viewModel.pokemon.id) {
-//            await viewModel.loadFullDetails(
-//                context: modelContext,
-//                spriteLoader: container.spriteLoader
-//            )
-//        }
         .task(id: viewModel.pokemon.id) {
             await viewModel.loadSpritesAndColor(
                 withSpriteLoader: container.spriteLoader,
@@ -50,7 +44,6 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         .task(id: viewModel.pokemon.evolutionChainId) {
             await viewModel.loadEvolutionChain(context: modelContext)
         }
-        .task { await container.typeChart.loadIfNeeded() }
         .sheet(isPresented: $showOpponentPicker) {
             OpponentPickerView(
                 player: viewModel.pokemon.pokemon,
