@@ -12,7 +12,7 @@ struct BattleView: View {
             .applyPokedexStyling(title: "\(viewModel.playerPokemon.name) vs \(viewModel.opponentPokemon.name)", color: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare() }
-            .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.attackTick)
+            .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.animator.attackTick)
             .sensoryFeedback(.success, trigger: viewModel.animator.opponentCues.shakeTick)
             .sensoryFeedback(.error, trigger: viewModel.animator.playerCues.shakeTick)
             .sensoryFeedback(trigger: viewModel.winner) { _, new in

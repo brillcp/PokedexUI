@@ -14,7 +14,7 @@ extension BattleViewModel {
               winner == nil,
               let snapshot = state
         else { return }
-        attackTick += 1
+        animator.attackTick += 1
         isResolvingTurn = true
         withAnimation(.easeInOut(duration: 0.15)) {
             aiThinking = true
@@ -35,7 +35,6 @@ extension BattleViewModel {
         }
         let events = engine.resolveRound(playerMove: move, opponentMove: opponentMove)
         for event in events {
-            lastEvent = event
             let line = formatter.format(
                 event,
                 playerColor:   animator.playerCues.color,

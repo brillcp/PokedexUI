@@ -37,6 +37,10 @@ final class BattleAnimator {
     /// through `cues(for:)`.
     var playerCues:   BattleSideCues = BattleSideCues()
     var opponentCues: BattleSideCues = BattleSideCues()
+    /// Bumped when the player commits a move. Drives the attack-confirm
+    /// haptic in `BattleView`. Lives next to the shake/damage ticks so the
+    /// view reads every haptic trigger off a single source.
+    var attackTick: Int = 0
 
     /// Cue bundle for one side. Used by `BattleView` so sprites resolve
     /// their own cues without per-side ternaries at the call site.

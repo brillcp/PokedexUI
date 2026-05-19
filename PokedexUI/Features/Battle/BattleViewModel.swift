@@ -34,10 +34,7 @@ final class BattleViewModel {
     /// during the round-trip.
     var aiThinking: Bool = false
     var winner: BattleSide?
-    var lastEvent: BattleEvent?
     var errorMessage: String?
-    /// Increments when the player commits a move. Drives the attack-confirm haptic.
-    var attackTick: Int = 0
 
     let typeChartLoader: TypeChartLoader
     let audioPlayer:     AudioPlayer
