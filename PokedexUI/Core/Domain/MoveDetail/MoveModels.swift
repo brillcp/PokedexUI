@@ -15,6 +15,9 @@ final class MoveDetail: Decodable, @unchecked Sendable {
     var typeName: String = "normal"
     var ailment: String = "none"
     var ailmentChance: Int = 0
+    var drain: Int = 0
+    var healing: Int = 0
+    var category: String = "damage"
     var statChangeNames: [String] = []
     var statChangeDeltas: [Int] = []
 
@@ -27,6 +30,7 @@ final class MoveDetail: Decodable, @unchecked Sendable {
     private enum MetaKeys: String, CodingKey {
         case ailment
         case ailmentChance = "ailment_chance"
+        case drain, healing, category
     }
 
     required init(from decoder: Decoder) throws {
@@ -47,6 +51,10 @@ final class MoveDetail: Decodable, @unchecked Sendable {
             let ailmentRef = try metaContainer.decodeIfPresent(NamedRef.self, forKey: .ailment)
             self.ailment = ailmentRef?.name ?? "none"
             self.ailmentChance = try metaContainer.decodeIfPresent(Int.self, forKey: .ailmentChance) ?? 0
+            self.drain = try metaContainer.decodeIfPresent(Int.self, forKey: .drain) ?? 0
+            self.healing = try metaContainer.decodeIfPresent(Int.self, forKey: .healing) ?? 0
+            let categoryRef = try metaContainer.decodeIfPresent(NamedRef.self, forKey: .category)
+            self.category = categoryRef?.name ?? "damage"
         }
 
         let statChanges = try c.decodeIfPresent([StatChangeDTO].self, forKey: .statChanges) ?? []
@@ -78,4 +86,24 @@ extension MoveDetail {
     }
 
     var displayName: String { name.replacingOccurrences(of: "-", with: " ").capitalized }
+
+    /// Damaging moves whose stat changes penalize the USER, not the target.
+    private static let selfDebuffMoves: Set<String> = [
+        "leaf-storm", "overheat", "draco-meteor", "fleur-cannon", "psycho-boost",
+        "close-combat", "superpower", "v-create", "hammer-arm", "ice-hammer",
+        "headlong-rush", "clanging-scales"
+    ]
+
+    var hasSelfDebuff: Bool { Self.selfDebuffMoves.contains(name) }
+
+    /// `true` when the battle engine can meaningfully resolve this move.
+    /// Filters out protection, field effects, and other unimplemented
+    /// mechanics so they never appear in the battle move picker.
+    var isBattleReady: Bool {
+        if (power ?? 0) > 0 { return true }
+        if healing > 0 || name == "rest" { return true }
+        if !statChangeNames.isEmpty { return true }
+        if ailment != "none" { return true }
+        return false
+    }
 }

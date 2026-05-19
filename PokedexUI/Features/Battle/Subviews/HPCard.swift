@@ -43,6 +43,7 @@ struct HPCard: View, Equatable {
         case .paralysis: return .yellow
         case .burn:      return .orange
         case .poison:    return .purple
+        case .sleep:     return .gray
         case .none:      return .clear
         }
     }

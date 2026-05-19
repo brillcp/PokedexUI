@@ -17,6 +17,7 @@ enum BattleStatus: String, Sendable {
     case paralysis
     case burn
     case poison
+    case sleep
 
     var displayName: String {
         switch self {
@@ -24,6 +25,7 @@ enum BattleStatus: String, Sendable {
         case .paralysis: return "PAR"
         case .burn: return "BRN"
         case .poison: return "PSN"
+        case .sleep: return "SLP"
         }
     }
 }
@@ -46,6 +48,10 @@ enum BattleEvent: Sendable {
     case statusApplied(BattleSide, BattleStatus)
     case statusTick(BattleSide, BattleStatus, amount: Int)
     case statChanged(BattleSide, stat: String, delta: Int)
+    case healed(BattleSide, amount: Int)
+    case recoil(BattleSide, amount: Int)
+    case wokeUp(BattleSide)
+    case fastAsleep(BattleSide)
     case fullyParalyzed(BattleSide)
     case fainted(BattleSide)
     case ended(winner: BattleSide?)
@@ -69,6 +75,7 @@ struct BattleCombatant: Sendable {
     let speed: Int
     var currentHP: Int
     var status: BattleStatus
+    var sleepTurns: Int = 0
     var statStages: [String: Int]
     let moves: [MoveDetail]
 

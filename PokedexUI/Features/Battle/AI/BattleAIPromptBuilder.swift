@@ -172,6 +172,7 @@ private extension BattleAIPromptBuilder {
         case .paralysis: return "paralyzed (speed halved, 25% skip)"
         case .burn: return "burned (-1/16 HP/turn, physical halved)"
         case .poison: return "poisoned (-1/8 HP/turn)"
+        case .sleep: return "asleep (skips turns, wakes in 1-3 turns)"
         }
     }
 }

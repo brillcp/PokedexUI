@@ -35,6 +35,15 @@ final class BattleEngine {
             if combatant(side).isFainted || combatant(side.opposite).isFainted { continue }
             let move = side == .player ? playerMove : opponentMove
             performAction(side: side, move: move, events: &events)
+
+            // Recoil self-faint.
+            if combatant(side).isFainted {
+                events.append(.fainted(side))
+                state.phase = .ended(winner: side.opposite)
+                events.append(.ended(winner: side.opposite))
+                return events
+            }
+
             if combatant(side.opposite).isFainted {
                 events.append(.fainted(side.opposite))
                 state.phase = .ended(winner: side)
@@ -66,9 +75,44 @@ private extension BattleEngine {
     func performAction(side: BattleSide, move: MoveDetail, events: inout [BattleEvent]) {
         events.append(.used(side, moveName: move.displayName))
 
+        // Sleep check: decrement counter, skip turn if still asleep.
+        if combatant(side).status == .sleep {
+            mutate(side) { $0.sleepTurns -= 1 }
+            if combatant(side).sleepTurns > 0 {
+                events.append(.fastAsleep(side))
+                return
+            }
+            mutate(side) { $0.status = .none }
+            events.append(.wokeUp(side))
+        }
+
         // Paralysis full-skip check.
         if combatant(side).status == .paralysis, Double.random(in: 0..<1) < 0.25 {
             events.append(.fullyParalyzed(side))
+            return
+        }
+
+        // Rest: full heal + self-sleep 2 turns.
+        if move.name == "rest" {
+            let c = combatant(side)
+            let healed = c.maxHP - c.currentHP
+            if healed > 0 {
+                mutate(side) { $0.currentHP = $0.maxHP }
+                events.append(.healed(side, amount: healed))
+            }
+            mutate(side) { $0.status = .sleep; $0.sleepTurns = 2 }
+            events.append(.statusApplied(side, .sleep))
+            return
+        }
+
+        // Pure healing moves (Recover, Roost, Moonlight, etc.).
+        if move.healing > 0 {
+            let c = combatant(side)
+            let amount = min(c.maxHP * move.healing / 100, c.maxHP - c.currentHP)
+            if amount > 0 {
+                mutate(side) { $0.currentHP += amount }
+                events.append(.healed(side, amount: amount))
+            }
             return
         }
 
@@ -80,6 +124,7 @@ private extension BattleEngine {
         }
 
         // Damage calc.
+        var damageDealt = 0
         if let power = move.power, power > 0, move.damageClassKind != .status {
             let attacker = combatant(side)
             let defender = combatant(side.opposite)
@@ -89,26 +134,51 @@ private extension BattleEngine {
                 attacker: attacker,
                 defender: defender
             )
+            damageDealt = damage
             mutate(side.opposite) { $0.currentHP = max(0, $0.currentHP - damage) }
             events.append(.damaged(side.opposite, amount: damage, effectiveness: effectiveness, crit: crit))
+        }
+
+        // Drain (positive = heal attacker by % of damage, e.g. Giga Drain).
+        if move.drain > 0, damageDealt > 0 {
+            let healed = max(1, damageDealt * move.drain / 100)
+            mutate(side) { $0.currentHP = min($0.maxHP, $0.currentHP + healed) }
+            events.append(.healed(side, amount: healed))
+        }
+
+        // Recoil (negative drain = attacker takes damage, e.g. Brave Bird).
+        if move.drain < 0, damageDealt > 0 {
+            let recoilDmg = max(1, damageDealt * abs(move.drain) / 100)
+            mutate(side) { $0.currentHP = max(0, $0.currentHP - recoilDmg) }
+            events.append(.recoil(side, amount: recoilDmg))
         }
 
         // Status application.
         let ailment = parseStatus(move.ailment)
         if ailment != .none, move.ailmentChance > 0 || move.damageClassKind == .status {
             let chance = move.ailmentChance > 0 ? Double(move.ailmentChance) / 100.0 : 1.0
-            if combatant(side.opposite).status == .none, Double.random(in: 0..<1) < chance {
-                mutate(side.opposite) { $0.status = ailment }
-                events.append(.statusApplied(side.opposite, ailment))
+            let target: BattleSide = ailment == .sleep ? side.opposite : side.opposite
+            if combatant(target).status == .none, Double.random(in: 0..<1) < chance {
+                mutate(target) {
+                    $0.status = ailment
+                    if ailment == .sleep { $0.sleepTurns = Int.random(in: 1...3) }
+                }
+                events.append(.statusApplied(target, ailment))
             }
         }
 
-        // Stat changes (Tail Whip, Growl, Swords Dance, etc.). Negative delta hits
-        // the opponent; positive boosts the user. Good enough for the common cases.
+        // Stat changes. Self-debuff moves (Leaf Storm, Close Combat, etc.)
+        // always hit the user; status debuffs (Growl, Leer) hit the opponent;
+        // self-buffs (Swords Dance) hit the user.
         for (index, statName) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
             let delta = move.statChangeDeltas[index]
             guard delta != 0 else { continue }
-            let target: BattleSide = delta < 0 ? side.opposite : side
+            let target: BattleSide
+            if move.hasSelfDebuff {
+                target = side
+            } else {
+                target = delta < 0 ? side.opposite : side
+            }
             mutate(target) { $0.applyStage(statName, delta: delta) }
             events.append(.statChanged(target, stat: statName, delta: delta))
         }
@@ -157,7 +227,7 @@ private extension BattleEngine {
             let damage = max(1, c.maxHP / 8)
             mutate(side) { $0.currentHP = max(0, $0.currentHP - damage) }
             events.append(.statusTick(side, .poison, amount: damage))
-        case .paralysis, .none:
+        case .paralysis, .sleep, .none:
             break
         }
     }
@@ -167,6 +237,7 @@ private extension BattleEngine {
         case "paralysis": return .paralysis
         case "burn": return .burn
         case "poison", "bad-poison": return .poison
+        case "sleep": return .sleep
         default: return .none
         }
     }
