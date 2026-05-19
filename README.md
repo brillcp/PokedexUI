@@ -32,7 +32,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Storage-First**: SwiftData is the source of truth; the network is a backfill mechanism.
 - ✅ **Actor-Based Concurrency**: every long-lived worker is an actor; SwiftUI-bound types are `@MainActor @Observable`.
 - ✅ **Clean Separation**: App / Features / Core / DesignSystem layers with one-way dependencies (App can see everything, Core depends on nothing).
-- ✅ **Type Safety**: generics, `@Generable` AI outputs, `@Attribute(.unique)` on every top-level cache entity (Pokemon, MoveDetail, TypeDetail, ItemData, EvolutionChainEntity). Nested rows ride on cascade.
+- ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every top-level cache entity (Pokemon, MoveDetail, TypeDetail, ItemData, EvolutionChainEntity). Nested rows ride on cascade.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
 - ✅ **On-Device AI**: Apple `FoundationModels` integrated with structured output and deterministic fallbacks.
 
@@ -146,17 +146,7 @@ All three calls share one `LanguageModelSession` instance per battle (so the mod
 
 `BattleAIPromptBuilder` constructs each prompt as a compact text snapshot. The model never has to recall the type chart from training: every damaging move row carries a pre-computed `×N vs defender` multiplier, so the model just compares numbers. Status moves are flagged explicitly. System prompts live in [`PokedexUI/Features/Battle/AI/`](PokedexUI/Features/Battle/AI/), split per task: [`BattleAIMoveInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIMoveInstructions.md), [`BattleAILoadoutInstructions.md`](PokedexUI/Features/Battle/AI/BattleAILoadoutInstructions.md), [`BattleAIOpponentInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIOpponentInstructions.md). Each is loaded once when its session initializes.
 
-Structured output uses Apple's `@Generable` macro:
-
-```swift
-@Generable(description: "The opponent's chosen move for this turn.")
-struct MoveChoice {
-    @Guide(description: "Zero-based index of the chosen move in the provided list.")
-    let index: Int
-}
-```
-
-No JSON parsing, no string matching, no typo failures. The model returns a strongly-typed Swift struct.
+Output is plain text, parsed by `BattleAIResponseParser`. The session runs with `.permissiveContentTransformations` guardrails because Pokemon move/status names (`hyper-beam`, `burn`, `poison`) false-positive the default safety classifier; guided generation via `@Generable` re-enables those defaults and breaks the call. The parser just extracts the first integer from the response and validates it against the legal index range. If extraction fails the call drops to a deterministic fallback (random move, heuristic loadout, random opponent).
 
 ## Why on-device?
 
