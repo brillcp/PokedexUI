@@ -19,7 +19,7 @@ protocol BattleAIServiceProtocol: Sendable {
     /// maps the returned id back to a SwiftData `Pokemon` on the main actor.
     /// Returns `nil` when the model is unavailable or can't decide; callers
     /// should fall back to a random pick.
-    func chooseOpponent(player: PokemonAISnapshot, candidates: [PokemonAISnapshot]) async -> Int?
+    func chooseOpponent(player: OpponentCandidateSnapshot, candidates: [OpponentCandidateSnapshot]) async -> Int?
     func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
 }
 
@@ -55,8 +55,8 @@ actor BattleAIService: BattleAIServiceProtocol {
     }
 
     func chooseOpponent(
-        player: PokemonAISnapshot,
-        candidates: [PokemonAISnapshot]
+        player: OpponentCandidateSnapshot,
+        candidates: [OpponentCandidateSnapshot]
     ) async -> Int? {
         let pool = candidates.filter { $0.id != player.id }
         guard !pool.isEmpty else { return nil }

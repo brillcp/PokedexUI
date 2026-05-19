@@ -141,8 +141,8 @@ private extension OpponentPickerView {
     /// picked id back to a SwiftData `Pokemon` on return. Falls back to a
     /// random candidate if the AI returns nothing.
     func runOpponentPick(pool: [Pokemon]) {
-        let playerSnapshot = PokemonAISnapshot.player(player, fallbackTypes: playerTypes)
-        let candidateSnapshots = pool.map(PokemonAISnapshot.candidate)
+        let playerSnapshot = OpponentCandidateSnapshot.player(player, fallbackTypes: playerTypes)
+        let candidateSnapshots = pool.map(OpponentCandidateSnapshot.candidate)
         let aiService = container.battleAI
         Task {
             let pickedId = await aiService.chooseOpponent(

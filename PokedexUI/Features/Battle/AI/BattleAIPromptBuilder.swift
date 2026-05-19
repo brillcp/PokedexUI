@@ -79,8 +79,8 @@ struct BattleAIPromptBuilder {
     /// `Pokemon` store. The caller builds the snapshots on main before the
     /// actor call.
     func buildOpponentPrompt(
-        player: PokemonAISnapshot,
-        candidates: [PokemonAISnapshot]
+        player: OpponentCandidateSnapshot,
+        candidates: [OpponentCandidateSnapshot]
     ) -> String {
         let roster = candidates.map { candidate in
             let types = candidate.typeNames.joined(separator: "/")
@@ -142,7 +142,7 @@ private extension BattleAIPromptBuilder {
         return String(format: "%.2f", multiplier)
     }
 
-    func compactStats(_ snapshot: PokemonAISnapshot) -> String {
+    func compactStats(_ snapshot: OpponentCandidateSnapshot) -> String {
         let order: [(String, String)] = [
             ("HP", "hp"),
             ("ATK", "attack"),
@@ -154,13 +154,13 @@ private extension BattleAIPromptBuilder {
         return order.map { label, key in "\(label) \(snapshot.stats[key] ?? 0)" }.joined(separator: "/")
     }
 
-    func flagSuffix(_ snapshot: PokemonAISnapshot) -> String {
+    func flagSuffix(_ snapshot: OpponentCandidateSnapshot) -> String {
         if snapshot.isLegendary { return ", legendary" }
         if snapshot.isMythical { return ", mythical" }
         return ""
     }
 
-    func generationLabel(_ snapshot: PokemonAISnapshot) -> String {
+    func generationLabel(_ snapshot: OpponentCandidateSnapshot) -> String {
         snapshot.generationName?
             .replacingOccurrences(of: "generation-", with: "Gen ")
             .uppercased() ?? "?"

@@ -5,7 +5,11 @@ import Foundation
 /// (an actor) can format the prompt off-main without crossing isolation into
 /// the model store; reading `@Model` properties from the actor's thread is
 /// what produced the multi-second hang + crash on tap.
-struct PokemonAISnapshot: Sendable {
+///
+/// Scope is the picker only. Once a battle starts, in-round state lives on
+/// `BattleCombatant`, which is unrelated — different lifecycle, different
+/// fields (HP / status / moves vs. legendary / generation flags).
+struct OpponentCandidateSnapshot: Sendable {
     let id: Int
     let name: String
     let typeNames: [String]
@@ -19,13 +23,13 @@ struct PokemonAISnapshot: Sendable {
     let isMythical: Bool
 }
 
-extension PokemonAISnapshot {
+extension OpponentCandidateSnapshot {
     /// Full snapshot for the player: includes the 6-stat breakdown.
     @MainActor
-    static func player(_ pokemon: Pokemon, fallbackTypes: [String] = []) -> PokemonAISnapshot {
+    static func player(_ pokemon: Pokemon, fallbackTypes: [String] = []) -> OpponentCandidateSnapshot {
         let statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
         let types = pokemon.types.map(\.type.name)
-        return PokemonAISnapshot(
+        return OpponentCandidateSnapshot(
             id: pokemon.id,
             name: pokemon.name,
             typeNames: types.isEmpty ? fallbackTypes : types,
@@ -40,8 +44,8 @@ extension PokemonAISnapshot {
     /// Compact snapshot for each candidate: skips the stat-breakdown dict
     /// (prompt only renders BST).
     @MainActor
-    static func candidate(_ pokemon: Pokemon) -> PokemonAISnapshot {
-        PokemonAISnapshot(
+    static func candidate(_ pokemon: Pokemon) -> OpponentCandidateSnapshot {
+        OpponentCandidateSnapshot(
             id: pokemon.id,
             name: pokemon.name,
             typeNames: pokemon.types.map(\.type.name),
