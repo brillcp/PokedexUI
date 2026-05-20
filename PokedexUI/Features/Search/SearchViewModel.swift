@@ -26,7 +26,7 @@ protocol SearchViewModelProtocol {
     func clearRecentSearches()
 }
 
-/// Live implementation of `SearchViewModelProtocol` fed from SearchView's `@Query`.
+/// Concrete implementation of `SearchViewModelProtocol` fed from SearchView's `@Query`.
 @MainActor
 @Observable
 final class SearchViewModel {

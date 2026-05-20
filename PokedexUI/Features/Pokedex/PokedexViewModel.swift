@@ -20,7 +20,7 @@ protocol PokedexViewModelProtocol {
     func requestPokemon() async
 }
 
-/// Live implementation of `PokedexViewModelProtocol`.
+/// Concrete implementation of `PokedexViewModelProtocol`.
 @MainActor
 @Observable
 final class PokedexViewModel {

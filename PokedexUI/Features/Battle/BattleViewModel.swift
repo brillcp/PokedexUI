@@ -28,7 +28,7 @@ protocol BattleViewModelProtocol: AnyObject {
     func submit(_ move: MoveDetail) async
 }
 
-/// Live implementation of `BattleViewModelProtocol`.
+/// Concrete implementation of `BattleViewModelProtocol`.
 @MainActor
 @Observable
 final class BattleViewModel {

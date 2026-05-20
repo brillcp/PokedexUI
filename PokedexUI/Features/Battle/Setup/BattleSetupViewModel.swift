@@ -36,7 +36,7 @@ protocol BattleSetupViewModelProtocol {
     func playerMoves() -> [MoveDetail]
 }
 
-/// Live implementation of `BattleSetupViewModelProtocol`.
+/// Concrete implementation of `BattleSetupViewModelProtocol`.
 @MainActor
 @Observable
 final class BattleSetupViewModel {

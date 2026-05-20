@@ -29,7 +29,7 @@ protocol PokemonDetailViewModelProtocol {
     func playCry() async
 }
 
-/// Live implementation of `PokemonDetailViewModelProtocol`.
+/// Concrete implementation of `PokemonDetailViewModelProtocol`.
 @MainActor
 @Observable
 final class PokemonDetailViewModel {
