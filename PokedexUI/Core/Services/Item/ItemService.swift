@@ -4,14 +4,13 @@ import SwiftData
 
 /// Interface for fetching item data from PokeAPI.
 protocol ItemServiceProtocol {
-    var service: APIService<ItemService.Config> { get }
     /// Fetch all categorized item data.
     func requestItems() async throws -> [ItemData]
 }
 
-/// Concrete implementation for item-related PokeAPI endpoints.
+/// Default `APIService`-backed implementation.
 final class ItemService {
-    let service: APIService<Config>
+    private let service: APIService<Config>
 
     init(service: APIService<Config> = .init(config: Config())) {
         self.service = service

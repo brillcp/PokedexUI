@@ -9,7 +9,7 @@ protocol TypeServiceProtocol {
 
 /// Default `APIService`-backed implementation.
 final class TypeService {
-    let service: APIService<Config>
+    private let service: APIService<Config>
 
     init(service: APIService<Config> = .init(config: Config())) {
         self.service = service
