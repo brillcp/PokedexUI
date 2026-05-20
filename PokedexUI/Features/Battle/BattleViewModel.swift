@@ -84,6 +84,8 @@ final class BattleViewModel {
     }
 }
 
+// MARK: - BattleViewModelProtocol
+
 extension BattleViewModel: BattleViewModelProtocol {
     func prepare() async {
         if engine == nil {

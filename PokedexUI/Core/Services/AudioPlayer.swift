@@ -10,18 +10,22 @@ protocol AudioPlaying: Sendable {
     func stop() async
 }
 
-actor AudioPlayer: AudioPlaying {
+actor AudioPlayer {
     private var player: AVPlayer?
-
-    var isPlaying: Bool {
-        guard let player else { return false }
-        return player.timeControlStatus == .playing
-    }
 
     init() {
         let shared = AVAudioSession.sharedInstance()
         try? shared.setCategory(.playback, mode: .default)
         try? shared.setActive(true)
+    }
+}
+
+// MARK: - AudioPlaying
+
+extension AudioPlayer: AudioPlaying {
+    var isPlaying: Bool {
+        guard let player else { return false }
+        return player.timeControlStatus == .playing
     }
 
     func play(from url: String) {

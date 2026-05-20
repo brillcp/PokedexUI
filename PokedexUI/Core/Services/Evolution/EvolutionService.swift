@@ -14,7 +14,7 @@ protocol EvolutionServiceProtocol: Sendable {
 }
 
 /// Shared actor living on `AppContainer.evolutionService`.
-final actor EvolutionService: EvolutionServiceProtocol {
+final actor EvolutionService {
     private let networkService: Network.Service
     private var storage: DataStorageReader?
     private var cache: [String: EvolutionChain] = [:]
@@ -22,7 +22,11 @@ final actor EvolutionService: EvolutionServiceProtocol {
     init(networkService: Network.Service = .default) {
         self.networkService = networkService
     }
+}
 
+// MARK: - EvolutionServiceProtocol
+
+extension EvolutionService: EvolutionServiceProtocol {
     func requestChain(id: String) async throws -> EvolutionChain {
         if let hit = cache[id] { return hit }
         if let storage, let stored = await loadFromStorage(id: id, storage: storage) {

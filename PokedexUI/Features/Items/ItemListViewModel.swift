@@ -14,6 +14,7 @@ protocol ItemListViewModelProtocol {
 }
 
 /// View model that manages the retrieval, searching, and storage of items.
+@MainActor
 @Observable
 final class ItemListViewModel {
     private let fetcher: ItemFetcher
@@ -26,8 +27,9 @@ final class ItemListViewModel {
     }
 }
 
+// MARK: - ItemListViewModelProtocol
+
 extension ItemListViewModel: ItemListViewModelProtocol {
-    @MainActor
     func loadItems() async {
         guard !isLoading, items.isEmpty else { return }
 

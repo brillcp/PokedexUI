@@ -7,7 +7,7 @@ protocol SpriteLoading: Sendable {
     func spriteImage(from urlString: String) async -> UIImage?
 }
 
-actor SpriteLoader: SpriteLoading {
+actor SpriteLoader {
     private let session: URLSession
     private let cache: URLCache
 
@@ -15,7 +15,11 @@ actor SpriteLoader: SpriteLoading {
         self.session = session
         self.cache = cache
     }
+}
 
+// MARK: - SpriteLoading
+
+extension SpriteLoader: SpriteLoading {
     func spriteImage(from urlString: String) async -> UIImage? {
         guard let url = URL(string: urlString) else { return nil }
 

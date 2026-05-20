@@ -7,9 +7,13 @@ protocol ImageColorAnalyzing: Sendable {
     func dominantColor(for id: Int, image: UIImage) async -> Color?
 }
 
-actor ImageColorAnalyzer: ImageColorAnalyzing {
+actor ImageColorAnalyzer {
     private var cache = [Int: Color]()
+}
 
+// MARK: - ImageColorAnalyzing
+
+extension ImageColorAnalyzer: ImageColorAnalyzing {
     func dominantColor(for id: Int, image: UIImage) -> Color? {
         if let cached = cache[id] { return cached }
 

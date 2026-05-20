@@ -16,6 +16,8 @@ final class TypeService {
     }
 }
 
+// MARK: - TypeServiceProtocol
+
 extension TypeService: TypeServiceProtocol {
     func requestTypes() async throws -> [TypeDetail] {
         try await service.requestData()

@@ -20,6 +20,8 @@ final class ItemDetailViewModel {
     }
 }
 
+// MARK: - ItemDetailViewModelProtocol
+
 extension ItemDetailViewModel: ItemDetailViewModelProtocol {
     var title: String {
         item.title.pretty

@@ -37,6 +37,7 @@ protocol BattleSetupViewModelProtocol {
 }
 
 /// Live implementation of `BattleSetupViewModelProtocol`.
+@MainActor
 @Observable
 final class BattleSetupViewModel {
     private var selectionOrder:  [String] = []
@@ -69,6 +70,8 @@ final class BattleSetupViewModel {
         self.typeChartLoader = typeChart
     }
 }
+
+// MARK: - BattleSetupViewModelProtocol
 
 extension BattleSetupViewModel: BattleSetupViewModelProtocol {
     var isReady: Bool {

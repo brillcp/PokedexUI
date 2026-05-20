@@ -30,6 +30,7 @@ protocol PokemonDetailViewModelProtocol {
 }
 
 /// Live implementation of `PokemonDetailViewModelProtocol`.
+@MainActor
 @Observable
 final class PokemonDetailViewModel {
     private let evolutionService: EvolutionServiceProtocol
@@ -55,6 +56,8 @@ final class PokemonDetailViewModel {
         self.audioPlayer = container.audioPlayer
     }
 }
+
+// MARK: - PokemonDetailViewModelProtocol
 
 extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     func loadEvolutionChain(context: ModelContext) async {

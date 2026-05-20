@@ -27,6 +27,7 @@ protocol SearchViewModelProtocol {
 }
 
 /// Live implementation of `SearchViewModelProtocol` fed from SearchView's `@Query`.
+@MainActor
 @Observable
 final class SearchViewModel {
     private static let recentSearchesKey = "search.recentSearches"
@@ -57,6 +58,8 @@ final class SearchViewModel {
         self.recentSearches = defaults.stringArray(forKey: Self.recentSearchesKey) ?? []
     }
 }
+
+// MARK: - SearchViewModelProtocol
 
 extension SearchViewModel: SearchViewModelProtocol {
     func updateCorpus(_ corpus: [Pokemon]) {

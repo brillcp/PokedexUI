@@ -17,6 +17,8 @@ final class ItemService {
     }
 }
 
+// MARK: - ItemServiceProtocol
+
 extension ItemService: ItemServiceProtocol {
     func requestItems() async throws -> [ItemData] {
         try await service.requestData()

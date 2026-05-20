@@ -21,6 +21,7 @@ protocol PokedexViewModelProtocol {
 }
 
 /// Live implementation of `PokedexViewModelProtocol`.
+@MainActor
 @Observable
 final class PokedexViewModel {
     private static let totalDownloadUnits: Int = 1024 + 1024 + 540 + 1
@@ -38,6 +39,8 @@ final class PokedexViewModel {
         self.fetcher = PokemonFetcher(modelContext: modelContext, container: container)
     }
 }
+
+// MARK: - PokedexViewModelProtocol
 
 extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {

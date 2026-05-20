@@ -9,7 +9,7 @@ protocol MovePrefetching: Sendable {
     func warmUp(modelContainer: ModelContainer) async
 }
 
-final actor MovePrefetcher: MovePrefetching {
+final actor MovePrefetcher {
     private let moveService: MoveServiceProtocol
     private var storage: DataStorageReader?
     private var isLoading = false
@@ -18,7 +18,11 @@ final actor MovePrefetcher: MovePrefetching {
     init(moveService: MoveServiceProtocol = MoveService()) {
         self.moveService = moveService
     }
+}
 
+// MARK: - MovePrefetching
+
+extension MovePrefetcher: MovePrefetching {
     func warmUp(modelContainer: ModelContainer) async {
         attach(modelContainer: modelContainer)
         await prefetchIfNeeded()

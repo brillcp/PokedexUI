@@ -24,13 +24,17 @@ extension PokemonServiceProtocol {
 }
 
 /// Default `Networking`-backed implementation.
-final class PokemonService: PokemonServiceProtocol {
+final class PokemonService {
     private let networkService: APIService<Config>
 
     init(networkService: APIService<Config> = .init(config: Config())) {
         self.networkService = networkService
     }
+}
 
+// MARK: - PokemonServiceProtocol
+
+extension PokemonService: PokemonServiceProtocol {
     func requestPokemonDetails(onTick: (@Sendable () async -> Void)?) async throws -> [Pokemon] {
         try await networkService.requestData(onTick: onTick)
     }
