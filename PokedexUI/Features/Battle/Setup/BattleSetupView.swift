@@ -123,13 +123,8 @@ private extension BattleSetupView {
 
     func fighterCard(pokemon: PokemonViewModel, summary: Pokemon) -> some View {
         VStack(spacing: 12) {
-            AsyncImage(url: URL(string: summary.frontSprite)) { phase in
-                switch phase {
-                case .success(let img): img.resizable().aspectRatio(contentMode: .fit)
-                default: Color.clear
-                }
-            }
-            .frame(height: 96)
+            SpriteImage(url: summary.frontSprite)
+                .frame(height: 96)
 
             Text(summary.name)
                 .font(.pixel14)

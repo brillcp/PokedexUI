@@ -35,12 +35,8 @@ struct BattlerSprite: View {
     }
 
     var body: some View {
-        AsyncImage(url: url.flatMap(URL.init(string:))) { image in
-            image.resizable().aspectRatio(contentMode: .fit)
-        } placeholder: {
-            Color.cardBackground.clipShape(Circle())
-        }
-        .frame(width: 120, height: 148)
+        SpriteImage(url: url)
+            .frame(width: 120, height: 148)
         .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))
         .rotationEffect(.degrees(celebratingTilt))
         .offset(

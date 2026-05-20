@@ -18,7 +18,7 @@ struct PrimaryCapsuleButton: View {
                 .padding(.vertical)
                 .foregroundStyle(.white)
         }
-        .glassEffect(.clear.tint(.pokedexRed.opacity(0.8)).interactive(), in: Capsule())
+        .glassEffect(.clear.tint(.pokedexRed.opacity(0.8)).interactive())
         .opacity(isEnabled ? 1 : 0.6)
         .disabled(!isEnabled)
     }
@@ -39,7 +39,7 @@ struct SecondaryCapsuleButton: View {
                 .padding(.horizontal)
                 .foregroundStyle(color)
         }
-        .glassEffect(.clear.interactive(), in: Capsule())
+        .glassEffect(.clear.interactive())
         .opacity(isEnabled ? 1 : 0.6)
         .disabled(!isEnabled)
     }

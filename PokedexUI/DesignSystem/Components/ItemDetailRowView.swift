@@ -8,7 +8,8 @@ struct ItemDetailRowView: View {
     var body: some View {
         let effect = item.prettyEffect
         HStack(alignment: effect.isEmpty ? .center : .top, spacing: 16.0) {
-            ItemSpriteView(spriteURL: item.sprites?.default)
+            SpriteImage(url: item.sprites?.default)
+                .frame(width: 38)
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(item.prettyName)

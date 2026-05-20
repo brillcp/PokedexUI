@@ -7,7 +7,8 @@ struct ItemRowView: View {
 
     var body: some View {
         HStack(spacing: 16.0) {
-            ItemSpriteView(spriteURL: item.icon)
+            SpriteImage(url: item.icon)
+                .frame(width: 38)
             Text(item.prettyTitle)
             Spacer()
             Text(">")

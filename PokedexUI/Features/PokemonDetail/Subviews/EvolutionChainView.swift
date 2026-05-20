@@ -43,12 +43,8 @@ private extension EvolutionChainView {
         } label: {
             VStack(spacing: 4) {
                 if let id = stage.species.id {
-                    AsyncImage(url: URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(id).png")) { image in
-                        image.resizable().aspectRatio(contentMode: .fit)
-                    } placeholder: {
-                        Color.cardBackground.clipShape(Circle())
-                    }
-                    .frame(width: 72, height: 72)
+                    SpriteImage(url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(id).png")
+                        .frame(width: 72, height: 72)
                 }
                 Text(stage.species.name.capitalized)
                     .font(.pixel12)

@@ -166,7 +166,8 @@ struct PokemonSpriteCard: View, Equatable {
 
     var body: some View {
         VStack(spacing: 12) {
-            SpritePlaceholder(url: pokemon.frontSprite)
+            SpriteImage(url: pokemon.frontSprite)
+                .padding(24)
                 .frame(height: 92)
             Text(pokemon.name)
                 .font(.pixel12)
@@ -185,25 +186,3 @@ struct PokemonSpriteCard: View, Equatable {
     }
 }
 
-/// Cell-level placeholder: image fades in when ready; circle gray dot before then.
-private struct SpritePlaceholder: View, Equatable {
-    let url: String
-
-    var body: some View {
-        AsyncImage(
-            url: URL(string: url),
-            transaction: .init(animation: .easeInOut(duration: 0.2))
-        ) { phase in
-            switch phase {
-            case .success(let image):
-                image.resizable().aspectRatio(contentMode: .fit)
-            case .empty, .failure:
-                Color.cardBackground
-                    .clipShape(Circle())
-                    .padding(24)
-            @unknown default:
-                Color.cardBackground.clipShape(Circle()).padding(24)
-            }
-        }
-    }
-}
