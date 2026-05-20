@@ -191,7 +191,6 @@ private extension BattleSetupView {
     func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
         let multipliers = fromTypes.map { container.typeChart.multiplier(attacking: $0, defenders: toTypes) }
         let best = multipliers.max() ?? 1
-        let label = effectivenessLabel(best)
         return HStack(spacing: 6) {
             Text(fromName)
                 .lineLimit(1)
@@ -202,28 +201,9 @@ private extension BattleSetupView {
             Text(toName)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Chip(label, style: effectivenessChipStyle(best))
+            Chip(TypeEffectiveness.label(for: best), style: TypeEffectiveness.chipStyle(for: best))
         }
         .font(.pixel12)
-    }
-
-    func effectivenessChipStyle(_ mult: Double) -> Chip.Style {
-        switch mult {
-        case 0: return .custom(background: .black.opacity(0.5))
-        case let m where m >= 2: return .success
-        case let m where m < 1: return .danger
-        default: return .neutral
-        }
-    }
-
-    func effectivenessLabel(_ mult: Double) -> String {
-        switch mult {
-        case 0: return "×0"
-        case let m where m >= 2: return "×\(Int(m))"
-        case let m where m == 1: return "×1"
-        case let m where m < 1: return "×0.5"
-        default: return String(format: "×%.1f", mult)
-        }
     }
 
     // MARK: - Move picker

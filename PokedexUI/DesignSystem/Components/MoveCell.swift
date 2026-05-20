@@ -19,7 +19,17 @@ struct MoveCell: View, Equatable {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            header
+            HStack {
+                if case .loadout(let selected) = mode, selected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.white)
+                }
+                header
+                if let effectiveness, (move.power ?? 0) > 0 {
+                    Spacer()
+                    Chip(TypeEffectiveness.label(for: effectiveness), style: TypeEffectiveness.chipStyle(for: effectiveness))
+                }
+            }
             footer
         }
         .padding()
@@ -35,18 +45,12 @@ private extension MoveCell {
             Text(move.displayName)
                 .font(.pixel12)
                 .lineLimit(1)
-            Spacer()
-            if case .loadout(let selected) = mode, selected {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.white)
-            }
         }
         .frame(height: 16)
     }
 
     var footer: some View {
-        let movePower = (move.power ?? 0) > 0
-        return HStack(spacing: 12) {
+        HStack(spacing: 12) {
             Chip(move.typeName.uppercased(), style: .custom(background: TypeColor.color(for: move.typeName)))
             switch mode {
             case .battle:
@@ -54,49 +58,19 @@ private extension MoveCell {
                     Text("PP \(pp)")
                         .font(.pixel12)
                 }
-                if let effectiveness, movePower {
-                    Spacer(minLength: 0)
-                    Chip(effectivenessLabel(effectiveness), style: effectivenessStyle(effectiveness))
-                }
             case .loadout:
-                VStack {
+                VStack(alignment: .leading) {
                     Text("PWR")
                     Text("\(move.power.map(String.init) ?? "-")")
                 }
-                .lineLimit(1)
-                .font(.pixel9)
-                VStack {
+                VStack(alignment: .leading) {
                     Text("ACC")
                     Text("\(move.accuracy.map { "\($0)%" } ?? "-")")
                 }
-                .lineLimit(1)
-                .font(.pixel9)
-                if let effectiveness, movePower {
-                    Spacer(minLength: 0)
-                    Chip(effectivenessLabel(effectiveness), style: effectivenessStyle(effectiveness))
-                }
             }
         }
+        .font(.pixel9)
         .foregroundStyle(.secondary)
-    }
-
-    func effectivenessLabel(_ mult: Double) -> String {
-        switch mult {
-        case 0: return "×0"
-        case let m where m >= 2: return "×\(Int(m))"
-        case let m where m == 1: return "×1"
-        case let m where m < 1: return "×0.5"
-        default: return String(format: "×%.1f", mult)
-        }
-    }
-
-    func effectivenessStyle(_ mult: Double) -> Chip.Style {
-        switch mult {
-        case 0: return .custom(background: .black.opacity(0.5))
-        case let m where m >= 2: return .success
-        case let m where m < 1: return .danger
-        default: return .neutral
-        }
     }
 
     var background: AnyShapeStyle {

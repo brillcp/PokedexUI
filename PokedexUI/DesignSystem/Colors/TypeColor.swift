@@ -21,3 +21,25 @@ enum TypeColor {
         }
     }
 }
+
+/// Display helpers for a type-effectiveness multiplier.
+enum TypeEffectiveness {
+    static func label(for mult: Double) -> String {
+        switch mult {
+        case 0: return "×0"
+        case let m where m >= 2: return "×\(Int(m))"
+        case let m where m == 1: return "×1"
+        case let m where m < 1: return "×0.5"
+        default: return String(format: "×%.1f", mult)
+        }
+    }
+
+    static func chipStyle(for mult: Double) -> Chip.Style {
+        switch mult {
+        case 0: return .custom(background: .black.opacity(0.5))
+        case let m where m >= 2: return .success
+        case let m where m < 1: return .danger
+        default: return .neutral
+        }
+    }
+}

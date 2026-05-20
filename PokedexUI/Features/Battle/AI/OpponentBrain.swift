@@ -46,7 +46,6 @@ final class OpponentBrain {
 private extension OpponentBrain {
     static let openerChance = 0.5
 
-    /// Pick a viable opening status/setup move on turn 1, or nil if nothing useful is available.
     func pickOpener(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -69,7 +68,6 @@ private extension OpponentBrain {
         return candidates.randomElement()
     }
 
-    /// Apply post-LLM safety nets: take a guaranteed KO when offered, avoid wasting status on an already-statused target.
     func resolveOverrides(
         pick: MoveDetail,
         attacker: BattleCombatant,
@@ -95,7 +93,6 @@ private extension OpponentBrain {
             return killer
         }
 
-        // Don't waste a status move on an already-statused target.
         if pick.ailment != "none", (pick.power ?? 0) == 0, defender.status != .none {
             let replacement = moves
                 .filter { $0.name != pick.name }

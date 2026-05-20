@@ -81,7 +81,6 @@ private extension BattleLogFormatter {
         return str
     }
 
-    /// Swap colors too dark for the log's dark background to white.
     func legibleColor(_ color: Color) -> Color {
         let resolved = color.resolve(in: .init())
         let luminance = 0.2126 * Double(resolved.red) + 0.7152 * Double(resolved.green) + 0.0722 * Double(resolved.blue)
