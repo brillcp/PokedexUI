@@ -59,6 +59,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
         do {
             let bootstrap = try await fetcher.fetchBootstrap(onTick: tick)
+            loadingProgress = 1.0
             try await fetcher.persist(bootstrap)
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")
