@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 
 extension View {
-    func applyDetailViewStyling(
-        viewModel: PokemonDetailViewModelProtocol,
+    func applyDetailViewStyling<ViewModel: PokemonDetailViewModelProtocol>(
+        viewModel: ViewModel,
         textColor: Color,
         context: ModelContext
     ) -> some View {

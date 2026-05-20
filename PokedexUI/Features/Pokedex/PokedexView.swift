@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// Root tab host for pokedex, items, favourites, and search.
 struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemListViewModel: ItemListViewModelProtocol>: View {
@@ -56,12 +57,14 @@ private extension PokedexView {
 
 /// Pokedex tab content with grid and toolbar.
 private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
+    @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
+
     let viewModel: ViewModel
 
     var body: some View {
         NavigationStack {
             PokedexGridView(
-                pokemon: viewModel.pokemonData,
+                pokemon: corpus.sorted(by: viewModel.sortType.comparator),
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading,
                 loadingProgress: viewModel.loadingProgress
@@ -69,6 +72,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
             .applyPokedexStyling(title: Tabs.pokedex.title)
             .toolbar { PokedexToolbar(viewModel: viewModel) }
             .tint(.white)
+            .animation(.snappy(duration: 0.25), value: viewModel.sortType)
         }
     }
 }
@@ -93,7 +97,7 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
             Label("Sort by", systemImage: "arrow.up.and.down.text.horizontal")
             ForEach(SortType.allCases, id: \.self) { type in
                 Button {
-                    Task { await viewModel.sort(by: type) }
+                    viewModel.sortType = type
                 } label: {
                     Label(type.title, systemImage: type.systemImage)
                 }

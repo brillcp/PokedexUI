@@ -5,8 +5,6 @@ import SwiftUI
 /// Observable view model behind the pokedex grid.
 @MainActor
 protocol PokedexViewModelProtocol {
-    /// The grid's data source.
-    var pokemonData: [Pokemon] { get }
     /// `true` while fetching is in-flight.
     var isLoading: Bool { get }
     /// 0...1 progress during first-load API fetch.
@@ -15,11 +13,11 @@ protocol PokedexViewModelProtocol {
     var selectedTab: Tabs { get set }
     /// Current pokedex grid layout (3 cols vs 4 cols).
     var grid: GridLayout { get set }
+    /// Active sort applied to the grid's `@Query` corpus.
+    var sortType: SortType { get set }
 
     /// Load all Pokemon: cache first, then network if needed.
     func requestPokemon() async
-    /// Re-sort the in-memory array.
-    func sort(by type: SortType) async
 }
 
 /// Live implementation of `PokedexViewModelProtocol`.
@@ -29,11 +27,11 @@ final class PokedexViewModel {
 
     private let fetcher: PokemonFetcher
 
-    var pokemonData: [Pokemon] = []
     var isLoading: Bool = false
     var loadingProgress: Double = 0
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
+    var sortType: SortType = .number
 
     private var downloadTicks: Int = 0
 
@@ -47,7 +45,6 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         guard !isLoading else { return }
 
         if let cached = try? await fetcher.fetchStoredData(), !cached.isEmpty {
-            pokemonData = cached
             return
         }
 
@@ -60,19 +57,10 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
         do {
             let bootstrap = try await fetcher.fetchBootstrap(onTick: tick)
-            pokemonData = bootstrap.pokemon
             try await fetcher.persist(bootstrap)
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")
         }
-    }
-
-    func sort(by type: SortType) async {
-        let sorted: [Pokemon] = await Task(priority: .userInitiated) { [weak self] in
-            guard let self else { return [] }
-            return self.pokemonData.sorted(by: type.comparator)
-        }.value
-        withAnimation(.snappy(duration: 0.25)) { pokemonData = sorted }
     }
 }
 
