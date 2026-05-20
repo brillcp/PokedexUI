@@ -80,29 +80,26 @@ private struct PokedexGridItem: View {
 
     var body: some View {
         NavigationLink(value: pokemon) {
-            SpriteImage(url: pokemon.frontSprite)
-                .background(color)
-                .overlay {
-                    if grid == .three {
-                        CardOverlay(
-                            id: pokemon.id,
-                            name: pokemon.name,
-                            isLight: isLight
-                        )
-                    }
+            SpriteImage(url: pokemon.frontSprite) { uiImage in
+                guard let resolved = await container.imageColorAnalyzer.dominantColor(for: pokemon.id, image: uiImage)
+                else { return }
+                isLight = resolved.isLight
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    color = resolved
                 }
-                .aspectRatio(1.0, contentMode: .fit)
-                .font(.pixel12)
-                .matchedTransitionSource(id: pokemon.id, in: namespace)
-        }
-        .task(id: pokemon.id) {
-            guard let image = await container.spriteLoader.spriteImage(from: pokemon.frontSprite),
-                  let resolved = await container.imageColorAnalyzer.dominantColor(for: pokemon.id, image: image)
-            else { return }
-            isLight = resolved.isLight
-            withAnimation(.easeInOut(duration: 0.2)) {
-                color = resolved
             }
+            .background(color)
+            .overlay {
+                if grid == .three {
+                    CardOverlay(
+                        id: pokemon.id,
+                        name: pokemon.name,
+                        isLight: isLight
+                    )
+                }
+            }
+            .font(.pixel12)
+            .matchedTransitionSource(id: pokemon.id, in: namespace)
         }
     }
 }
