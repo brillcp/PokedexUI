@@ -126,7 +126,7 @@ struct PokemonFetcher: DataFetcher {
     typealias APIData = Pokemon
     typealias ViewModel = Pokemon
 
-    /// Result of `downloadEverything(onTick:)`. Hydrated pokemon array
+    /// Result of `fetchBootstrap(onTick:)`. Hydrated pokemon array
     /// plus the freshly fetched evolution-chain entities the caller needs
     /// to persist alongside them.
     struct Bootstrap {

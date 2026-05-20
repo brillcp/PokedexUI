@@ -66,9 +66,6 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {
         guard !isLoading else { return }
 
-        // Cache check stays outside the `isLoading` window so subsequent
-        // launches don't flash the indexing overlay before the SwiftData
-        // read returns.
         if let cached = try? await fetcher.fetchStoredData(), !cached.isEmpty {
             pokemonData = cached
             return
@@ -83,9 +80,8 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
         do {
             let bootstrap = try await fetcher.fetchBootstrap(onTick: tick)
-            loadingProgress = 1.0
-            try await fetcher.persist(bootstrap)
             pokemonData = bootstrap.pokemon
+            try await fetcher.persist(bootstrap)
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")
         }

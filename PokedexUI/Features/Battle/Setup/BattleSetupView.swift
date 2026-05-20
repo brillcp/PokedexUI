@@ -24,7 +24,7 @@ struct BattleSetupView: View {
 
     var body: some View {
         content
-            .applyPokedexStyling(title: "Loadout", color: .darkGrey)
+            .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare(modelContext: modelContext) }
     }
