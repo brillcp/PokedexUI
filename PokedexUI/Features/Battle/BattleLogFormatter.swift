@@ -21,7 +21,7 @@ struct BattleLogFormatter {
         case .used(let side, let moveName):
             return nameAttr(side) + plain(" used ") + bold(moveName)
         case .missed(let side):
-            return nameAttr(side) + plain("'s attack missed.")
+            return nameAttr(side) + plain("'s attack missed")
         case .damaged(let side, let amount, let effectiveness, let crit):
             if effectiveness == 0 {
                 return plain("It had no effect on ") + nameAttr(side)
@@ -32,9 +32,9 @@ struct BattleLogFormatter {
             else if effectiveness < 1 { line += colored(" (not very effective)", .gray) }
             return line
         case .statusApplied(let side, let status):
-            return nameAttr(side) + plain(" was inflicted with ") + colored(status.displayName, statusColor(status)) + plain(".")
+            return nameAttr(side) + plain(" was inflicted with ") + colored(status.displayName, statusColor(status))
         case .statusTick(let side, let status, let amount):
-            return nameAttr(side) + plain(" hurt by ") + colored(status.displayName, statusColor(status)) + plain(" (") + colored("-\(amount)", .red) + plain(").")
+            return nameAttr(side) + plain(" hurt by ") + colored(status.displayName, statusColor(status)) + plain(" (") + colored("-\(amount)", .red) + plain(")")
         case .statChanged(let side, let stat, let delta):
             let pretty = stat.replacingOccurrences(of: "-", with: " ").capitalized
             let direction = delta > 0 ? "rose" : "fell"
@@ -48,7 +48,7 @@ struct BattleLogFormatter {
         case .wokeUp(let side):
             return nameAttr(side) + plain(" woke up")
         case .fastAsleep(let side):
-            return nameAttr(side) + plain(" is ") + colored("fast asleep", statusColor(.sleep)) + plain(".")
+            return nameAttr(side) + plain(" is ") + colored("fast asleep", statusColor(.sleep))
         case .recharging(let side):
             return nameAttr(side) + plain(" must ") + colored("recharge", .gray)
         case .fullyParalyzed(let side):

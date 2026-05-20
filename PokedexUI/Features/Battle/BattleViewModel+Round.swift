@@ -26,7 +26,7 @@ extension BattleViewModel {
             )
             log.append(line)
             #if DEBUG
-            print("⚔️ \(line)")
+            print("⚔️ \(String(line.characters))")
             #endif
             apply(event)
             await play(event)
