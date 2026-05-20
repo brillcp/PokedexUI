@@ -65,8 +65,8 @@ private extension BattleSetupView {
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: viewModel.isReady)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.errorMessage)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isReady)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.errorMessage)
     }
 
     // MARK: - States
@@ -295,20 +295,16 @@ private extension BattleSetupView {
 
     // MARK: - Battle button
 
+    @ViewBuilder
     var battleButton: some View {
-        HStack {
-            let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
-            let label = remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move": "moves")" : "Start"
-            PrimaryCapsuleButton(
-                icon: "bolt.fill",
-                title: label,
-                isEnabled: viewModel.canStart,
-                action: startBattle
-            )
-            DetailButton(icon: "die.face.5.fill") {
-
-            }
-        }
+        let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
+        let label = remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move": "moves")" : "Start"
+        PrimaryCapsuleButton(
+            icon: "bolt.fill",
+            title: label,
+            isEnabled: viewModel.canStart,
+            action: startBattle
+        )
         .padding(.horizontal, 24)
         .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }

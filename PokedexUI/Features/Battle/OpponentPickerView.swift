@@ -167,7 +167,6 @@ struct PokemonSpriteCard: View, Equatable {
     var body: some View {
         VStack(spacing: 12) {
             SpriteImage(url: pokemon.frontSprite)
-                .padding(24)
                 .frame(height: 92)
             Text(pokemon.name)
                 .font(.pixel12)

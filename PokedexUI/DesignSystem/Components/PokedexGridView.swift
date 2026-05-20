@@ -65,22 +65,68 @@ private struct IndexingOverlay: View {
 
 // MARK: - Grid item
 
-/// Single cell in the pokedex grid. Renders `AsyncSpriteView` inside a
-/// navigation link to `PokemonDetailView`, with a matched-transition
-/// source so the sprite zooms into the detail screen.
+/// Single cell in the pokedex grid. Loads the dominant sprite color for
+/// the background tint and uses `SpriteImage` for the sprite itself.
+/// Overlays id + name in 3-column layout.
 private struct PokedexGridItem: View {
+    @Environment(\.container) private var container
+
+    @State private var color: Color?
+    @State private var isLight = false
+
     let pokemon: Pokemon
     let grid: GridLayout
     let namespace: Namespace.ID
 
     var body: some View {
         NavigationLink(value: pokemon) {
-            AsyncSpriteView(
-                viewModel: pokemon,
-                showOverlay: grid == .three
-            )
-            .font(.pixel12)
-            .matchedTransitionSource(id: pokemon.id, in: namespace)
+            SpriteImage(url: pokemon.frontSprite)
+                .background(color)
+                .overlay {
+                    if grid == .three {
+                        CardOverlay(
+                            id: pokemon.id,
+                            name: pokemon.name,
+                            isLight: isLight
+                        )
+                    }
+                }
+                .aspectRatio(1.0, contentMode: .fit)
+                .font(.pixel12)
+                .matchedTransitionSource(id: pokemon.id, in: namespace)
         }
+        .task(id: pokemon.id) {
+            guard let image = await container.spriteLoader.spriteImage(from: pokemon.frontSprite),
+                  let resolved = await container.imageColorAnalyzer.dominantColor(for: pokemon.id, image: image)
+            else { return }
+            isLight = resolved.isLight
+            withAnimation(.easeInOut(duration: 0.2)) {
+                color = resolved
+            }
+        }
+    }
+}
+
+// MARK: - Card overlay
+
+/// Id pill (top-right) + name (bottom-left) overlaid on the sprite.
+/// Foreground color flips to black on light sprite backgrounds.
+private struct CardOverlay: View {
+    let id: Int
+    let name: String
+    let isLight: Bool
+
+    var body: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Text("#\(id)")
+                    .padding(8)
+            }
+            Spacer()
+            Text(name)
+        }
+        .padding(.bottom, 10)
+        .foregroundStyle(isLight ? .black : .white)
     }
 }

@@ -15,12 +15,12 @@ struct SpriteImage: View {
             if let image {
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
                     .transition(.opacity)
             } else {
-                Color.cardBackground.clipShape(Circle())
+                Color.cardBackground
             }
         }
+        .aspectRatio(1, contentMode: .fit)
         .task(id: url) {
             guard let url,
                   let uiImage = await container.spriteLoader.spriteImage(from: url)
