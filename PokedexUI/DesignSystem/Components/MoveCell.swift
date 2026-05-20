@@ -18,19 +18,23 @@ struct MoveCell: View, Equatable {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                if case .loadout(let selected) = mode, selected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.white)
-                }
-                header
-                if let effectiveness, (move.power ?? 0) > 0 {
-                    Spacer()
-                    Chip(TypeEffectiveness.label(for: effectiveness), style: TypeEffectiveness.chipStyle(for: effectiveness))
-                }
+        HStack(spacing: 12) {
+            if case .loadout(let selected) = mode, selected {
+                Image(systemName: "checkmark.circle.fill")
+                    .resizable()
+                    .foregroundStyle(.white)
+                    .frame(width: 18, height: 18)
             }
-            footer
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    header
+                    if let effectiveness, (move.power ?? 0) > 0 {
+                        Spacer()
+                        Chip(TypeEffectiveness.label(for: effectiveness), style: TypeEffectiveness.chipStyle(for: effectiveness))
+                    }
+                }
+                footer
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -88,7 +88,7 @@ extension MoveDetail {
     private static let selfDebuffMoves: Set<String> = [
         "leaf-storm", "overheat", "draco-meteor", "fleur-cannon", "psycho-boost",
         "close-combat", "superpower", "v-create", "hammer-arm", "ice-hammer",
-        "headlong-rush", "clanging-scales"
+        "headlong-rush", "clanging-scales", "shell-smash"
     ]
 
     var hasSelfDebuff: Bool { Self.selfDebuffMoves.contains(name) }

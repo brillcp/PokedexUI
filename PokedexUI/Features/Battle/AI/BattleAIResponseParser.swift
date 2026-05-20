@@ -8,77 +8,6 @@ enum BattleAIResponseParser {
         return Int(match.output)
     }
 
-    static func intsOnLastLine(of text: String) -> [Int] {
-        let lastLine = text
-            .components(separatedBy: .newlines)
-            .last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
-            ?? text
-        return lastLine.matches(of: /\d+/).compactMap { Int($0.output) }
-    }
-
-    static func heuristicLoadout(from moves: [MoveDetail], count: Int) -> [MoveDetail] {
-        Array(
-            moves.sorted { lhs, rhs in
-                let lDamaging = (lhs.power ?? 0) > 0
-                let rDamaging = (rhs.power ?? 0) > 0
-                if lDamaging != rDamaging { return lDamaging }
-                if lhs.power != rhs.power { return (lhs.power ?? 0) > (rhs.power ?? 0) }
-                return (lhs.accuracy ?? 100) > (rhs.accuracy ?? 100)
-            }
-            .prefix(count)
-        )
-    }
-
-    static func heuristicLoadout(
-        for fighter: BattleCombatant,
-        against opponent: BattleCombatant,
-        moves: [MoveDetail],
-        effectiveness: [Double],
-        count: Int
-    ) -> [MoveDetail] {
-        let ranked = moves.enumerated().sorted { lhs, rhs in
-            loadoutScore(
-                move: lhs.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: lhs.offset] ?? 1
-            ) > loadoutScore(
-                move: rhs.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: rhs.offset] ?? 1
-            )
-        }
-
-        var picked: [MoveDetail] = []
-        var usedTypes: Set<String> = []
-        for item in ranked {
-            guard picked.count < count else { break }
-            let move = item.element
-            let score = loadoutScore(
-                move: move,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: item.offset] ?? 1
-            )
-            if picked.count >= 2, usedTypes.contains(move.typeName), (move.power ?? 0) > 0 {
-                continue
-            }
-            if score <= 0, picked.count < count - 1 {
-                continue
-            }
-            picked.append(move)
-            if (move.power ?? 0) > 0 { usedTypes.insert(move.typeName) }
-        }
-
-        guard picked.count < count else { return Array(picked.prefix(count)) }
-        let usedNames = Set(picked.map(\.name))
-        let padded = picked + heuristicLoadout(from: moves, count: count)
-            .filter { !usedNames.contains($0.name) }
-            .prefix(count - picked.count)
-        return Array(padded.prefix(count))
-    }
-
     static func heuristicMove(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -103,6 +32,27 @@ enum BattleAIResponseParser {
         }?.element
     }
 
+    /// Override boost/status picks when game state makes them wasteful.
+    static func phaseAdjustedMove(
+        _ chosen: MoveDetail,
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail],
+        effectiveness: [Double]
+    ) -> MoveDetail {
+        // Don't re-boost when already set up
+        if (chosen.power ?? 0) == 0,
+           chosen.statChangeDeltas.contains(where: { $0 > 0 }),
+           attacker.statStages.values.contains(where: { $0 >= 2 }) {
+            return fallbackDamageMove(from: moves, effectiveness: effectiveness) ?? chosen
+        }
+        // Don't re-status a target that already has one
+        if chosen.ailment != "none", defender.status != .none {
+            return fallbackDamageMove(from: moves, effectiveness: effectiveness) ?? chosen
+        }
+        return chosen
+    }
+
     static func heuristicOpponent(
         player: OpponentCandidateSnapshot,
         candidates: [OpponentCandidateSnapshot],
@@ -111,64 +61,54 @@ enum BattleAIResponseParser {
         bestOpponent(player: player, candidates: candidates, typeChart: typeChart)?.id
     }
 
-    static func rankedMoveSample(
+    /// Deterministic loadout: 1 SE damage + 1 lesser damage + 1 self-boost + 1 disruption.
+    /// Falls back to best available when a slot category has no candidates.
+    static func assembleOpponentLoadout(
         for fighter: BattleCombatant,
         against opponent: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double],
-        count: Int
+        effectiveness: [Double]
     ) -> [MoveDetail] {
-        guard moves.count > count else { return moves }
-        // Pre-filter: drop damaging moves that are resisted or immune.
-        let filtered = moves.enumerated().filter { idx, move in
-            let eff = effectiveness[safe: idx] ?? 1
-            if (move.power ?? 0) > 0, eff > 0, eff < 1 { return false }
-            if eff == 0 { return false }
-            return true
-        }
-        // Fall back to full pool if filtering removed too many options.
-        let pool = filtered.count >= count ? filtered : moves.enumerated().map { ($0, $1) }
-        let ranked = pool.sorted {
-            loadoutScore(
-                move: $0.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: $0.offset] ?? 1
-            ) > loadoutScore(
-                move: $1.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: $1.offset] ?? 1
-            )
-        }
-
         var picked: [MoveDetail] = []
         var usedNames: Set<String> = []
 
-        func append(where predicate: (MoveDetail, Int) -> Bool) {
-            for item in ranked where picked.count < count {
-                let move = item.element
-                guard !usedNames.contains(move.name), predicate(move, item.offset) else { continue }
-                picked.append(move)
-                usedNames.insert(move.name)
-            }
+        let candidates = moves.enumerated().map { idx, move in
+            (move: move, eff: effectiveness[safe: idx] ?? 1)
         }
 
-        append { move, offset in
-            (effectiveness[safe: offset] ?? 1) >= 2 && (move.power ?? 0) > 0
+        func score(_ m: MoveDetail, _ e: Double) -> Double {
+            loadoutScore(move: m, fighter: fighter, opponent: opponent, effectiveness: e)
         }
-        append { move, _ in
-            fighter.typeNames.contains(move.typeName) && (move.power ?? 0) > 0
-        }
-        append { move, _ in
-            move.priority > 0 && (move.power ?? 0) > 0
-        }
-        append { move, _ in
-            move.ailment != "none" || !move.statChangeNames.isEmpty || move.healing > 0 || move.name == "rest"
-        }
-        append { _, _ in true }
 
-        return Array(picked.prefix(count))
+        func best(where predicate: (MoveDetail, Double) -> Bool) -> MoveDetail? {
+            candidates
+                .filter { !usedNames.contains($0.move.name) && predicate($0.move, $0.eff) }
+                .max { score($0.move, $0.eff) < score($1.move, $1.eff) }?
+                .move
+        }
+
+        func take(_ move: MoveDetail?) {
+            guard let move, !usedNames.contains(move.name) else { return }
+            picked.append(move)
+            usedNames.insert(move.name)
+        }
+
+        // Slot 1: Best super-effective damage move
+        take(best { move, eff in (move.power ?? 0) > 0 && eff >= 2 })
+        // Slot 2: Best remaining damage move
+        take(best { move, _ in (move.power ?? 0) > 0 })
+        // Slot 3: Best self-boost (status move with positive stat changes)
+        take(best { move, _ in (move.power ?? 0) == 0 && move.statChangeDeltas.contains(where: { $0 > 0 }) })
+        // Slot 4: Best disruption (ailment or opponent debuff)
+        take(best { move, _ in (move.power ?? 0) == 0 && (move.ailment != "none" || move.statChangeDeltas.contains(where: { $0 < 0 })) })
+
+        // Pad remaining slots with highest-scored unused moves
+        while picked.count < 4 {
+            guard let filler = best(where: { _, _ in true }) else { break }
+            take(filler)
+        }
+
+        return picked
     }
 
     private static func bestOpponent(
@@ -185,101 +125,6 @@ enum BattleAIResponseParser {
             opponentScore(player: player, candidate: lhs, typeChart: typeChart)
                 < opponentScore(player: player, candidate: rhs, typeChart: typeChart)
         }
-    }
-
-    static func assembleLoadout(
-        indices: [Int],
-        from moves: [MoveDetail],
-        size: Int
-    ) -> [MoveDetail] {
-        let fallback = heuristicLoadout(from: moves, count: size)
-        let valid = Array(Set(indices.filter { moves.indices.contains($0) })).map { moves[$0] }
-        guard valid.count < size else { return Array(valid.prefix(size)) }
-        let usedNames = Set(valid.map(\.name))
-        let padded = valid + fallback.filter { !usedNames.contains($0.name) }.prefix(size - valid.count)
-        return Array(padded.prefix(size))
-    }
-
-    static func repairedLoadout(
-        indices: [Int],
-        from moves: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
-        effectiveness: [Double],
-        size: Int
-    ) -> [MoveDetail] {
-        let heuristic = heuristicLoadout(
-            for: fighter,
-            against: opponent,
-            moves: moves,
-            effectiveness: effectiveness,
-            count: size
-        )
-        let ranked = moves.enumerated().sorted {
-            loadoutScore(
-                move: $0.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: $0.offset] ?? 1
-            ) > loadoutScore(
-                move: $1.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: $1.offset] ?? 1
-            )
-        }
-        let bestScore = ranked.first.map {
-            loadoutScore(
-                move: $0.element,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: effectiveness[safe: $0.offset] ?? 1
-            )
-        } ?? 0
-
-        var picked: [MoveDetail] = []
-        var usedNames: Set<String> = []
-        var rechargeCount = 0
-        var typeCount: [String: Int] = [:]
-        for index in indices where moves.indices.contains(index) {
-            let move = moves[index]
-            guard !usedNames.contains(move.name) else { continue }
-            let eff = effectiveness[safe: index] ?? 1
-            // Reject heavily resisted damaging moves when better options exist.
-            if (move.power ?? 0) > 0, eff > 0, eff < 1, bestScore > 20 { continue }
-            // Cap recharge moves at 1 in the loadout.
-            if move.isRechargeMove { guard rechargeCount == 0 else { continue }; rechargeCount += 1 }
-            // Cap same-type damaging moves at 2 for coverage diversity.
-            if (move.power ?? 0) > 0, (typeCount[move.typeName] ?? 0) >= 2 { continue }
-            let score = loadoutScore(
-                move: move,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: eff
-            )
-            let isUsefulUtility = (move.power ?? 0) == 0 && score >= 16
-            let isGoodEnough = score >= 12 && score >= bestScore * 0.35
-            if isGoodEnough || isUsefulUtility {
-                picked.append(move)
-                usedNames.insert(move.name)
-                if (move.power ?? 0) > 0 { typeCount[move.typeName, default: 0] += 1 }
-            }
-            if picked.count == size { break }
-        }
-
-        for move in heuristic where picked.count < size && !usedNames.contains(move.name) {
-            picked.append(move)
-            usedNames.insert(move.name)
-        }
-
-        if picked.count < size {
-            for item in ranked where picked.count < size && !usedNames.contains(item.element.name) {
-                picked.append(item.element)
-                usedNames.insert(item.element.name)
-            }
-        }
-
-        return Array(picked.prefix(size))
     }
 
     private static func opponentScore(
@@ -363,6 +208,16 @@ enum BattleAIResponseParser {
         if multiplier >= 2 { return 14 }
         if multiplier >= 1 { return 0 }
         return -8
+    }
+
+    private static func fallbackDamageMove(from moves: [MoveDetail], effectiveness: [Double]) -> MoveDetail? {
+        moves.enumerated()
+            .filter { ($0.element.power ?? 0) > 0 && (effectiveness[safe: $0.offset] ?? 1) > 0 }
+            .sorted {
+                Double($0.element.power ?? 0) * (effectiveness[safe: $0.offset] ?? 1)
+                > Double($1.element.power ?? 0) * (effectiveness[safe: $1.offset] ?? 1)
+            }
+            .first?.element
     }
 
     private static func loadoutScore(

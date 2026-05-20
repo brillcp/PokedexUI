@@ -36,7 +36,18 @@ extension BattleAIService: BattleAIServiceProtocol {
             effectiveness: effectiveness,
             recentMoves: recentMoves
         ) ?? first
-        guard isAvailable else { return fallback }
+
+        let adjust: (MoveDetail) -> MoveDetail = { move in
+            let adjusted = BattleAIResponseParser.phaseAdjustedMove(
+                move, attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness
+            )
+            if adjusted.name != move.name {
+                print("[ai] chooseMove: phase override \(move.name) -> \(adjusted.name)")
+            }
+            return adjusted
+        }
+
+        guard isAvailable else { return adjust(fallback) }
         let (prompt, indexMap) = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves)
         print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name)), recent: \(recentMoves)")
         do {
@@ -49,15 +60,15 @@ extension BattleAIService: BattleAIServiceProtocol {
                 let modelEff = effectiveness[originalIdx]
                 if modelEff == 0, fallback.name != modelMove.name {
                     print("[llm] chooseMove: repaired \(modelMove.name) -> \(fallback.name) (immune)")
-                    return fallback
+                    return adjust(fallback)
                 }
                 print("[llm] chooseMove: shuffled \(shuffledIdx) -> original \(originalIdx) (\(modelMove.name))")
-                return modelMove
+                return adjust(modelMove)
             }
         } catch {
             logGenerationError(error, label: "chooseMove", prompt: prompt)
         }
-        return fallback
+        return adjust(fallback)
     }
 
     func chooseOpponent(
@@ -91,44 +102,16 @@ extension BattleAIService: BattleAIServiceProtocol {
         moves: [MoveDetail],
         typeChart: TypeChart
     ) async -> [MoveDetail] {
-        let size = 4
-        guard moves.count > size else { return moves }
+        guard moves.count > 4 else { return moves }
         let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) }
-        let promptMoves = BattleAIResponseParser.rankedMoveSample(
+        let result = BattleAIResponseParser.assembleOpponentLoadout(
             for: fighter,
             against: opponent,
             moves: moves,
-            effectiveness: effectiveness,
-            count: 12
+            effectiveness: effectiveness
         )
-        let promptEffectiveness = promptMoves.map { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) }
-        let fallback = BattleAIResponseParser.heuristicLoadout(
-            for: fighter,
-            against: opponent,
-            moves: moves,
-            effectiveness: effectiveness,
-            count: size
-        )
-        guard isAvailable else { return fallback }
-        let prompt = prompts.buildLoadoutPrompt(fighter: fighter, opponent: opponent, moves: promptMoves, effectiveness: promptEffectiveness, loadoutSize: size)
-        print("[llm] chooseLoadout: \(fighter.name) vs \(opponent.name), pool size \(promptMoves.count)/\(moves.count)")
-        do {
-            let raw = try await generate(label: "chooseLoadout", prompt: prompt, temperature: 0.3, session: loadoutSession)
-            print("[llm] chooseLoadout: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
-            let indices = BattleAIResponseParser.intsOnLastLine(of: raw)
-            print("[llm] chooseLoadout: parsed indices \(indices)")
-            let result = BattleAIResponseParser.repairedLoadout(
-                indices: indices,
-                from: promptMoves,
-                fighter: fighter,
-                opponent: opponent,
-                effectiveness: promptEffectiveness,
-                size: size
-            )
-            print("[llm] chooseLoadout: final loadout: \(result.map(\.name))")
-            return result
-        } catch { logGenerationError(error, label: "chooseLoadout", prompt: prompt) }
-        return fallback
+        print("[ai] chooseLoadout: \(fighter.name) vs \(opponent.name): \(result.map(\.name))")
+        return result
     }
 }
 
@@ -140,10 +123,6 @@ private extension BattleAIService {
 
     func moveSession() -> LanguageModelSession {
         LanguageModelSession(model: model, instructions: Self.moveInstructions)
-    }
-
-    func loadoutSession() -> LanguageModelSession {
-        LanguageModelSession(model: model, instructions: Self.loadoutInstructions)
     }
 
     func opponentSession() -> LanguageModelSession {
@@ -188,7 +167,6 @@ private extension BattleAIService {
     }
 
     static let moveInstructions: String = loadInstructions("BattleAIMoveInstructions", fallback: "You are an expert Pokemon battler.")
-    static let loadoutInstructions: String = loadInstructions("BattleAILoadoutInstructions", fallback: "You are an expert Pokemon teambuilder.")
     static let opponentInstructions: String = loadInstructions("BattleAIOpponentInstructions", fallback: "You are a Pokemon battle matchmaker.")
 
     static func loadInstructions(_ name: String, fallback: String) -> String {

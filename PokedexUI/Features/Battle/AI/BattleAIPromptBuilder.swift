@@ -27,33 +27,16 @@ struct BattleAIPromptBuilder {
         let historyLine = recentMoves.isEmpty
             ? ""
             : "\nLast move: \(recentMoves.last!). Vary if possible.\n"
+        let hint = tacticalHint(attacker: attacker, defender: defender, moves: moves)
         let prompt = """
-        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(statusLabel(attacker.status))) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(statusLabel(defender.status))).
+        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(statusLabel(attacker.status))\(boostLabel(attacker))) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(statusLabel(defender.status))).
         \(historyLine)
         \(movesBlock)
 
+        \(hint)
         Return ONLY the index number.
         """
         return (prompt, indexMap)
-    }
-
-    func buildLoadoutPrompt(
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
-        moves: [MoveDetail],
-        effectiveness: [Double],
-        loadoutSize: Int
-    ) -> String {
-        let movesBlock = moves.enumerated().map { idx, move in
-            compactMoveDescription(move, index: idx, fighter: fighter, effectiveness: effectiveness[safe: idx] ?? 1.0)
-        }.joined(separator: "\n")
-        return """
-        Pick \(loadoutSize) moves for \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))) vs \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
-
-        \(movesBlock)
-
-        Return ONLY \(loadoutSize) comma-separated indices (e.g. "0, 3, 7").
-        """
     }
 
     func buildOpponentPrompt(
@@ -125,6 +108,33 @@ private extension BattleAIPromptBuilder {
         case .poison: return "poisoned"
         case .sleep: return "asleep"
         }
+    }
+
+    func boostLabel(_ combatant: BattleCombatant) -> String {
+        combatant.statStages.values.contains(where: { $0 > 0 }) ? ", boosted" : ""
+    }
+
+    /// Phase-based tactical hint that steers the model toward setup/disrupt/attack.
+    func tacticalHint(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail]
+    ) -> String {
+        let hpFrac = Double(attacker.currentHP) / Double(max(1, attacker.maxHP))
+        let defHpFrac = Double(defender.currentHP) / Double(max(1, defender.maxHP))
+        let isBoosted = attacker.statStages.values.contains(where: { $0 > 0 })
+        let defStatused = defender.status != .none
+        let hasBoost = moves.contains { ($0.power ?? 0) == 0 && $0.statChangeDeltas.contains(where: { $0 > 0 }) }
+        let hasDisrupt = moves.contains {
+            ($0.power ?? 0) == 0 && ($0.ailment != "none" || $0.statChangeDeltas.contains(where: { $0 < 0 }))
+        }
+
+        if hpFrac <= 0.30 { return "Low HP. Go for damage." }
+        if defHpFrac <= 0.30 { return "Opponent is low. Finish it." }
+        if !isBoosted, hpFrac >= 0.70, hasBoost { return "Set up with a boost move." }
+        if isBoosted, !defStatused, hasDisrupt { return "You are boosted. Disrupt the opponent." }
+        if isBoosted { return "You are boosted. Hit hard." }
+        return "Pick your strongest move."
     }
 }
 
