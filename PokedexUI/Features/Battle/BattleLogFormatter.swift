@@ -20,7 +20,7 @@ struct BattleLogFormatter {
     ) -> AttributedString {
         let nameAttr = { (side: BattleSide) -> AttributedString in
             let name = side == .player ? self.playerName : self.opponentName
-            let tint = (side == .player ? playerColor : opponentColor) ?? .white
+            let tint = self.legibleColor((side == .player ? playerColor : opponentColor) ?? .white)
             var str = AttributedString(name)
             str.foregroundColor = tint
             return str
@@ -87,6 +87,13 @@ private extension BattleLogFormatter {
         var str = AttributedString(text)
         str.foregroundColor = color
         return str
+    }
+
+    /// Swap colors too dark for the log's dark background to white.
+    func legibleColor(_ color: Color) -> Color {
+        let resolved = color.resolve(in: .init())
+        let luminance = 0.2126 * Double(resolved.red) + 0.7152 * Double(resolved.green) + 0.0722 * Double(resolved.blue)
+        return luminance < 0.18 ? .white : color
     }
 
     func statusColor(_ status: BattleStatus) -> Color {
