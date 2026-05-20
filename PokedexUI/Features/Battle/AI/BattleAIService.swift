@@ -69,23 +69,15 @@ extension BattleAIService: BattleAIServiceProtocol {
         guard !pool.isEmpty else { return nil }
         let fallback = BattleAIResponseParser.heuristicOpponent(player: player, candidates: pool, typeChart: typeChart)
         guard isAvailable else { return fallback }
-        let prompt = prompts.buildOpponentPrompt(player: player, candidates: pool, typeChart: typeChart)
+        let (prompt, indexMap) = prompts.buildOpponentPrompt(player: player, candidates: pool, typeChart: typeChart)
         print("[llm] chooseOpponent: for \(player.name) (\(player.typeNames.joined(separator: "/"))) from \(pool.count) candidates")
         do {
-            let raw = try await generate(label: "chooseOpponent", prompt: prompt, temperature: 0.5, session: opponentSession)
+            let raw = try await generate(label: "chooseOpponent", prompt: prompt, temperature: 0.3, session: opponentSession)
             print("[llm] chooseOpponent: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
-            if let id = BattleAIResponseParser.firstInt(in: raw), pool.contains(where: { $0.id == id }) {
-                let repaired = BattleAIResponseParser.repairedOpponent(
-                    modelId: id,
-                    player: player,
-                    candidates: pool,
-                    typeChart: typeChart
-                ) ?? id
-                if repaired != id {
-                    print("[llm] chooseOpponent: repaired id \(id) -> \(repaired)")
-                }
-                print("[llm] chooseOpponent: resolved to id \(repaired)")
-                return repaired
+            if let displayIdx = BattleAIResponseParser.firstInt(in: raw),
+               let pokemonId = indexMap[displayIdx] {
+                print("[llm] chooseOpponent: index \(displayIdx) -> id \(pokemonId)")
+                return pokemonId
             }
         } catch {
             logGenerationError(error, label: "chooseOpponent", prompt: prompt)

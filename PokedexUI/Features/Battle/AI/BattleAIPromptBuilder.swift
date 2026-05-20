@@ -85,26 +85,22 @@ struct BattleAIPromptBuilder {
         player: OpponentCandidateSnapshot,
         candidates: [OpponentCandidateSnapshot],
         typeChart: TypeChart?
-    ) -> String {
-        let roster = candidates.map { candidate in
+    ) -> (prompt: String, indexMap: [Int: Int]) {
+        var indexMap: [Int: Int] = [:]
+        let roster = candidates.enumerated().map { displayIdx, candidate in
+            let idx = displayIdx + 1
+            indexMap[idx] = candidate.id
             let types = candidate.typeNames.joined(separator: "/")
-            let matchup = opponentMatchupSummary(player: player, candidate: candidate, typeChart: typeChart)
-            return "- \(candidate.id): \(candidate.name) (\(types), BST \(candidate.baseStatTotal), \(matchup)\(flagSuffix(candidate)))"
+            return "\(idx). \(candidate.name) (\(types), BST \(candidate.baseStatTotal)\(flagSuffix(candidate)))"
         }.joined(separator: "\n")
-        return """
-        Pick a competitive, exciting opponent for \(player.name). Prioritise matchups where BOTH sides can threaten each other. Avoid hard counters (4x STAB advantage) and avoid opponents the player completely walls. The best fight is one where either side could win.
+        let prompt = """
+        Pick the most exciting opponent for \(player.name) (\(player.typeNames.joined(separator: "/"))).
 
-        Player: \(player.name) (id \(player.id))
-        - Types: \(player.typeNames.joined(separator: "/"))
-        - Generation: \(generationLabel(player))\(flagSuffix(player))
-        - Base stat total: \(player.baseStatTotal)
-        - Stats: \(compactStats(player))
-
-        Candidates (id: name (types, BST, matchup, flags)):
         \(roster)
 
-        Return ONLY the exact pokedex id (integer) from the list above.
+        Return ONLY the number.
         """
+        return (prompt, indexMap)
     }
 
 }
@@ -241,48 +237,10 @@ private extension BattleAIPromptBuilder {
         return String(format: "%.2f", multiplier)
     }
 
-    func compactStats(_ snapshot: OpponentCandidateSnapshot) -> String {
-        let order: [(String, String)] = [
-            ("HP", "hp"),
-            ("ATK", "attack"),
-            ("DEF", "defense"),
-            ("SPA", "special-attack"),
-            ("SPD", "special-defense"),
-            ("SPE", "speed")
-        ]
-        return order.map { label, key in "\(label) \(snapshot.stats[key] ?? 0)" }.joined(separator: "/")
-    }
-
     func flagSuffix(_ snapshot: OpponentCandidateSnapshot) -> String {
         if snapshot.isLegendary { return ", legendary" }
         if snapshot.isMythical { return ", mythical" }
         return ""
-    }
-
-    func generationLabel(_ snapshot: OpponentCandidateSnapshot) -> String {
-        snapshot.generationName?
-            .replacingOccurrences(of: "generation-", with: "Gen ")
-            .uppercased() ?? "?"
-    }
-
-    func opponentMatchupSummary(
-        player: OpponentCandidateSnapshot,
-        candidate: OpponentCandidateSnapshot,
-        typeChart: TypeChart?
-    ) -> String {
-        let delta = candidate.baseStatTotal - player.baseStatTotal
-        guard let typeChart else {
-            return "BST delta \(signed(delta))"
-        }
-        let candidatePressure = bestSTABMultiplier(attackerTypes: candidate.typeNames, defenderTypes: player.typeNames, typeChart: typeChart)
-        let playerPressure = bestSTABMultiplier(attackerTypes: player.typeNames, defenderTypes: candidate.typeNames, typeChart: typeChart)
-        return "BST delta \(signed(delta)), candidate STAB x\(format(candidatePressure)) vs player, player STAB x\(format(playerPressure)) vs candidate"
-    }
-
-    func bestSTABMultiplier(attackerTypes: [String], defenderTypes: [String], typeChart: TypeChart) -> Double {
-        attackerTypes
-            .map { typeChart.multiplier(attacking: $0, defenders: defenderTypes) }
-            .max() ?? 1.0
     }
 
     func signed(_ value: Int) -> String {

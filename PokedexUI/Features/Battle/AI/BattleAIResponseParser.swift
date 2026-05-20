@@ -111,48 +111,6 @@ enum BattleAIResponseParser {
         bestOpponent(player: player, candidates: candidates, typeChart: typeChart)?.id
     }
 
-    static func repairedOpponent(
-        modelId: Int,
-        player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot],
-        typeChart: TypeChart?
-    ) -> Int? {
-        guard let modelPick = candidates.first(where: { $0.id == modelId }) else {
-            return heuristicOpponent(player: player, candidates: candidates, typeChart: typeChart)
-        }
-        guard let best = bestOpponent(player: player, candidates: candidates, typeChart: typeChart) else {
-            return modelId
-        }
-
-        let modelScore = opponentScore(player: player, candidate: modelPick, typeChart: typeChart)
-        let bestScore = opponentScore(player: player, candidate: best, typeChart: typeChart)
-        let delta = modelPick.baseStatTotal - player.baseStatTotal
-
-        // Reject hard counters
-        if let typeChart {
-            let candidatePressure = bestSTABMultiplier(
-                attackerTypes: modelPick.typeNames,
-                defenderTypes: player.typeNames,
-                typeChart: typeChart
-            )
-            let playerPressure = bestSTABMultiplier(
-                attackerTypes: player.typeNames,
-                defenderTypes: modelPick.typeNames,
-                typeChart: typeChart
-            )
-            if candidatePressure >= 4, playerPressure < 1.5 {
-                return best.id
-            }
-        }
-
-        let isSevereUnderdog = delta < -120
-        let isOverwhelming = delta > 180
-        if isSevereUnderdog || isOverwhelming || modelScore < bestScore * 0.55 {
-            return best.id
-        }
-        return modelId
-    }
-
     static func rankedMoveSample(
         for fighter: BattleCombatant,
         against opponent: BattleCombatant,

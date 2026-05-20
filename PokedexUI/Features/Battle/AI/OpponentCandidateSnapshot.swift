@@ -13,15 +13,14 @@ struct OpponentCandidateSnapshot: Sendable {
 }
 
 extension OpponentCandidateSnapshot {
-    /// Filter snapshots to opponents within `±120` BST of the player and roughly fair type matchup,
-    /// then return up to `limit` randomly sampled candidates. Falls back to the full snapshot list
-    /// when the filter yields fewer than `limit` matches.
+    /// Filter to opponents within +/-120 BST, reject hard counters, score-rank survivors,
+    /// then return a shuffled shortlist of top candidates for the LLM.
     static func balancedPool(
         from snapshots: [OpponentCandidateSnapshot],
         playerBST: Int,
         playerTypes: [String],
         chart: TypeChart?,
-        limit: Int = 40
+        limit: Int = 8
     ) -> [OpponentCandidateSnapshot] {
         let filtered = snapshots.filter { candidate in
             guard abs(candidate.baseStatTotal - playerBST) <= 120 else { return false }
@@ -38,7 +37,12 @@ extension OpponentCandidateSnapshot {
             return true
         }
         let pool = filtered.count >= limit ? filtered : snapshots
-        return Array(pool.shuffled().prefix(limit))
+        let ranked = pool.sorted { a, b in
+            poolScore(a, playerBST: playerBST, playerTypes: playerTypes, chart: chart)
+            > poolScore(b, playerBST: playerBST, playerTypes: playerTypes, chart: chart)
+        }
+        let shortlist = Array(ranked.prefix(limit + limit / 2))
+        return Array(shortlist.shuffled().prefix(limit))
     }
 
     @MainActor
@@ -69,5 +73,25 @@ extension OpponentCandidateSnapshot {
             isLegendary: pokemon.isLegendary,
             isMythical: pokemon.isMythical
         )
+    }
+}
+
+private extension OpponentCandidateSnapshot {
+    /// BST closeness + mutual type threat, used to rank filtered pool before truncation.
+    static func poolScore(
+        _ candidate: OpponentCandidateSnapshot,
+        playerBST: Int,
+        playerTypes: [String],
+        chart: TypeChart?
+    ) -> Double {
+        var score = max(0, 120.0 - Double(abs(candidate.baseStatTotal - playerBST)))
+        guard let chart, !playerTypes.isEmpty, !candidate.typeNames.isEmpty else { return score }
+        let cPressure = candidate.typeNames
+            .map { chart.multiplier(attacking: $0, defenders: playerTypes) }.max() ?? 1
+        let pPressure = playerTypes
+            .map { chart.multiplier(attacking: $0, defenders: candidate.typeNames) }.max() ?? 1
+        if cPressure >= 1.5, pPressure >= 1.5 { score += 20 }
+        if cPressure >= 1, pPressure >= 1 { score += 10 }
+        return score
     }
 }
