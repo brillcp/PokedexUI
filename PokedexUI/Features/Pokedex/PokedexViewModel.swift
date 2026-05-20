@@ -82,7 +82,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         }
 
         do {
-            let bootstrap = try await fetcher.downloadEverything(onTick: tick)
+            let bootstrap = try await fetcher.fetchBootstrap(onTick: tick)
             loadingProgress = 1.0
             try await fetcher.persist(bootstrap)
             pokemonData = bootstrap.pokemon

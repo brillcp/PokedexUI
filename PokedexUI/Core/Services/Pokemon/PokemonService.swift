@@ -151,7 +151,7 @@ struct PokemonFetcher: DataFetcher {
     /// Full network bootstrap with progress ticks. Does NOT persist; the
     /// caller calls `persist(_:)` after the bar has reached 100% so the
     /// indexing-overlay spinner is visible during the save.
-    func downloadEverything(onTick: (@Sendable () async -> Void)?) async throws -> Bootstrap {
+    func fetchBootstrap(onTick: (@Sendable () async -> Void)?) async throws -> Bootstrap {
         async let typeLoad: Void = typeChart.warmUp(modelContainer: modelContainer, onTick: onTick)
 
         let pokemon = try await pokemonService.requestPokemonDetails(onTick: onTick)
@@ -186,7 +186,7 @@ struct PokemonFetcher: DataFetcher {
     /// Convenience for callers that don't care about progress ticks; the
     /// bootstrap result's pokemon array, fully hydrated.
     func fetchAPIData() async throws -> [Pokemon] {
-        try await downloadEverything(onTick: nil).pokemon
+        try await fetchBootstrap(onTick: nil).pokemon
     }
 
     func storeData(_ data: [Pokemon]) async throws {
