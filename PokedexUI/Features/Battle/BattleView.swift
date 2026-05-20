@@ -30,7 +30,7 @@ private extension BattleView {
     var content: some View {
         if let error = viewModel.errorMessage {
             Text(error)
-                .tint(.white)
+                .foregroundStyle(.secondary)
                 .font(.pixel14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding()

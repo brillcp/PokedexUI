@@ -153,7 +153,6 @@ private extension SearchView {
                 NavigationLink(value: pokemon) {
                     PokemonSpriteCard(pokemon: pokemon)
                         .matchedTransitionSource(id: pokemon.id, in: namespace)
-                        .tint(.white)
                 }
             }
         }

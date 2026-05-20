@@ -71,7 +71,6 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
             )
             .applyPokedexStyling(title: Tabs.pokedex.title)
             .toolbar { PokedexToolbar(viewModel: viewModel) }
-            .tint(.white)
             .animation(.snappy(duration: 0.25), value: viewModel.sortType)
         }
     }
@@ -115,7 +114,6 @@ private extension TabView {
     ) -> some View {
         self
             .task { await viewModel.requestPokemon() }
-            .tint(Color.pokedexRed)
             .colorScheme(.dark)
     }
 }
