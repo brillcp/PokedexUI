@@ -99,7 +99,7 @@ extension BattleAIService: BattleAIServiceProtocol {
             against: opponent,
             moves: moves,
             effectiveness: effectiveness,
-            count: 40
+            count: 12
         )
         let promptEffectiveness = promptMoves.map { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) }
         let fallback = BattleAIResponseParser.heuristicLoadout(
@@ -113,7 +113,7 @@ extension BattleAIService: BattleAIServiceProtocol {
         let prompt = prompts.buildLoadoutPrompt(fighter: fighter, opponent: opponent, moves: promptMoves, effectiveness: promptEffectiveness, loadoutSize: size)
         print("[llm] chooseLoadout: \(fighter.name) vs \(opponent.name), pool size \(promptMoves.count)/\(moves.count)")
         do {
-            let raw = try await generate(label: "chooseLoadout", prompt: prompt, temperature: 0.4, session: loadoutSession)
+            let raw = try await generate(label: "chooseLoadout", prompt: prompt, temperature: 0.3, session: loadoutSession)
             print("[llm] chooseLoadout: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             let indices = BattleAIResponseParser.intsOnLastLine(of: raw)
             print("[llm] chooseLoadout: parsed indices \(indices)")

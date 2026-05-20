@@ -20,7 +20,7 @@ extension OpponentCandidateSnapshot {
         playerBST: Int,
         playerTypes: [String],
         chart: TypeChart?,
-        limit: Int = 8
+        limit: Int = 16
     ) -> [OpponentCandidateSnapshot] {
         let filtered = snapshots.filter { candidate in
             guard abs(candidate.baseStatTotal - playerBST) <= 120 else { return false }
