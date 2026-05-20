@@ -13,6 +13,34 @@ struct OpponentCandidateSnapshot: Sendable {
 }
 
 extension OpponentCandidateSnapshot {
+    /// Filter snapshots to opponents within `±120` BST of the player and roughly fair type matchup,
+    /// then return up to `limit` randomly sampled candidates. Falls back to the full snapshot list
+    /// when the filter yields fewer than `limit` matches.
+    static func balancedPool(
+        from snapshots: [OpponentCandidateSnapshot],
+        playerBST: Int,
+        playerTypes: [String],
+        chart: TypeChart?,
+        limit: Int = 40
+    ) -> [OpponentCandidateSnapshot] {
+        let filtered = snapshots.filter { candidate in
+            guard abs(candidate.baseStatTotal - playerBST) <= 120 else { return false }
+            guard let chart, !playerTypes.isEmpty else { return true }
+            guard !candidate.typeNames.isEmpty else { return true }
+            let candidatePressure = candidate.typeNames
+                .map { chart.multiplier(attacking: $0, defenders: playerTypes) }
+                .max() ?? 1
+            let playerPressure = playerTypes
+                .map { chart.multiplier(attacking: $0, defenders: candidate.typeNames) }
+                .max() ?? 1
+            if candidatePressure >= 2, playerPressure < 1.5 { return false }
+            if playerPressure == 0 { return false }
+            return true
+        }
+        let pool = filtered.count >= limit ? filtered : snapshots
+        return Array(pool.shuffled().prefix(limit))
+    }
+
     @MainActor
     static func player(_ pokemon: Pokemon, fallbackTypes: [String] = []) -> OpponentCandidateSnapshot {
         let statLookup = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })

@@ -39,6 +39,11 @@ protocol BattleSetupViewModelProtocol {
 /// Live implementation of `BattleSetupViewModelProtocol`.
 @Observable
 final class BattleSetupViewModel {
+    private var selectionOrder:  [String] = []
+    private let movePrefetcher:  MovePrefetching
+    private let aiService:       BattleAIServiceProtocol
+    private let typeChartLoader: TypeChartLoader
+
     let playerSummary:   Pokemon
     let opponentSummary: Pokemon
     let maxSelections:   Int = 4
@@ -48,12 +53,7 @@ final class BattleSetupViewModel {
     var playerMovePool:   [MoveDetail] = []
     var opponentLoadout:  [MoveDetail]?
     var selectedMoveNames: Set<String> = []
-    private var selectionOrder: [String] = []
     var errorMessage: String?
-
-    private let movePrefetcher:  MovePrefetching
-    private let aiService:       BattleAIServiceProtocol
-    private let typeChartLoader: TypeChartLoader
 
     init(
         player: Pokemon,

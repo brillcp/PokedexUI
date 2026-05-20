@@ -83,7 +83,9 @@ actor BattleAIService: BattleAIServiceProtocol {
                 print("[llm] chooseOpponent: resolved to id \(repaired)")
                 return repaired
             }
-        } catch { logGenerationError(error, label: "chooseOpponent", prompt: prompt) }
+        } catch {
+            logGenerationError(error, label: "chooseOpponent", prompt: prompt)
+        }
         return fallback
     }
 

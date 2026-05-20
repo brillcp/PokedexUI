@@ -150,6 +150,10 @@ struct PokemonFetcher: DataFetcher {
         try await storage.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
     }
 
+    func warmCachedCaches() async {
+        await typeChart.warmUp(modelContainer: modelContainer)
+    }
+
     func fetchAPIData() async throws -> [Pokemon] {
         try await fetchBootstrap(onTick: nil).pokemon
     }

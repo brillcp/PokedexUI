@@ -23,8 +23,6 @@ protocol PokemonDetailViewModelProtocol {
     func loadSpritesAndColor() async
     /// Fetch evolution chain from cache or network.
     func loadEvolutionChain(context: ModelContext) async
-    /// Ensure type chart is loaded for weakness grid.
-    func loadTypeChartIfNeeded(modelContainer: ModelContainer) async
     /// Toggle bookmark on disk.
     func toggleBookmark(in context: ModelContext)
     /// Play the pokemon's cry audio.
@@ -74,10 +72,6 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         if color == nil, let color = await imageColorAnalyzer.dominantColor(for: pokemon.id, image: image) {
             self.color = color
         }
-    }
-
-    func loadTypeChartIfNeeded(modelContainer: ModelContainer) async {
-        await typeChart.warmUp(modelContainer: modelContainer)
     }
 
     func toggleBookmark(in context: ModelContext) {

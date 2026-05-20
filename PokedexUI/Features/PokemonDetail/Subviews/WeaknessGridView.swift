@@ -16,7 +16,7 @@ struct WeaknessGridView: View {
                 ForEach(buckets, id: \.label) { row in
                     HStack(alignment: .top, spacing: 12) {
                         Text(row.label)
-                            .frame(width: 42, alignment: .leading)
+                            .frame(width: 48, alignment: .leading)
                             .foregroundStyle(textColor)
                         typeChips(row.types)
                     }
