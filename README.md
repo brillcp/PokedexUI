@@ -12,7 +12,7 @@
 
 PokedexUI is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokémon battle mode driven by **Apple's on-device FoundationModels framework**. Browse the dex, dig into a pokemon, pick a fight.
 
-It's meant as a reference codebase. If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI integration), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every type has a doc comment explaining why it exists.
+It's meant as a reference codebase. If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI integration), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every public type plus every protocol member carries a doc comment explaining why it exists.
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
@@ -32,15 +32,15 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Storage-First**: SwiftData is the source of truth; the network is a backfill mechanism.
 - ✅ **Actor-Based Concurrency**: every long-lived worker is an actor; SwiftUI-bound types are `@MainActor @Observable`.
 - ✅ **Clean Separation**: App / Features / Core / DesignSystem layers with one-way dependencies (App can see everything, Core depends on nothing).
-- ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every top-level cache entity (Pokemon, MoveDetail, TypeDetail, ItemData, EvolutionChainEntity). Nested rows ride on cascade.
+- ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every keyed cache entity (Pokemon by id, MoveDetail by name, TypeDetail by name, EvolutionChainEntity by chainId). Nested rows ride on cascade; `ItemData` is keyed by category title.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
 - ✅ **On-Device AI**: Apple `FoundationModels` integrated with plain-text generation, an integer-extracting parser, and deterministic fallbacks at every call site.
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
-- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor (~80 LOC) that delegates cue timing to `BattleAnimator`, AI history to `OpponentBrain`, log rendering to `BattleLogFormatter`, and round playback to its own `+Round` extension.
+- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor split across a main file plus `+Round` and `+Setup` extensions: cue timing delegated to `BattleAnimator`, AI history to `OpponentBrain`, log rendering to `BattleLogFormatter`, sprite/audio bootstrap to `+Setup`, turn resolution to `+Round`.
 - **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
-- **L**iskov Substitution: every service is reached through its `Protocol` typealias on `AppContainer`, so previews and tests can swap the concrete actor for any conforming type without touching call sites.
+- **L**iskov Substitution: every service is reached through its protocol on `AppContainer` (the exception is `TypeChartLoader`, which stays concrete because it's `@Observable` and bound to SwiftUI views), so previews and tests can swap the concrete actor for any conforming type without touching call sites.
 - **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`; `BattleSetupView` reads pool + selection state. No god-protocol shared across consumers.
 - **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`; no `static let shared` lookups in feature code.
 
@@ -79,7 +79,7 @@ Every long-lived worker is an actor unless it has to bind to SwiftUI directly:
 | `DataStorageReader`        | `@ModelActor`              | Isolated SwiftData `ModelContext`                            |
 | `APIService<Config>`       | `actor`                    | Generic network actor over `Requestable`                     |
 | `TypeChartLoader`          | `@MainActor @Observable`   | `WeaknessGridView` reads its `chart` synchronously in body   |
-| `BattleAnimator`           | `@MainActor @Observable`   | Owns cue mutation + `withAnimation` blocks for the arena    |
+| `BattleAnimator`           | `@MainActor @Observable`   | Owns cue mutation + `withAnimation` blocks for the arena     |
 | View models                | `@MainActor @Observable`   | SwiftUI binding                                              |
 | `BattleEngine`             | `@MainActor`               | `withAnimation` callbacks see consistent state               |
 
@@ -96,11 +96,11 @@ final class AppContainer {
     let evolutionService:   EvolutionServiceProtocol
     let itemService:        ItemServiceProtocol
     let battleAI:           BattleAIServiceProtocol
+    let movePrefetcher:     MovePrefetching
+    let spriteLoader:       SpriteLoading
+    let imageColorAnalyzer: ImageColorAnalyzing
+    let audioPlayer:        AudioPlaying
     let typeChart:          TypeChartLoader
-    let movePrefetcher:     MovePrefetcher
-    let spriteLoader:       SpriteLoader
-    let imageColorAnalyzer: ImageColorAnalyzer
-    let audioPlayer:        AudioPlayer
     static let live = AppContainer()
 }
 
@@ -116,8 +116,8 @@ Five top-level `@Model` types, each deduped on a unique key. Nested rows (stats,
 - `Pokemon` (id-unique): full hydrated detail, stats, sprites, moves, species fields, bookmark flag
 - `MoveDetail` (name-unique): power, accuracy, type, damage class, ailment
 - `TypeDetail` (name-unique): damage relations for the 18 elemental types
-- `ItemData` (id-unique): item catalogue
-- `EvolutionChainEntity` (id-unique): evolution chain rows keyed by chain id
+- `ItemData` (title-keyed): item catalogue bucketed by category title
+- `EvolutionChainEntity` (chainId-unique): evolution chain rows keyed by chain id
 
 The pokedex grid renders from `Pokemon` rows; full hydration runs once at app launch and is cached forever, since Pokémon data is immutable.
 
@@ -169,7 +169,7 @@ Three background workers fill the on-disk cache at app launch so the UI never wa
 | `MovePrefetcher`        | ~937 moves (full PokeAPI move catalogue)  | App launch, background priority |
 | `EvolutionService`      | Evolution chains for hydrated pokemon     | App launch, background priority |
 
-Sprite colors are resolved lazily on first display through `ImageColorAnalyzer` (an actor) and cached in-process by pokemon id, so a detail view that opens the same pokemon twice runs the pixel scan once. The pokedex grid itself paginates `/pokemon?offset=N&limit=200` in chunks of 200, so the first page lands well under a second. Subsequent app launches read everything from SwiftData with zero network calls.
+Sprite colors are resolved lazily on first display through `ImageColorAnalyzer` (an actor) and cached in-process by pokemon id, so a detail view that opens the same pokemon twice runs the pixel scan once. The pokedex grid pulls the full `/pokemon?limit=1150` index in a single request, then fans out detail + species fetches concurrently with progress ticks. Subsequent app launches read everything from SwiftData with zero network calls.
 
 ---
 
@@ -228,5 +228,5 @@ dependencies: [
 
 - Xcode 26+
 - iOS 26+ (for the `FoundationModels` framework, `@Observable`, SwiftData lightweight migration)
-- Swift 6+ (strict concurrency)
+- Swift 5 language mode with Swift 6 concurrency warnings enabled (full Swift 6 migration in progress)
 - Apple Intelligence enabled on the device for the AI features (graceful fallback to random/heuristic on devices without it)
