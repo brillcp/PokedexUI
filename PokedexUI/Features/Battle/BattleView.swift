@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Gameboy-styled turn-based battle screen.
 struct BattleView<ViewModel: BattleViewModelProtocol>: View {
+    @Environment(\.container) private var container
+
     @State var viewModel: ViewModel
 
     var body: some View {
@@ -128,12 +130,16 @@ private extension BattleView {
             GridItem(.flexible(), spacing: spacing),
             GridItem(.flexible(), spacing: spacing)
         ]
+        let opponentTypes = state.opponent.typeNames
         return LazyVGrid(columns: columns, spacing: spacing) {
             ForEach(state.player.moves, id: \.name) { move in
+                let effectiveness: Double? = opponentTypes.isEmpty
+                    ? nil
+                    : container.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
                 Button {
                     Task { await viewModel.submit(move) }
                 } label: {
-                    MoveCell(move: move, mode: .battle)
+                    MoveCell(move: move, mode: .battle, effectiveness: effectiveness)
                         .equatable()
                 }
                 .disabled(disabled)

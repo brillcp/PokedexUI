@@ -18,6 +18,12 @@ final class OpponentBrain {
         moves: [MoveDetail],
         typeChart: TypeChart
     ) async -> MoveDetail {
+        if history.isEmpty,
+           Double.random(in: 0..<1) < Self.openerChance,
+           let opener = pickOpener(attacker: attacker, defender: defender, moves: moves) {
+            record(opener.name)
+            return opener
+        }
         let pick = await service.chooseMove(
             attacker:    attacker,
             defender:    defender,
@@ -38,6 +44,31 @@ final class OpponentBrain {
 }
 
 private extension OpponentBrain {
+    static let openerChance = 0.5
+
+    /// Pick a viable opening status/setup move on turn 1, or nil if nothing useful is available.
+    func pickOpener(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail]
+    ) -> MoveDetail? {
+        let candidates = moves.filter { move in
+            guard (move.power ?? 0) == 0 else { return false }
+            if move.name == "rest" { return false }
+            if move.ailment != "none" {
+                return defender.status == .none && move.ailment != "confusion"
+            }
+            if !move.statChangeNames.isEmpty {
+                return move.statChangeDeltas.contains { $0 != 0 }
+            }
+            if move.healing > 0 {
+                return attacker.currentHP < attacker.maxHP
+            }
+            return false
+        }
+        return candidates.randomElement()
+    }
+
     /// Apply post-LLM safety nets: take a guaranteed KO when offered, avoid wasting status on an already-statused target.
     func resolveOverrides(
         pick: MoveDetail,

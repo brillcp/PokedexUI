@@ -27,8 +27,10 @@ struct MoveCell: View, Equatable {
         .background(background)
         .overlay(overlay)
     }
+}
 
-    private var header: some View {
+private extension MoveCell {
+    var header: some View {
         HStack {
             Text(move.displayName)
                 .font(.pixel12)
@@ -42,32 +44,43 @@ struct MoveCell: View, Equatable {
         .frame(height: 16)
     }
 
-    private var footer: some View {
-        HStack(spacing: 12) {
+    var footer: some View {
+        let movePower = (move.power ?? 0) > 0
+        return HStack(spacing: 12) {
             Chip(move.typeName.uppercased(), style: .custom(background: TypeColor.color(for: move.typeName)))
             switch mode {
             case .battle:
                 if let pp = move.pp {
                     Text("PP \(pp)")
                         .font(.pixel12)
-                        .foregroundStyle(.secondary)
+                }
+                if let effectiveness, movePower {
+                    Spacer(minLength: 0)
+                    Chip(effectivenessLabel(effectiveness), style: effectivenessStyle(effectiveness))
                 }
             case .loadout:
-                Text("PWR\n\(move.power.map(String.init) ?? "-")")
-                    .font(.pixel9)
-                    .foregroundStyle(.secondary)
-                Text("ACC\n\(move.accuracy.map { "\($0)%" } ?? "-")")
-                    .font(.pixel9)
-                    .foregroundStyle(.secondary)
-                if let effectiveness, (move.power ?? 0) > 0 {
+                VStack {
+                    Text("PWR")
+                    Text("\(move.power.map(String.init) ?? "-")")
+                }
+                .lineLimit(1)
+                .font(.pixel9)
+                VStack {
+                    Text("ACC")
+                    Text("\(move.accuracy.map { "\($0)%" } ?? "-")")
+                }
+                .lineLimit(1)
+                .font(.pixel9)
+                if let effectiveness, movePower {
                     Spacer(minLength: 0)
                     Chip(effectivenessLabel(effectiveness), style: effectivenessStyle(effectiveness))
                 }
             }
         }
+        .foregroundStyle(.secondary)
     }
 
-    private func effectivenessLabel(_ mult: Double) -> String {
+    func effectivenessLabel(_ mult: Double) -> String {
         switch mult {
         case 0: return "×0"
         case let m where m >= 2: return "×\(Int(m))"
@@ -77,7 +90,7 @@ struct MoveCell: View, Equatable {
         }
     }
 
-    private func effectivenessStyle(_ mult: Double) -> Chip.Style {
+    func effectivenessStyle(_ mult: Double) -> Chip.Style {
         switch mult {
         case 0: return .custom(background: .black.opacity(0.5))
         case let m where m >= 2: return .success
@@ -86,7 +99,7 @@ struct MoveCell: View, Equatable {
         }
     }
 
-    private var background: AnyShapeStyle {
+    var background: AnyShapeStyle {
         switch mode {
         case .battle:
             return AnyShapeStyle(Color.cardBackground)
@@ -97,7 +110,7 @@ struct MoveCell: View, Equatable {
     }
 
     @ViewBuilder
-    private var overlay: some View {
+    var overlay: some View {
         switch mode {
         case .battle:
             EmptyView()

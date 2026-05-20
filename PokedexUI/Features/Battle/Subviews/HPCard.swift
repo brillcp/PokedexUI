@@ -28,15 +28,17 @@ struct HPCard: View, Equatable {
         .padding(.vertical, 12)
         .glassEffect(.clear, in: RoundedRectangle.card)
     }
+}
 
-    private var hpTint: Color {
+private extension HPCard {
+    var hpTint: Color {
         let ratio = Double(currentHP) / Double(maxHP)
         if ratio > 0.5 { return .green }
         if ratio > 0.2 { return .yellow }
         return .red
     }
 
-    private var statusColor: Color {
+    var statusColor: Color {
         switch status {
         case .paralysis: return .yellow
         case .burn:      return .orange

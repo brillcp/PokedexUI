@@ -14,20 +14,6 @@ struct BattlerSprite: View {
 
     @State private var celebratingTilt: Double = 0
 
-    private var entryOffset: CGFloat {
-        if isFainted {
-            return side == .player ? -200 : 200
-        }
-        return hasEntered ? 0 : (side == .player ? -200 : 200)
-    }
-
-    private var lungeOffset: CGSize {
-        guard isAttacking else { return .zero }
-        return side == .player
-            ? CGSize(width: 20, height: -10)
-            : CGSize(width: -20, height: 10)
-    }
-
     var body: some View {
         SpriteImage(url: url)
             .frame(width: 120, height: 148)
@@ -54,6 +40,20 @@ struct BattlerSprite: View {
 }
 
 private extension BattlerSprite {
+    var entryOffset: CGFloat {
+        if isFainted {
+            return side == .player ? -200 : 200
+        }
+        return hasEntered ? 0 : (side == .player ? -200 : 200)
+    }
+
+    var lungeOffset: CGSize {
+        guard isAttacking else { return .zero }
+        return side == .player
+            ? CGSize(width: 20, height: -10)
+            : CGSize(width: -20, height: 10)
+    }
+
     @ViewBuilder
     var damagePopup: some View {
         if let amount = damageAmount, damageTick > 0 {

@@ -6,7 +6,29 @@ struct WeaknessGridView: View {
     let typeChart: TypeChartLoader
     let textColor: Color
 
-    private var buckets: [(label: String, types: [String])] {
+    var body: some View {
+        if buckets.isEmpty {
+            EmptyView()
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Damage Taken")
+                    .foregroundStyle(.secondary)
+                ForEach(buckets, id: \.label) { row in
+                    HStack(alignment: .top, spacing: 12) {
+                        Text(row.label)
+                            .frame(width: 42, alignment: .leading)
+                            .foregroundStyle(textColor)
+                        typeChips(row.types)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+private extension WeaknessGridView {
+    var buckets: [(label: String, types: [String])] {
         let defenders = pokemon.typeNames
         guard let chart = typeChart.chart else { return [] }
 
@@ -23,27 +45,7 @@ struct WeaknessGridView: View {
         }
     }
 
-    var body: some View {
-        if buckets.isEmpty {
-            EmptyView()
-        } else {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Damage Taken")
-                    .foregroundStyle(.secondary)
-                ForEach(buckets, id: \.label) { row in
-                    HStack(alignment: .top, spacing: 12) {
-                        Text(row.label)
-                            .frame(width: 36, alignment: .leading)
-                            .foregroundStyle(textColor)
-                        typeChips(row.types)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private func typeChips(_ types: [String]) -> some View {
+    func typeChips(_ types: [String]) -> some View {
         FlowLayout(spacing: 4) {
             ForEach(types, id: \.self) { type in
                 Chip(
