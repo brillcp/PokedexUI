@@ -165,17 +165,26 @@ private extension BattleEngine {
             }
         }
 
-        for (index, statName) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
-            let delta = move.statChangeDeltas[index]
-            guard delta != 0 else { continue }
-            let target: BattleSide
-            if move.hasSelfDebuff {
-                target = side
-            } else {
-                target = delta < 0 ? side.opposite : side
+        // Damaging moves with secondary stat changes roll against effect_chance;
+        // pure status moves always trigger.
+        let secondaryGate: Double = {
+            guard move.damageClassKind != .status, let chance = move.effectChance else { return 1.0 }
+            return Double(chance) / 100.0
+        }()
+        let triggersStatChange = move.hasSelfDebuff || Double.random(in: 0..<1) < secondaryGate
+        if triggersStatChange {
+            for (index, statName) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
+                let delta = move.statChangeDeltas[index]
+                guard delta != 0 else { continue }
+                let target: BattleSide
+                if move.hasSelfDebuff {
+                    target = side
+                } else {
+                    target = delta < 0 ? side.opposite : side
+                }
+                mutate(target) { $0.applyStage(statName, delta: delta) }
+                events.append(.statChanged(target, stat: statName, delta: delta))
             }
-            mutate(target) { $0.applyStage(statName, delta: delta) }
-            events.append(.statChanged(target, stat: statName, delta: delta))
         }
         if events.count == baselineEventCount {
             events.append(.damaged(side.opposite, amount: 0, effectiveness: 0, crit: false))
@@ -199,16 +208,26 @@ private extension BattleEngine {
         let def = Double(defBase) * statStageMultiplier(defender.stage(for: defStatName))
 
         let stab = attacker.typeNames.contains(move.typeName) ? 1.5 : 1.0
-        let typeMult = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
-        let crit = Double.random(in: 0..<1) < (1.0 / 24.0)
+        let rawType = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
+        // Soften runaway one-shots by capping super-effective at 1.5x.
+        let typeMult: Double
+        if rawType == 0 {
+            typeMult = 0
+        } else if rawType > 1 {
+            typeMult = min(rawType, 1.5)
+        } else {
+            typeMult = rawType
+        }
+        let crit = Double.random(in: 0..<1) < (1.0 / 32.0)
         let critMult = crit ? 1.5 : 1.0
-        let randVar = Double.random(in: 0.85...1.0)
+        let randVar = Double.random(in: 0.90...1.0)
         let burnPenalty = (attacker.status == .burn && !isSpecial) ? 0.5 : 1.0
 
         let base = ((2.0 * level / 5.0 + 2.0) * Double(power) * atk / def) / 50.0 + 2.0
         let total = base * stab * typeMult * critMult * randVar * burnPenalty
         let damage = typeMult == 0 ? 0 : max(1, Int(total))
-        return (damage, typeMult, crit)
+        // Surface the raw multiplier so the log still says "super effective" when relevant.
+        return (damage, rawType, crit)
     }
 
     func applyStatusTick(side: BattleSide, events: inout [BattleEvent]) {

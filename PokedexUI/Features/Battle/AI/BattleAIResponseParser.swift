@@ -374,8 +374,9 @@ enum BattleAIResponseParser {
         if candidate.isLegendary || candidate.isMythical {
             score += player.baseStatTotal >= 500 ? 10 : -8
         }
+        // Megas punch above weight; only allow when player can keep up.
         if candidate.name.localizedCaseInsensitiveContains("mega") {
-            score += 12
+            score += player.baseStatTotal >= 540 ? 4 : -20
         }
 
         return score
@@ -486,6 +487,24 @@ enum BattleAIResponseParser {
             }
         }
 
+        // Avoid trying to re-status a target that already has one.
+        if defender.status != .none, move.ailment != "none" {
+            score -= 25
+        }
+
+        // Low HP: prefer recovery, deprioritize chip damage.
+        let hpFraction = Double(attacker.currentHP) / Double(max(1, attacker.maxHP))
+        if hpFraction <= 0.30 {
+            if move.healing > 0 || move.name == "rest" {
+                score += 35
+            } else if (move.power ?? 0) > 0, move.priority <= 0 {
+                score -= 8
+            }
+            if move.priority > 0, (move.power ?? 0) > 0 {
+                score += 6
+            }
+        }
+
         return score
     }
 
@@ -499,6 +518,57 @@ enum BattleAIResponseParser {
         let levelFactor = 22.0
         let base = (((levelFactor * Double(power) * Double(attack) / Double(max(1, defense))) / 50.0) + 2.0)
         return base * stab * effectiveness
+    }
+
+    /// Estimated damage a single move deals, used by the brain for KO overrides.
+    static func estimatedDamage(
+        move: MoveDetail,
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        typeChart: TypeChart
+    ) -> Double {
+        guard let power = move.power, power > 0, move.damageClassKind != .status else { return 0 }
+        let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
+        guard effectiveness > 0 else { return 0 }
+        let attackStat: Int
+        let defenseStat: Int
+        switch move.damageClassKind {
+        case .physical:
+            attackStat = attacker.attack
+            defenseStat = max(1, defender.defense)
+        case .special:
+            attackStat = attacker.specialAttack
+            defenseStat = max(1, defender.specialDefense)
+        case .status:
+            return 0
+        }
+        let stab = attacker.typeNames.contains(move.typeName) ? 1.5 : 1.0
+        let cappedEff = effectiveness > 1 ? min(effectiveness, 1.5) : effectiveness
+        return estimatedDamage(
+            power: power,
+            attack: attackStat,
+            defense: defenseStat,
+            stab: stab,
+            effectiveness: cappedEff
+        )
+    }
+
+    /// Move that lands a KO this turn, accounting for accuracy. Tiebreak: highest expected damage.
+    static func guaranteedKO(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail],
+        typeChart: TypeChart
+    ) -> MoveDetail? {
+        let target = Double(defender.currentHP)
+        let killers = moves.compactMap { move -> (MoveDetail, Double)? in
+            let dmg = estimatedDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
+            guard dmg >= target else { return nil }
+            let accuracy = Double(move.accuracy ?? 100) / 100
+            guard accuracy >= 0.85 else { return nil }
+            return (move, dmg * accuracy)
+        }
+        return killers.max { $0.1 < $1.1 }?.0
     }
 
     private static func statusScore(

@@ -4,6 +4,13 @@ import SwiftUI
 struct MoveCell: View, Equatable {
     let move: MoveDetail
     let mode: Mode
+    let effectiveness: Double?
+
+    init(move: MoveDetail, mode: Mode, effectiveness: Double? = nil) {
+        self.move = move
+        self.mode = mode
+        self.effectiveness = effectiveness
+    }
 
     enum Mode: Equatable {
         case battle
@@ -47,12 +54,35 @@ struct MoveCell: View, Equatable {
                 }
             case .loadout:
                 Text("PWR\n\(move.power.map(String.init) ?? "-")")
-                    .font(.pixel12)
+                    .font(.pixel9)
                     .foregroundStyle(.secondary)
                 Text("ACC\n\(move.accuracy.map { "\($0)%" } ?? "-")")
-                    .font(.pixel12)
+                    .font(.pixel9)
                     .foregroundStyle(.secondary)
+                if let effectiveness, (move.power ?? 0) > 0 {
+                    Spacer(minLength: 0)
+                    Chip(effectivenessLabel(effectiveness), style: effectivenessStyle(effectiveness))
+                }
             }
+        }
+    }
+
+    private func effectivenessLabel(_ mult: Double) -> String {
+        switch mult {
+        case 0: return "×0"
+        case let m where m >= 2: return "×\(Int(m))"
+        case let m where m == 1: return "×1"
+        case let m where m < 1: return "×0.5"
+        default: return String(format: "×%.1f", mult)
+        }
+    }
+
+    private func effectivenessStyle(_ mult: Double) -> Chip.Style {
+        switch mult {
+        case 0: return .custom(background: .black.opacity(0.5))
+        case let m where m >= 2: return .success
+        case let m where m < 1: return .danger
+        default: return .neutral
         }
     }
 

@@ -92,9 +92,36 @@ private extension OpponentPickerView {
     func pickSmart() {
         guard !allPokemon.isEmpty, !isAIThinking else { return }
         isAIThinking = true
-        let pool = Array(allPokemon.shuffled().prefix(40))
+        let pool = Array(balancedCandidates().shuffled().prefix(40))
         warmBattleCaches()
         runOpponentPick(pool: pool)
+    }
+
+    func balancedCandidates() -> [Pokemon] {
+        let playerBST = player.stats.map(\.baseStat).reduce(0, +)
+        let chart = container.typeChart.chart
+        let resolvedPlayerTypes = playerTypes.isEmpty
+            ? player.types.map(\.type.name)
+            : playerTypes
+        let filtered = allPokemon.filter { candidate in
+            let bst = candidate.stats.map(\.baseStat).reduce(0, +)
+            guard abs(bst - playerBST) <= 120 else { return false }
+            guard let chart, !resolvedPlayerTypes.isEmpty else { return true }
+            let candTypes = candidate.types.map(\.type.name)
+            guard !candTypes.isEmpty else { return true }
+            let candidatePressure = candTypes
+                .map { chart.multiplier(attacking: $0, defenders: resolvedPlayerTypes) }
+                .max() ?? 1
+            let playerPressure = resolvedPlayerTypes
+                .map { chart.multiplier(attacking: $0, defenders: candTypes) }
+                .max() ?? 1
+            // Hard counter: opponent hits player 2x+ STAB while resisting back.
+            if candidatePressure >= 2, playerPressure < 1.5 { return false }
+            // Total wall: player's STAB is fully immuned (e.g. Normal vs Ghost).
+            if playerPressure == 0 { return false }
+            return true
+        }
+        return filtered.count >= 40 ? filtered : allPokemon
     }
 
     func warmBattleCaches() {

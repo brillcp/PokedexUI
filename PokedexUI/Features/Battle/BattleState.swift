@@ -81,7 +81,8 @@ struct BattleCombatant: Sendable {
         self.frontSpriteURL = pokemon.frontSprite
         self.backSpriteURL = pokemon.backSprite
         self.typeNames = pokemon.typeNames
-        self.maxHP = baseHP * 2 + 60  // rough level-50 HP scaling
+        // Faithful L50 max-IV/EV HP scaling.
+        self.maxHP = baseHP * 2 + 110
         self.currentHP = self.maxHP
         self.attack = stats["attack"] ?? 50
         self.defense = stats["defense"] ?? 50

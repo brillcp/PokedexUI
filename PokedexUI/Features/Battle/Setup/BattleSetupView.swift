@@ -221,7 +221,7 @@ private extension BattleSetupView {
         case 0: return "×0"
         case let m where m >= 2: return "×\(Int(m))"
         case let m where m == 1: return "×1"
-        case let m where m < 1: return "×1/2"
+        case let m where m < 1: return "×0.5"
         default: return String(format: "×%.1f", mult)
         }
     }
@@ -260,12 +260,16 @@ private extension BattleSetupView {
     func moveCard(_ move: MoveDetail) -> some View {
         let selected = viewModel.selectedMoveNames.contains(move.name)
         let atCap = !selected && viewModel.selectedMoveNames.count >= viewModel.maxSelections
+        let opponentTypes = viewModel.opponentPokemon?.typeNames ?? []
+        let effectiveness: Double? = opponentTypes.isEmpty
+            ? nil
+            : container.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
         return Button {
             withAnimation(.easeOut(duration: 0.15)) {
                 viewModel.toggle(move)
             }
         } label: {
-            MoveCell(move: move, mode: .loadout(selected: selected))
+            MoveCell(move: move, mode: .loadout(selected: selected), effectiveness: effectiveness)
         }
         .buttonStyle(.plain)
         .opacity(atCap ? 0.5 : 1)
