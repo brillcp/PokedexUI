@@ -19,7 +19,7 @@ struct SpriteImage: View {
                     .resizable()
                     .transition(.opacity)
             } else {
-                Color.cardBackground
+                Color.cardBackground.clipShape(Circle())
             }
         }
         .aspectRatio(1, contentMode: .fit)
