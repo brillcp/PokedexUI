@@ -1,11 +1,8 @@
 import Networking
 
-/// Requestable enum for `MoveService`. `detail(name)` resolves one move,
-/// `list(limit:)` returns the bulk index used by `MovePrefetcher`.
+/// Requestable endpoints for move data.
 enum MoveRequest: Requestable {
     case detail(String)
-    /// Bulk list with explicit limit. Used by `MovePrefetcher` to discover every
-    /// move name in one call so we can fetch and persist them upfront.
     case list(limit: Int)
 
     var encoding: Request.Encoding { .query }

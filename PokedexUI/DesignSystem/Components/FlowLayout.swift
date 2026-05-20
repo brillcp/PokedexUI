@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Wrapping horizontal layout where each child hugs its content width and
-/// rows break naturally when the available width is exceeded. Shared by the
-/// search suggestion chips and the detail-view weakness grid.
+/// Wrapping horizontal layout where rows break when available width is exceeded.
 struct FlowLayout: Layout {
     var spacing: CGFloat
 
@@ -30,8 +28,6 @@ struct FlowLayout: Layout {
         }
     }
 }
-
-// MARK: - Row calculation
 
 private extension FlowLayout {
     struct Row {

@@ -1,48 +1,30 @@
 import SwiftUI
 import SwiftData
 
-/// Detail view model. Full `Pokemon` data is available from the grid, so
-/// stats, types, moves, and sprites render on frame 1. Back sprite,
-/// evolution chain, and the type chart for the weakness grid load
-/// asynchronously through this view model rather than the view reading
-/// them off `AppContainer` directly.
+/// Pokemon detail view model protocol.
 @MainActor
 protocol PokemonDetailViewModelProtocol {
-    /// View-ready wrapper around `summary`. Set in init (never nil after init).
     var pokemon: PokemonViewModel { get }
-    /// Always false after init (kept for animation compatibility).
     var isLoadingDetails: Bool { get }
-    /// Bookmark flag mirrors `Pokemon.isBookmarked` on disk.
     var isBookmarked: Bool { get }
-    /// Cached front sprite image, if loaded.
     var sprite: Image? { get }
-    /// Dominant color extracted from the front sprite.
     var color: Color? { get }
-    /// Linear evolution chain. Empty until `loadEvolutionChain` runs.
     var evolutionStages: [EvolutionChain.Stage] { get }
-    /// The shared type chart used by `WeaknessGridView`. The VM owns this
-    /// reference so the view never needs to touch `AppContainer` itself.
     var typeChart: TypeChartLoader { get }
 
-    /// Resolve the front sprite UIImage and dominant color.
+    /// Load front sprite image and extract dominant color.
     func loadSpritesAndColor() async
-    /// Fetch the evolution chain (SwiftData-cache-first, network on miss).
+    /// Fetch evolution chain from cache or network.
     func loadEvolutionChain(context: ModelContext) async
-    /// Ensure the shared type chart is loaded; safe to call from every
-    /// detail-view appearance because `warmUp` is idempotent.
+    /// Ensure type chart is loaded for weakness grid.
     func loadTypeChartIfNeeded(modelContainer: ModelContainer) async
-    /// Toggle the `isBookmarked` flag on the underlying summary row.
+    /// Toggle bookmark on disk.
     func toggleBookmark(in context: ModelContext)
-    /// Play the latest cry through the audio player.
+    /// Play the pokemon's cry audio.
     func playCry() async
 }
 
-// MARK: - Implementation
-
-/// Live implementation of `PokemonDetailViewModelProtocol`. Full Pokemon
-/// data renders on frame 1. Back sprite + evolution chain + type chart
-/// load async; the VM owns every service it consumes so the view doesn't
-/// reach into `AppContainer`.
+/// Live implementation of `PokemonDetailViewModelProtocol`.
 @Observable
 final class PokemonDetailViewModel {
     var pokemon: PokemonViewModel
@@ -55,9 +37,9 @@ final class PokemonDetailViewModel {
     let typeChart: TypeChartLoader
 
     private let evolutionService: EvolutionServiceProtocol
-    private let spriteLoader: SpriteLoader
-    private let imageColorAnalyzer: ImageColorAnalyzer
-    private let audioPlayer: AudioPlayer
+    private let spriteLoader: SpriteLoading
+    private let imageColorAnalyzer: ImageColorAnalyzing
+    private let audioPlayer: AudioPlaying
 
     init(summary: Pokemon, container: AppContainer) {
         self.isBookmarked = summary.isBookmarked
@@ -70,8 +52,6 @@ final class PokemonDetailViewModel {
     }
 }
 
-// MARK: - PokemonDetailViewModelProtocol
-
 extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     func loadEvolutionChain(context: ModelContext) async {
         guard evolutionStages.isEmpty,
@@ -81,8 +61,6 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
         evolutionStages = chain.stages
     }
 
-    /// Front sprite + dominant color. Cached `colorHex` seeds `init`;
-    /// otherwise the analyzer runs on first detail view open.
     func loadSpritesAndColor() async {
         guard let image = await spriteLoader.spriteImage(from: pokemon.frontSprite) else { return }
         sprite = Image(uiImage: image)

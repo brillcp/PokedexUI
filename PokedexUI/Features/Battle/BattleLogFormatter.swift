@@ -1,18 +1,10 @@
 import SwiftUI
 
-/// Pure value type that turns a `BattleEvent` into a styled
-/// `AttributedString` for the log feed. Holds only the per-battle names
-/// (immutable for the battle's life); sprite colors are passed per call
-/// since they land asynchronously and live on `BattleAnimator` as the
-/// single source of truth. Each `format(_:playerColor:opponentColor:)`
-/// call is a deterministic transform with no captured state.
+/// Formats `BattleEvent` values into styled `AttributedString` for the log feed.
 struct BattleLogFormatter {
     let playerName:   String
     let opponentName: String
 
-    /// Render one battle event as a colored, partially-bolded line.
-    /// Pokemon names get tinted by the supplied sprite color (falling
-    /// back to white); damage / heal / status use semantic colors.
     func format(
         _ event: BattleEvent,
         playerColor: Color?,
@@ -69,8 +61,6 @@ struct BattleLogFormatter {
         }
     }
 }
-
-// MARK: - Private
 
 private extension BattleLogFormatter {
     func plain(_ text: String) -> AttributedString {

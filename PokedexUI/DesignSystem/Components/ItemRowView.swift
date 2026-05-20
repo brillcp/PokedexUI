@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Single row in the items tab: sprite + pretty name + cost label. Tapping
-/// the row navigates to `ItemDetailView`.
+/// Single row in the items tab with sprite, name, and navigation chevron.
 struct ItemRowView: View {
     let item: ItemData
 

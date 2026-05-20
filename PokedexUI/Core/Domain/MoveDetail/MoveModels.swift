@@ -1,9 +1,6 @@
 import SwiftData
 
-/// Fully resolved per-move record: power, accuracy, type, damage class,
-/// status ailment, stat-change effects. Battle resolution + AI prompts both
-/// read these fields directly. Persisted as a `@Model` and filled either by
-/// `MovePrefetcher` (bulk) or `MoveService.requestMove(named:)` (on-demand).
+/// Fully resolved per-move record persisted as a `@Model`.
 @Model
 final class MoveDetail: Decodable, @unchecked Sendable {
     @Attribute(.unique) var name: String
@@ -75,8 +72,6 @@ private struct StatChangeDTO: Decodable {
 }
 
 extension MoveDetail {
-    /// How the move's damage is computed. Physical uses atk vs def, special
-    /// uses sp.atk vs sp.def, status deals no damage.
     enum DamageClass: String {
         case physical, special, status
     }
@@ -87,7 +82,6 @@ extension MoveDetail {
 
     var displayName: String { name.replacingOccurrences(of: "-", with: " ").capitalized }
 
-    /// Damaging moves whose stat changes penalize the USER, not the target.
     private static let selfDebuffMoves: Set<String> = [
         "leaf-storm", "overheat", "draco-meteor", "fleur-cannon", "psycho-boost",
         "close-combat", "superpower", "v-create", "hammer-arm", "ice-hammer",
@@ -96,24 +90,18 @@ extension MoveDetail {
 
     var hasSelfDebuff: Bool { Self.selfDebuffMoves.contains(name) }
 
-    /// Moves that skip the user's next turn after firing.
     private static let rechargeMoves: Set<String> = [
         "blast-burn", "frenzy-plant", "giga-impact", "hydro-cannon",
         "hyper-beam", "meteor-assault", "prismatic-laser",
         "roar-of-time", "rock-wrecker"
     ]
 
-    /// Moves that need a charging turn the engine doesn't implement.
-    /// Letting these through gives a free 140-power hit with no drawback.
     private static let chargingMoves: Set<String> = [
         "sky-attack", "solar-beam", "solar-blade", "skull-bash",
         "razor-wind", "fly", "dig", "dive", "bounce", "phantom-force",
         "shadow-force", "geomancy", "meteor-beam"
     ]
 
-    /// Moves that KO the user after firing. The engine doesn't
-    /// implement self-destruct; without the blacklist these land as
-    /// free 250-power hits with no drawback.
     private static let selfKOMoves: Set<String> = [
         "explosion", "self-destruct", "memento", "healing-wish",
         "lunar-dance", "final-gambit", "misty-explosion"
@@ -123,9 +111,6 @@ extension MoveDetail {
     var isChargingMove: Bool { Self.chargingMoves.contains(name) }
     var isSelfKOMove: Bool { Self.selfKOMoves.contains(name) }
 
-    /// `true` when the battle engine can meaningfully resolve this move.
-    /// Filters out protection, field effects, charging moves, and other
-    /// unimplemented mechanics so they never appear in the battle move picker.
     var isBattleReady: Bool {
         if isChargingMove { return false }
         if isSelfKOMove { return false }

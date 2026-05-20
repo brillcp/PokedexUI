@@ -1,8 +1,6 @@
 import Foundation
 
 extension String {
-    /// Display-safe transform: replaces hyphens with spaces and strips diacritics
-    /// so glyphs not in the pixel font (é, è, É, È, à, etc.) render as ASCII fallbacks.
     var pretty: String {
         self
             .replacingOccurrences(of: "-", with: " ")

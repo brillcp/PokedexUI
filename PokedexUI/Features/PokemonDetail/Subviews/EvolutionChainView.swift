@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Horizontal evolution row: equal-width stages separated by fixed-width arrows
-/// that label the trigger (`Lv 16`, `Fire Stone`, `Friendship`, etc.). Tapping
-/// a stage calls back with the species id so the parent can push that detail.
+/// Horizontal evolution row with equal-width stages separated by trigger arrows.
 struct EvolutionChainView: View {
     let stages: [EvolutionChain.Stage]
     let textColor: Color
@@ -31,8 +29,6 @@ struct EvolutionChainView: View {
         }
     }
 }
-
-// MARK: - Subviews + helpers
 
 private extension EvolutionChainView {
     func stageCell(_ stage: EvolutionChain.Stage) -> some View {
@@ -70,8 +66,6 @@ private extension EvolutionChainView {
         .foregroundStyle(.secondary)
     }
 
-    /// Pick the most descriptive label for an evolution trigger: level first,
-    /// then item, then named trigger (stripped of `level-up`), then friendship.
     func label(for detail: EvolutionDetail?) -> String? {
         guard let detail else { return nil }
         if let level = detail.minLevel {

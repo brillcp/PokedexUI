@@ -1,7 +1,6 @@
 import Networking
 
-/// Requestable enum for `EvolutionService`. `chain(id)` resolves one full
-/// evolution tree from the trailing path component of its URL.
+/// Requestable endpoints for evolution chain data.
 enum EvolutionRequest: Requestable {
     case chain(String)
 

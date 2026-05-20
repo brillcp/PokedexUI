@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Centralised type → color map used by both the battle move grid and the
-/// loadout move picker. Lives in the design system so any future surface
-/// (weakness chart, type filter) draws from the same palette.
+/// Centralised type-to-color map for the design system.
 enum TypeColor {
     static func color(for name: String) -> Color {
         switch name {

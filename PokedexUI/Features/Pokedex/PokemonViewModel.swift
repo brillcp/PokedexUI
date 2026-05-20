@@ -1,31 +1,17 @@
 import SwiftUI
 
-// MARK: - PokemonViewModel
-/// ViewModel providing formatted and display-ready data for a single Pokémon.
-///
-/// All derived display values (stat lookup, normalized search haystack,
-/// comma-joined name lists) are computed once in `init` and stored as `let`
-/// properties. With ~1150 pokemon hydrated at app launch the eager cost is
-/// well under 50ms total, and the struct stays a pure value type. No
-/// reference-typed cache box sneaking inside.
+/// Display-ready data for a single Pokemon, computed eagerly on init.
 struct PokemonViewModel {
     let id: Int
     let name: String
     let frontSprite: String
     var isBookmarked: Bool
 
-    /// Stat name → base value. Used by sort comparators and the battle
-    /// engine's `BattleCombatant` factory.
     let statLookup: [String: Int]
     let typeNames: [String]
-    /// Lowercased, diacritic-stripped concatenation of name + type names.
-    /// Search compares against this so per-keystroke filtering doesn't
-    /// re-run `.normalize` across every row.
     let searchHaystack: String
     let types: String
     let abilities: String
-    /// Capped at the first 10 moves; appends "…" when the underlying
-    /// movepool is larger. Battles draw from the full list on `pokemon`.
     let moves: String
 
     private(set) var pokemon: Pokemon
@@ -53,8 +39,6 @@ struct PokemonViewModel {
     }
 }
 
-// MARK: - Computed display properties
-
 extension PokemonViewModel {
     var backSprite: String? { pokemon.sprite.back }
     var height: String { "\(Double(pokemon.height) / 10.0) m" }
@@ -73,8 +57,6 @@ extension PokemonViewModel {
     var isMythical: Bool { pokemon.isMythical }
 }
 
-// MARK: - Equatable / Hashable
-
 extension PokemonViewModel: Hashable {
     static func == (lhs: PokemonViewModel, rhs: PokemonViewModel) -> Bool {
         lhs.id == rhs.id
@@ -85,11 +67,6 @@ extension PokemonViewModel: Hashable {
     }
 }
 
-// MARK: - Array helper functions
-
-/// Internal helper: anything name-bearing that can be joined into a comma
-/// separated capitalized list (abilities, moves, types). Keeps the joining
-/// logic in one place rather than scattering `.map(\.name).joined(...)`.
 private protocol NameProvidable {
     var name: String { get }
 }

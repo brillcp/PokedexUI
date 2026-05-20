@@ -1,15 +1,6 @@
 import SwiftUI
 
-/// Custom activity indicator that mirrors the layout of `UIActivityIndicator`
-/// (a ring of fading spokes rotating clockwise in discrete steps) but uses
-/// sharp-cornered rectangular ticks instead of the system's rounded capsules.
-/// Matches the pixel-font / gameboy aesthetic used elsewhere in the design
-/// system; capsule spokes look too modern beside `RoundedRectangle.chip`.
-///
-/// Steps the front-most spoke through `lineCount` positions per second so the
-/// motion has the same staccato feel as the system spinner. Driven by
-/// `TimelineView`, so no `@State` and no `onAppear` plumbing; the view is
-/// stateless and re-renders only when the timeline fires.
+/// Pixel-art activity indicator with sharp-cornered rectangular spokes.
 struct PixelSpinner: View {
     let size: CGFloat
     let color: Color
@@ -42,8 +33,6 @@ struct PixelSpinner: View {
     }
 }
 
-// MARK: - Subviews + math
-
 private extension PixelSpinner {
     var spokeRing: some View {
         ZStack {
@@ -60,9 +49,6 @@ private extension PixelSpinner {
 
     var stepAngle: Double { 360.0 / Double(lineCount) }
 
-    /// Maps the timeline date onto a discrete spoke index. Using the absolute
-    /// reference-date timestamp keeps every spinner in the app phase-locked,
-    /// so multiple instances on screen tick in unison.
     func currentStep(at date: Date) -> Int {
         let seconds = date.timeIntervalSinceReferenceDate
         return Int(seconds * Double(lineCount)) % lineCount

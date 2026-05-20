@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Full-width primary action button used throughout the battle flow: the
-/// opponent picker's Random / Smart pick row and the loadout screen's
-/// Battle / Pick-N-more CTA. Pixel font, red glass tint, capsule shape; the
-/// caller controls outer padding and the enabled state.
+/// Full-width primary action button with pixel font and red glass tint.
 struct PrimaryCapsuleButton: View {
     let icon: String
     let title: String

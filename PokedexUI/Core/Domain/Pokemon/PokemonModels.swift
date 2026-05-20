@@ -1,8 +1,6 @@
 import SwiftData
 
-/// Full hydrated pokemon record. Backs the detail view, the battle screen,
-/// and any other surface that needs stats, sprites, moves, or species
-/// flavor. Cached forever on first fetch since pokemon data is immutable.
+/// Full hydrated pokemon record cached on first fetch.
 @Model
 final class Pokemon: Decodable, Sendable {
     @Attribute(.unique) var id: Int
@@ -91,14 +89,11 @@ final class Pokemon: Decodable, Sendable {
     }
 }
 
-// MARK: - Sprite convenience
-
 extension Pokemon {
     var frontSprite: String { sprite.front }
     var backSprite: String? { sprite.back }
 }
 
-// MARK: - Mock pokemon
 extension Pokemon {
     static var pikachu: Pokemon {
         Pokemon(

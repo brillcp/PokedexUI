@@ -1,20 +1,12 @@
 import SwiftUI
 import SwiftData
 
-/// Loadout / matchup screen pushed onto the opponent-picker's navigation
-/// stack inside the picker sheet. Player sees both pokemon side-by-side, a
-/// type matchup summary, and a movepool grid to pick 4 moves. Tapping
-/// "Battle!" emits a `BattleLaunch` upstream; the picker sheet receives it,
-/// dismisses itself, and the detail view pushes `BattleView` on its own
-/// nav stack. Net result: one back tap from battle returns to detail.
+/// Loadout screen for picking 4 moves before battle.
 struct BattleSetupView: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
 
     @State private var viewModel: BattleSetupViewModel
-    /// Called when the player commits a loadout. Bubbles up through the
-    /// opponent picker, which dismisses itself, then the detail view pushes
-    /// the battle screen.
     private let onStart: (BattleLaunch) -> Void
 
     init(viewModel: BattleSetupViewModel, onStart: @escaping (BattleLaunch) -> Void) {
@@ -30,13 +22,7 @@ struct BattleSetupView: View {
     }
 }
 
-// MARK: - Actions
-
 private extension BattleSetupView {
-    /// Build the launch payload and bubble it up. Both sides commit to 4
-    /// moves before this fires; `canStart` guards both player + AI readiness.
-    /// The `BattleViewModel` is constructed here, before the navigation push
-    /// fires, so the combatant snapshotting cost doesn't land mid-transition.
     func startBattle() {
         guard let player = viewModel.playerPokemon,
               let opponent = viewModel.opponentPokemon,
@@ -102,9 +88,6 @@ private extension BattleSetupView {
         .safeAreaBar(edge: .bottom) { battleButton }
     }
 
-    /// Two pokemon cards side-by-side with a "VS" badge between. Each card
-    /// shows sprite, name, types, and the six base stats compressed into a
-    /// 3×2 grid so they fit alongside each other on phone widths.
     var matchupRow: some View {
         HStack(alignment: .top, spacing: 2) {
             if let player = viewModel.playerPokemon {
@@ -147,8 +130,6 @@ private extension BattleSetupView {
         .background(Color.cardBackground)
     }
 
-    /// Compact base-stat readout: HP / ATK / DEF on row 1, SPA / SPD / SPE on row 2.
-    /// Numbers only; full bars belong on the detail view.
     func statGrid(pokemon: PokemonViewModel) -> some View {
         let byName = Dictionary(uniqueKeysWithValues: pokemon.stats.map { ($0.stat.name, $0.baseStat) })
         let entries: [(String, Int)] = [
@@ -179,8 +160,6 @@ private extension BattleSetupView {
 
     // MARK: - Type matchup
 
-    /// Symmetric "your offense × their defense" + reverse arrows. Player sees
-    /// at a glance whether they out-type the opponent.
     var typeMatchup: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Type matchup")

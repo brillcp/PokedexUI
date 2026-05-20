@@ -1,6 +1,6 @@
 import Networking
 
-/// An enum for requesting items
+/// Requestable endpoints for item data.
 enum ItemRequest: Requestable {
     case items(limit: Int)
     case details(String)

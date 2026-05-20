@@ -1,47 +1,33 @@
 import Foundation
 import SwiftData
 
-/// Loads the 18 type damage relations once per app install. Snapshots the
-/// SwiftData rows into a Sendable `TypeChart` value the moment they land, so
-/// downstream consumers (`BattleAIService`, `BattleEngine`, AI prompt builder)
-/// can read that value off-main without any actor hop.
-///
-/// `@MainActor @Observable` because SwiftUI views (`WeaknessGridView`,
-/// battle setup matchup row) bind to `chart` synchronously. Off-main
-/// consumers grab `chart` once on entry and pass the captured value by
-/// parameter: `TypeChart` itself is a pure Sendable struct.
+/// Loads the 18 type damage relations once per app install. Snapshots
+/// SwiftData rows into a Sendable `TypeChart` for off-main consumers.
+/// `@Observable` so SwiftUI views can bind to `chart` synchronously.
 @Observable
 final class TypeChartLoader {
     private let typeService: TypeServiceProtocol
     private var storage: DataStorageReader?
     private var isLoading = false
 
-    /// Sendable snapshot. `nil` until the first successful load; views guard
-    /// on this and render nothing until populated.
     private(set) var chart: TypeChart?
 
     init(typeService: TypeServiceProtocol = TypeService()) {
         self.typeService = typeService
     }
 
-    /// Wire SwiftData storage. Call once during app startup with the shared container.
     func attach(modelContainer: ModelContainer) {
         if storage == nil {
             storage = DataStorageReader(modelContainer: modelContainer)
         }
     }
 
-    /// One-shot bootstrap: wire the storage and hydrate the chart.
-    /// Idempotent (both inner calls guard against repeat work). Optional
-    /// `onTick` fires once when the chart is loaded, so callers driving a
-    /// shared progress counter count this small batch alongside the rest.
     func warmUp(modelContainer: ModelContainer, onTick: (@Sendable () async -> Void)? = nil) async {
         attach(modelContainer: modelContainer)
         await loadIfNeeded()
         await onTick?()
     }
 
-    /// Hydrate from disk if available, otherwise fetch from the API once and persist.
     func loadIfNeeded() async {
         guard !isLoading, chart == nil else { return }
         isLoading = true
@@ -62,9 +48,6 @@ final class TypeChartLoader {
         }
     }
 
-    /// Convenience for SwiftUI views that need a sync lookup on main. Off-main
-    /// callers should capture `chart` once and call `chart.multiplier(...)`
-    /// directly to avoid the main hop.
     func multiplier(attacking: String, defenders: [String]) -> Double {
         chart?.multiplier(attacking: attacking, defenders: defenders) ?? 1.0
     }

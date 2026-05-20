@@ -1,8 +1,6 @@
 import Networking
 
-/// Requestable enum for `TypeService`. `list` enumerates the 18 elemental
-/// types (capped at 20 for safety); `detail(id)` resolves one type's full
-/// damage relations.
+/// Requestable enum for `TypeService`.
 enum TypeRequest: Requestable {
     case list
     case detail(String)

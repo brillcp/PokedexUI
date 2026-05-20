@@ -1,6 +1,6 @@
 import Foundation
 
-/// Sort options exposed in the pokedex toolbar menu.
+/// Sort options for the pokedex toolbar menu.
 enum SortType: Hashable {
     case number, name
     case height, weight
@@ -12,14 +12,12 @@ enum SortType: Hashable {
     ]
 }
 
-/// Subset of the six base stats available as sort keys.
+/// Base stat subset available as sort keys.
 enum Stats: String, CaseIterable {
     case hp, attack, defense, speed
 
     var displayName: String { rawValue.capitalized }
 }
-
-// MARK: - Display
 
 extension SortType {
     var title: String {
@@ -48,8 +46,6 @@ extension SortType {
         }
     }
 }
-
-// MARK: - Comparator
 
 extension SortType {
     var comparator: (Pokemon, Pokemon) -> Bool {

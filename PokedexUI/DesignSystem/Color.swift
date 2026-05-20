@@ -1,15 +1,8 @@
 import SwiftUI
 
 extension Color {
-    /// App background. Every full-screen feature (pokedex grid, search,
-    /// opponent picker, loadout, battle) renders on this.
     static let darkGrey = Color(hex: "181818")!
-    /// Brand accent. Used for the bookmark heart, primary CTAs, legendary
-    /// badges, and the VS chip.
     static let pokedexRed = Color(hex: "d53b47")!
-    /// Subtle white tint used by inline cards (fighter card, type matchup,
-    /// opponent grid cell, loadout move cell unselected state). 5% over the
-    /// `darkGrey` ground.
     static let cardBackground = Color.white.opacity(0.05)
 
     init?(hex: String, alpha: Double = 1.0) {
@@ -37,29 +30,17 @@ extension Color {
     }
 }
 
-/// Standard radii used across the design system. Two tiers: chips for small
-/// inline pills, cards for larger surfaces. Reaching for these instead of
-/// inlining a magic number keeps the gameboy-style aesthetic uniform.
+/// Standard corner radii used across the design system.
 enum CornerRadius {
-    /// Small inline pills: type tags, generation badges, effectiveness
-    /// markers, status chips. The 4-point radius reads as "squared" next to
-    /// the pixel font; capsules look too modern at chip size.
     static let chip: CGFloat = 2.0
-    /// Larger containers: fighter cards, HP cards, move cells, type matchup
-    /// blocks, the flavor-text bubble. Slightly more rounded than chips so
-    /// the visual hierarchy reads at a glance.
     static let card: CGFloat = 4.0
 }
 
 extension RoundedRectangle {
-    /// Standard chip shape (4-pt radius). Used by `Chip` itself and any
-    /// inline pill smaller than a full card.
     static var chip: RoundedRectangle {
         RoundedRectangle(cornerRadius: CornerRadius.chip)
     }
 
-    /// Standard card / glass-container shape (8-pt radius). Used by fighter
-    /// cards, HP cards, move cells, and any larger surface.
     static var card: RoundedRectangle {
         RoundedRectangle(cornerRadius: CornerRadius.card)
     }

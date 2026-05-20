@@ -1,11 +1,6 @@
 import Foundation
 
-/// Pure battle logic. Synchronous turn resolver: the caller
-/// (`BattleViewModel`) drives event playback with delays for animation. Stays
-/// on `MainActor` so `withAnimation` callbacks fired from `BattleViewModel`
-/// see consistent state, but the engine itself doesn't touch UIKit; the
-/// `TypeChart` value it holds is a Sendable snapshot, so lookups are free of
-/// actor hops.
+/// Synchronous turn resolver for battle logic.
 @MainActor
 final class BattleEngine {
     private(set) var state: BattleState
@@ -16,16 +11,11 @@ final class BattleEngine {
         self.typeChart = typeChart
     }
 
-    /// Resolve one round given both sides' chosen moves. The opponent's move
-    /// is picked by the caller (`BattleViewModel`), typically via
-    /// `BattleAIService`, falling back to random. Returns the ordered list of
-    /// events to animate.
     func resolveRound(playerMove: MoveDetail, opponentMove: MoveDetail) -> [BattleEvent] {
         guard case .selectingMove = state.phase else { return [] }
         var events: [BattleEvent] = []
         state.phase = .resolving
 
-        // Order: priority desc, then effective speed desc, ties broken by coin flip.
         let order: [BattleSide] = orderedSides(
             playerMove: playerMove,
             opponentMove: opponentMove
@@ -36,7 +26,6 @@ final class BattleEngine {
             let move = side == .player ? playerMove : opponentMove
             performAction(side: side, move: move, events: &events)
 
-            // Recoil self-faint.
             if combatant(side).isFainted {
                 events.append(.fainted(side))
                 state.phase = .ended(winner: side.opposite)
@@ -52,7 +41,6 @@ final class BattleEngine {
             }
         }
 
-        // End-of-turn status ticks.
         for side in order {
             applyStatusTick(side: side, events: &events)
             if combatant(side).isFainted {
@@ -69,21 +57,17 @@ final class BattleEngine {
 
 }
 
-// MARK: - Private
-
 private extension BattleEngine {
     func performAction(side: BattleSide, move: MoveDetail, events: inout [BattleEvent]) {
         events.append(.used(side, moveName: move.displayName))
         let baselineEventCount = events.count
 
-        // Recharge check: skip turn, clear flag.
         if combatant(side).mustRecharge {
             mutate(side) { $0.mustRecharge = false }
             events.append(.recharging(side))
             return
         }
 
-        // Sleep check: decrement counter, skip turn if still asleep.
         if combatant(side).status == .sleep {
             mutate(side) { $0.sleepTurns -= 1 }
             if combatant(side).sleepTurns > 0 {
@@ -94,13 +78,11 @@ private extension BattleEngine {
             events.append(.wokeUp(side))
         }
 
-        // Paralysis full-skip check.
         if combatant(side).status == .paralysis, Double.random(in: 0..<1) < 0.25 {
             events.append(.fullyParalyzed(side))
             return
         }
 
-        // Rest: full heal + self-sleep 2 turns.
         if move.name == "rest" {
             let c = combatant(side)
             let healed = c.maxHP - c.currentHP
@@ -113,7 +95,6 @@ private extension BattleEngine {
             return
         }
 
-        // Pure healing moves (Recover, Roost, Moonlight, etc.).
         if move.healing > 0 {
             let c = combatant(side)
             let amount = min(c.maxHP * move.healing / 100, c.maxHP - c.currentHP)
@@ -124,14 +105,12 @@ private extension BattleEngine {
             return
         }
 
-        // Accuracy roll. Status moves with nil accuracy always hit (treat as 100%).
         let accuracy = Double(move.accuracy ?? 100) / 100.0
         guard Double.random(in: 0..<1) < accuracy else {
             events.append(.missed(side))
             return
         }
 
-        // Damage calc.
         var damageDealt = 0
         if let power = move.power, power > 0, move.damageClassKind != .status {
             let attacker = combatant(side)
@@ -147,24 +126,20 @@ private extension BattleEngine {
             events.append(.damaged(side.opposite, amount: damage, effectiveness: effectiveness, crit: crit))
         }
 
-        // Recharge flag: user must skip next turn.
         if move.isRechargeMove { mutate(side) { $0.mustRecharge = true } }
 
-        // Drain (positive = heal attacker by % of damage, e.g. Giga Drain).
         if move.drain > 0, damageDealt > 0 {
             let healed = max(1, damageDealt * move.drain / 100)
             mutate(side) { $0.currentHP = min($0.maxHP, $0.currentHP + healed) }
             events.append(.healed(side, amount: healed))
         }
 
-        // Recoil (negative drain = attacker takes damage, e.g. Brave Bird).
         if move.drain < 0, damageDealt > 0 {
             let recoilDmg = max(1, damageDealt * abs(move.drain) / 100)
             mutate(side) { $0.currentHP = max(0, $0.currentHP - recoilDmg) }
             events.append(.recoil(side, amount: recoilDmg))
         }
 
-        // Status application.
         let ailment = parseStatus(move.ailment)
         if ailment != .none, move.ailmentChance > 0 || move.damageClassKind == .status {
             let chance = move.ailmentChance > 0 ? Double(move.ailmentChance) / 100.0 : 1.0
@@ -178,9 +153,6 @@ private extension BattleEngine {
             }
         }
 
-        // Stat changes. Self-debuff moves (Leaf Storm, Close Combat, etc.)
-        // always hit the user; status debuffs (Growl, Leer) hit the opponent;
-        // self-buffs (Swords Dance) hit the user.
         for (index, statName) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
             let delta = move.statChangeDeltas[index]
             guard delta != 0 else { continue }
@@ -227,8 +199,6 @@ private extension BattleEngine {
         return (damage, typeMult, crit)
     }
 
-    // MARK: - Status
-
     func applyStatusTick(side: BattleSide, events: inout [BattleEvent]) {
         let c = combatant(side)
         guard !c.isFainted else { return }
@@ -256,8 +226,6 @@ private extension BattleEngine {
         }
     }
 
-    // MARK: - Ordering
-
     func orderedSides(playerMove: MoveDetail, opponentMove: MoveDetail) -> [BattleSide] {
         let playerKey = (playerMove.priority, state.player.effectiveSpeed)
         let opponentKey = (opponentMove.priority, state.opponent.effectiveSpeed)
@@ -269,8 +237,6 @@ private extension BattleEngine {
         }
         return Bool.random() ? [.player, .opponent] : [.opponent, .player]
     }
-
-    // MARK: - State helpers
 
     func combatant(_ side: BattleSide) -> BattleCombatant {
         side == .player ? state.player : state.opponent

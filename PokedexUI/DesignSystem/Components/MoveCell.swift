@@ -1,21 +1,12 @@
 import SwiftUI
 
-/// Single move cell shared by the battle move grid and the loadout move
-/// picker. Both surfaces show: name + colored type chip. The mode flag
-/// switches the trailing metadata (PP for battle, power/accuracy for
-/// loadout) and whether the cell renders a selected checkmark / accent
-/// background (loadout only).
+/// Single move cell shared by the battle grid and the loadout picker.
 struct MoveCell: View, Equatable {
     let move: MoveDetail
     let mode: Mode
 
-    /// Switches the trailing metadata + selection styling. Battle cells show
-    /// PP; loadout cells show power/accuracy and render a selected outline.
     enum Mode: Equatable {
-        /// In-battle move button. Shows PP, no selection state.
         case battle
-        /// Loadout picker cell. Shows PWR/ACC, draws a selected outline and
-        /// fill when `selected` is true.
         case loadout(selected: Bool)
     }
 
@@ -29,8 +20,6 @@ struct MoveCell: View, Equatable {
         .background(background)
         .overlay(overlay)
     }
-
-    // MARK: - Sections
 
     private var header: some View {
         HStack {
@@ -66,8 +55,6 @@ struct MoveCell: View, Equatable {
             }
         }
     }
-
-    // MARK: - Styling
 
     private var background: AnyShapeStyle {
         switch mode {

@@ -1,11 +1,6 @@
 import SwiftUI
 
-/// Fixed-height Gameboy-style log window: always renders `lineCount` rows
-/// (5 by default), showing the most recent real entries at the bottom and
-/// blank placeholders pushed up off-screen above. Each real entry carries
-/// its absolute index in `log` as a stable id so a fresh line animates in
-/// with `.move + .opacity` instead of swapping in place; placeholders use
-/// negative ids that are equally stable.
+/// Fixed-height scrolling battle log showing the most recent events.
 struct BattleLogFeed: View {
     let log: [AttributedString]
 
@@ -30,16 +25,12 @@ struct BattleLogFeed: View {
     }
 }
 
-// MARK: - Private
-
 private extension BattleLogFeed {
     static let lineCount = 5
     static let lineHeight: CGFloat = 16
 
     typealias Row = (id: Int, text: AttributedString)
 
-    /// Build the row list bottom-up: real log entries first, blank
-    /// placeholders prepended to pad up to capacity.
     var assembledRows: [Row] {
         let firstVisible = max(0, log.count - Self.lineCount)
         let real: [Row] = (firstVisible..<log.count).map { ($0, log[$0]) }

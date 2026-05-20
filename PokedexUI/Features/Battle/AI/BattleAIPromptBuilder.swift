@@ -1,13 +1,8 @@
 import Foundation
 
-/// Builds the per-call prompt strings for `BattleAIService`. Pulled into its
-/// own type so the service stays focused on session handling and the prompt
-/// shape is easy to tweak / inspect in isolation.
+/// Builds prompt strings for each `BattleAIService` call.
 struct BattleAIPromptBuilder {
 
-    /// Builds the move-selection prompt with shuffled move order. Returns
-    /// the prompt string and a mapping from shuffled index back to original
-    /// index so the caller can resolve the model's pick.
     func buildMovePrompt(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -50,11 +45,6 @@ struct BattleAIPromptBuilder {
         return (prompt, indexMap)
     }
 
-    /// Loadout selection: fighter + opponent context + full movepool with
-    /// pre-computed effectiveness numbers. AI returns 4 indices from the
-    /// movepool. Used by `BattleAIService.chooseLoadout` at battle start so
-    /// the opponent goes in with a hand-picked 4-move set, just like the
-    /// player.
     func buildLoadoutPrompt(
         fighter: BattleCombatant,
         opponent: BattleCombatant,
@@ -91,11 +81,6 @@ struct BattleAIPromptBuilder {
         """
     }
 
-    /// Player + roster summary for opponent selection. Operates on Sendable
-    /// snapshots, never SwiftData `@Model` rows, so the AI actor can build
-    /// the prompt off-main without crossing isolation into the main-bound
-    /// `Pokemon` store. The caller builds the snapshots on main before the
-    /// actor call.
     func buildOpponentPrompt(
         player: OpponentCandidateSnapshot,
         candidates: [OpponentCandidateSnapshot],
@@ -123,8 +108,6 @@ struct BattleAIPromptBuilder {
     }
 
 }
-
-// MARK: - Private
 
 private extension BattleAIPromptBuilder {
     func describe(_ move: MoveDetail, index: Int, effectiveness: Double, annotation: String? = nil) -> String {
@@ -238,8 +221,6 @@ private extension BattleAIPromptBuilder {
     }
 
 
-    /// Annotates moves with recent usage info so the model naturally
-    /// gravitates toward variety.
     func moveAnnotations(moves: [MoveDetail], recentMoves: [String]) -> [String?] {
         guard !recentMoves.isEmpty else { return Array(repeating: nil, count: moves.count) }
         let last = recentMoves.last
@@ -328,10 +309,6 @@ private extension BattleAIPromptBuilder {
 }
 
 private extension Array {
-    /// Out-of-bounds-safe lookup. Used as a defensive guard when iterating
-    /// the moves array next to a parallel `effectiveness` array: if the
-    /// caller ever passes mismatched lengths we degrade to neutral instead
-    /// of crashing.
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
     }

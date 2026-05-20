@@ -1,30 +1,20 @@
 import SwiftUI
 import SwiftData
 
-/// Pokemon detail screen. Sprite + name + id render frame 1 from the
-/// supplied `Pokemon`; the heavy body (stats, evolution, weaknesses)
-/// fades in once the full `Pokemon` row is hydrated. Generic over the view
-/// model protocol so tests + previews can swap in mocks.
+/// Pokemon detail screen with stats, evolution, weaknesses, and battle entry.
 struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: View {
-    // MARK: - Environment Dependencies
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
 
-    // MARK: - State Management
     @State private var viewModel: ViewModel
     @State private var showOpponentPicker = false
-    /// Hydrated combatants + chosen movesets. Pushing this onto the nav stack
-    /// shows `BattleView`. Set when the picker sheet bubbles up a loadout
-    /// completion; back-from-battle is a single standard pop.
     @State private var battleLaunch: BattleLaunch?
     @State private var evolutionTarget: Pokemon?
 
-    // MARK: - Initialization
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
     }
 
-    // MARK: - Main Body
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
@@ -67,7 +57,6 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     }
 }
 
-// MARK: - Main Content Sections
 private extension PokemonDetailView {
     var textColor: Color {
         viewModel.color?.isLight ?? false ? Color.darkGrey : .white
@@ -79,9 +68,6 @@ private extension PokemonDetailView {
             .overlay(.secondary)
     }
 
-    /// Everything below the sprite (action buttons + content) fades in
-    /// together once the lazy pokemon hydration call resolves. Sprite stays
-    /// visible from frame one (driven by `viewModel.summary`).
     @ViewBuilder
     func loadedSection() -> some View {
         let pokemon = viewModel.pokemon
@@ -90,9 +76,6 @@ private extension PokemonDetailView {
         }
     }
 
-    /// Renders every detail row + the stats/evolution sections once the lazy
-    /// fetch resolves. Wrapped in `Group { … }.padding(...)` so the parent
-    /// `contentSection()` can swap it in with an opacity transition.
     func loadedContent(pokemon: PokemonViewModel) -> some View {
         Group {
             actionButtons(pokemon: pokemon)
@@ -140,7 +123,6 @@ private extension PokemonDetailView {
         .transition(.scale)
     }
 
-    /// Top header: genus + generation badge.
     func speciesHeader(pokemon: PokemonViewModel) -> some View {
         HStack {
             if let genus = pokemon.genus {
@@ -157,9 +139,6 @@ private extension PokemonDetailView {
         }
     }
 
-    /// Resolve an evolution stage's species id to a stored `Pokemon`
-    /// and push that pokemon's detail view. Falls back to a minimal name
-    /// lookup if the summary isn't cached yet.
     func navigateToEvolution(speciesId: Int) {
         guard speciesId != viewModel.pokemon.id else { return }
         let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == speciesId })
@@ -173,8 +152,6 @@ private extension PokemonDetailView {
         return "\(pct)%"
     }
 
-    /// "Types" row built with type-tinted chips instead of a plain string.
-    /// Matches the chip style used on the fighter cards + battle HP card.
     func typesRow(pokemon: PokemonViewModel) -> some View {
         HStack(alignment: .top, spacing: 16) {
             Text("Types")
@@ -200,7 +177,6 @@ private extension PokemonDetailView {
     }
 }
 
-// MARK: - Action Buttons
 private extension PokemonDetailView {
     func actionButtons(pokemon: PokemonViewModel) -> some View {
         HStack {
@@ -218,7 +194,6 @@ private extension PokemonDetailView {
     }
 }
 
-// MARK: - Information Sections
 private extension PokemonDetailView {
     func statsSection(pokemon: PokemonViewModel) -> some View {
         VStack(alignment: .leading) {

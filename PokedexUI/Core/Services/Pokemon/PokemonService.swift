@@ -2,22 +2,14 @@ import Foundation
 import Networking
 import SwiftData
 
-/// Public surface for Pokemon data. The bootstrap path runs the two phases
-/// separately so callers can interleave species hydration with other
-/// independent bootstrap work (type chart, evolution chains) instead of
-/// running them strictly serial.
+/// Public surface for Pokemon data. Separates detail fetch and species
+/// hydration so callers can interleave with other bootstrap work.
 protocol PokemonServiceProtocol {
-    /// Phase 1: bulk-load every `/pokemon/{id}` detail and return the
-    /// array. Species fields are unset; callers must follow up with
-    /// `hydrateSpecies(_:onTick:)` before persisting. `onTick` fires
-    /// exactly once per detail response so the caller can drive a single
-    /// shared progress counter.
+    /// Bulk-load every `/pokemon/{id}` detail. Species fields are unset.
+    /// `onTick` fires once per detail response.
     func requestPokemonDetails(onTick: (@Sendable () async -> Void)?) async throws -> [Pokemon]
-
-    /// Phase 2: fetch every `/pokemon-species/{id}` in parallel and merge
-    /// the result onto each pokemon in place. Pure in-memory mutation;
-    /// caller decides when (and whether) to persist. `onTick` fires
-    /// once per species response.
+    /// Fetch every `/pokemon-species/{id}` in parallel and merge onto each
+    /// pokemon in place. `onTick` fires once per species response.
     func hydrateSpecies(_ pokemon: [Pokemon], onTick: (@Sendable () async -> Void)?) async
 }
 
@@ -31,12 +23,7 @@ extension PokemonServiceProtocol {
     }
 }
 
-// MARK: - Concrete implementation
-
-/// Default `Networking`-backed implementation. Holds a single
-/// `APIService<Config>` which fronts the underlying `Network.Service` for
-/// both the bulk fan-out (`requestData`) and the per-id species lookup
-/// (`request(_:)`), so the service has one network dependency, not two.
+/// Default `Networking`-backed implementation.
 final class PokemonService: PokemonServiceProtocol {
     private let networkService: APIService<Config>
 
@@ -70,8 +57,6 @@ final class PokemonService: PokemonServiceProtocol {
     }
 }
 
-// MARK: - ServiceConfiguration
-
 extension PokemonService {
     struct Config: ServiceConfiguration {
         typealias ResponseType = Pokemon
@@ -91,11 +76,7 @@ extension PokemonService {
     }
 }
 
-// MARK: - Species merge
-
 extension PokemonService {
-    /// Copy species-only fields onto a `Pokemon` instance. Pure in-memory
-    /// mutation: the caller decides when (and whether) to persist.
     static func applySpecies(_ species: PokemonSpecies, to pokemon: Pokemon) {
         pokemon.habitat          = species.habitat?.name
         pokemon.flavorText       = species.englishFlavorText
@@ -112,23 +93,13 @@ extension PokemonService {
 
 // MARK: - PokemonFetcher
 
-/// `DataFetcher` conformer for the pokedex bootstrap. Owns every storage
-/// + API call the view model needs: cache lookup, multi-phase download
-/// (details + species + chains + type chart), and the final bulk persist.
-/// `PokedexViewModel` only orchestrates UI state and forwards a tick
-/// callback for the shared progress counter.
-///
-/// Pokemon and `EvolutionChainEntity` rows persist through this fetcher;
-/// the type-chart batch is small enough that `TypeChartLoader` keeps its
-/// own one-shot save.
+/// `DataFetcher` conformer for the pokedex bootstrap. Owns storage + API
+/// calls: cache lookup, multi-phase download, and bulk persist.
 struct PokemonFetcher: DataFetcher {
     typealias StoredData = Pokemon
     typealias APIData = Pokemon
     typealias ViewModel = Pokemon
 
-    /// Result of `fetchBootstrap(onTick:)`. Hydrated pokemon array
-    /// plus the freshly fetched evolution-chain entities the caller needs
-    /// to persist alongside them.
     struct Bootstrap {
         let pokemon: [Pokemon]
         let chainEntities: [EvolutionChainEntity]
@@ -148,9 +119,6 @@ struct PokemonFetcher: DataFetcher {
         self.evolutionService = container.evolutionService
     }
 
-    /// Full network bootstrap with progress ticks. Does NOT persist; the
-    /// caller calls `persist(_:)` after the bar has reached 100% so the
-    /// indexing-overlay spinner is visible during the save.
     func fetchBootstrap(onTick: (@Sendable () async -> Void)?) async throws -> Bootstrap {
         async let typeLoad: Void = typeChart.warmUp(modelContainer: modelContainer, onTick: onTick)
 
@@ -168,8 +136,6 @@ struct PokemonFetcher: DataFetcher {
         return Bootstrap(pokemon: pokemon, chainEntities: chains)
     }
 
-    /// Bulk persist for the bootstrap result. Two `store` calls, each
-    /// writes its homogeneous array in one SQLite transaction.
     func persist(_ bootstrap: Bootstrap) async throws {
         try await storage.store(bootstrap.pokemon)
         if !bootstrap.chainEntities.isEmpty {
@@ -177,14 +143,10 @@ struct PokemonFetcher: DataFetcher {
         }
     }
 
-    // MARK: - DataFetcher
-
     func fetchStoredData() async throws -> [Pokemon] {
         try await storage.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
     }
 
-    /// Convenience for callers that don't care about progress ticks; the
-    /// bootstrap result's pokemon array, fully hydrated.
     func fetchAPIData() async throws -> [Pokemon] {
         try await fetchBootstrap(onTick: nil).pokemon
     }
@@ -196,4 +158,3 @@ struct PokemonFetcher: DataFetcher {
     func transformToViewModel(_ data: Pokemon) -> Pokemon { data }
     func transformForStorage(_ data: Pokemon) -> Pokemon { data }
 }
-

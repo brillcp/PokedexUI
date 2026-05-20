@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// One combatant's sprite. Owns the celebration tilt state so the rotation can
-/// repeat indefinitely after victory without leaking a `Timer` into the view
-/// model. Lunge / shake / faint cues read off plain Bool/Int props pushed in
-/// by the parent BattleView.
+/// One combatant's animated sprite with lunge, shake, faint, and victory effects.
 struct BattlerSprite: View {
     let url: String?
     let side: BattleSide
@@ -17,8 +14,6 @@ struct BattlerSprite: View {
 
     @State private var celebratingTilt: Double = 0
 
-    /// Off-screen entry: player from left (negative), opponent from right (positive).
-    /// Faint slide: player flies further off-left, opponent off-right.
     private var entryOffset: CGFloat {
         if isFainted {
             return side == .player ? -200 : 200
@@ -26,7 +21,6 @@ struct BattlerSprite: View {
         return hasEntered ? 0 : (side == .player ? -200 : 200)
     }
 
-    /// Attack lunge toward the opponent. Player lunges up-right, opponent down-left.
     private var lungeOffset: CGSize {
         guard isAttacking else { return .zero }
         return side == .player
@@ -59,14 +53,7 @@ struct BattlerSprite: View {
     }
 }
 
-// MARK: - Damage popup
-
 private extension BattlerSprite {
-    /// Floating "-N" pop over the sprite. Keyed by `damageTick` so two
-    /// hits in a row with the same amount still retrigger: `.id(...)`
-    /// makes SwiftUI tear down the old view and insert a fresh one,
-    /// which kicks `DamagePopup.onAppear` and runs the self-contained
-    /// fade-up animation again.
     @ViewBuilder
     var damagePopup: some View {
         if let amount = damageAmount, damageTick > 0 {
@@ -76,10 +63,7 @@ private extension BattlerSprite {
     }
 }
 
-/// Single-shot label that floats up + fades the moment it appears. Owns
-/// its own `@State` so the lifecycle is contained: when the parent
-/// supplies a new `.id()` the previous instance is destroyed and a fresh
-/// one runs the animation from scratch.
+/// Single-shot floating damage label that animates up and fades on appear.
 private struct DamagePopup: View {
     private let baseOffset: CGSize = CGSize(width: 0, height: 24)
 

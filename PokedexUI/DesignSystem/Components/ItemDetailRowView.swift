@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Full item row used on the item detail screen: sprite + name + flavor text
-/// description. Wider layout than `ItemRowView` to fit the effect blurb.
+/// Full item row for the detail screen with sprite, name, and effect text.
 struct ItemDetailRowView: View {
     let item: ItemDetail
 

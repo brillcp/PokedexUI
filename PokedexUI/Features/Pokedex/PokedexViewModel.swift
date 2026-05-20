@@ -22,23 +22,9 @@ protocol PokedexViewModelProtocol {
     func sort(by type: SortType) async
 }
 
-// MARK: - Implementation
-
-/// Live implementation of `PokedexViewModelProtocol`. Cache-first. All
-/// storage and network calls go through a `PokemonFetcher` (a `DataFetcher`
-/// conformer), mirroring the `ItemFetcher` pattern used by the items tab.
-/// The view model only owns UI state + the shared progress counter; the
-/// multi-phase orchestration lives on the fetcher.
+/// Live implementation of `PokedexViewModelProtocol`.
 @Observable
 final class PokedexViewModel {
-    /// Hardcoded denominator for the download progress bar. Sums the
-    /// expected unit count across every step:
-    /// * detail requests (~1024)
-    /// * species requests (~1024)
-    /// * evolution chains   (~540)
-    /// * type chart batch   (1)
-    /// PokeAPI's corpus is stable enough that a static estimate is fine;
-    /// the bar is clamped at 1.0 so minor drift doesn't matter.
     private static let totalDownloadUnits: Int = 1024 + 1024 + 540 + 1
 
     private let fetcher: PokemonFetcher
@@ -49,18 +35,12 @@ final class PokedexViewModel {
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
 
-    /// Shared counter that every service ticks through the fetcher.
-    /// Aggregate is the raw ratio against `totalDownloadUnits`; no
-    /// per-phase weights, no per-phase denominators that could shift
-    /// mid-flight.
     private var downloadTicks: Int = 0
 
     init(modelContext: ModelContext, container: AppContainer) {
         self.fetcher = PokemonFetcher(modelContext: modelContext, container: container)
     }
 }
-
-// MARK: - PokedexViewModelProtocol
 
 extension PokedexViewModel: PokedexViewModelProtocol {
     func requestPokemon() async {
@@ -95,8 +75,6 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         withAnimation(.snappy(duration: 0.25)) { pokemonData = sorted }
     }
 }
-
-// MARK: - Private
 
 private extension PokedexViewModel {
     func resetProgress() {

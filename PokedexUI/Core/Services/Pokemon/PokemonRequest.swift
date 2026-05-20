@@ -1,14 +1,9 @@
 import Networking
 
-/// PokeAPI requests this service exposes.
+/// PokeAPI requests for pokemon data.
 enum PokemonRequest: Requestable {
-    /// Single-shot `/pokemon?limit=1150` to fetch the entire national dex
-    /// in one call. Used by the initial load path.
     case allPokemon
-    /// Full `/pokemon/{id}` payload, used to hydrate one pokemon on tap.
     case details(String)
-    /// `/pokemon-species/{id}`: habitat, flavor text, evolution chain ref,
-    /// genus, gender rate, etc. Merged into `Pokemon` on hydration.
     case species(String)
 
     var encoding: Request.Encoding { .query }

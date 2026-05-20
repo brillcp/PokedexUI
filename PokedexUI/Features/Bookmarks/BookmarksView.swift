@@ -1,8 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// Bookmarks tab. Backed by `Pokemon` rows filtered by `isBookmarked`.
-/// Tapping a bookmark navigates to `PokemonDetailView`.
+/// Bookmarks tab showing Pokemon rows filtered by `isBookmarked`.
 struct BookmarksView: View {
     @Query(
         filter: #Predicate<Pokemon> { $0.isBookmarked },

@@ -1,12 +1,10 @@
 import Foundation
 
-/// Top-level TabView selection for the root pokedex screen. Each case maps
-/// to one tab with a title and SF Symbol icon.
+/// Top-level TabView selection for the root pokedex screen.
 enum Tabs: Int {
     case pokedex, items, favourites, search
 }
 
-// MARK: - Calculated properties
 extension Tabs {
     var title: String {
         switch self {

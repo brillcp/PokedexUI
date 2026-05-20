@@ -1,22 +1,16 @@
 import Foundation
 import Networking
 
-// MARK: - Service Configuration Protocol
-/// A protocol that defines the configuration blueprint for a generic API service.
-/// Used to create requests and transform API responses into app-specific models.
+/// Configuration blueprint for a generic API service.
 protocol ServiceConfiguration {
-    /// The type returned from each detail API call.
     associatedtype ResponseType: Decodable & Sendable
-    /// The transformed output model returned to the view layer.
     associatedtype OutputModel
 
-    /// Returns the request used to fetch a list of results.
+    /// Build the list request for the index endpoint.
     func createRequest() -> Requestable
-    /// Returns the request to fetch detailed data from a specific item URL component.
-    /// - Parameter urlComponent: The last path component of a resource URL.
+    /// Build a detail request from a resource URL's last path component.
     func createDetailRequest(from urlComponent: String) -> Requestable
-    /// Transforms a list of decoded response objects into output models.
-    /// - Parameter response: The raw decoded response items.
+    /// Transform raw detail responses into output models.
     func transformResponse(_ response: [ResponseType]) -> [OutputModel]
 }
 
@@ -27,39 +21,18 @@ extension ServiceConfiguration {
     }
 }
 
-// MARK: - Generic API Service Actor
-/// A generic actor responsible for performing API requests, downloading
-/// detailed records concurrently, and transforming them into view-ready models.
+/// Generic actor that fetches a paginated list, downloads all detail records concurrently, and transforms them into output models.
 actor APIService<Config: ServiceConfiguration & Sendable> {
-    // MARK: - Private properties
-    /// The network layer used to perform HTTP requests.
     private let networkService: Network.Service
-
-    /// The configuration that defines how to build requests and transform responses.
     private let config: Config
 
-    // MARK: - Initialization
-    /// Creates a new API service with a given configuration and optional custom network service.
-    /// - Parameters:
-    ///   - networkService: The networking backend used to perform requests. Defaults to `.default`.
-    ///   - config: A configuration conforming to `ServiceConfiguration`.
     init(networkService: Network.Service = .default, config: Config) {
         self.networkService = networkService
         self.config = config
     }
 }
 
-// MARK: - Public functions
 extension APIService {
-    /// Requests a list of results, then downloads and decodes all corresponding detail objects in parallel.
-    ///
-    /// - Parameter onTick: Optional callback fired once after each detail
-    ///   response lands. Callers driving an aggregated progress counter
-    ///   tick a shared total on every call; raw (loaded, total) tuples
-    ///   aren't useful here because the bootstrap mixes this output with
-    ///   work from other services.
-    /// - Returns: An array of transformed output models defined by the configuration.
-    /// - Throws: Any error thrown by the network service or decoding pipeline.
     func requestData(onTick: (@Sendable () async -> Void)? = nil) async throws -> [Config.OutputModel] {
         let request = config.createRequest()
         let response: APIResponse = try await networkService.request(request)
@@ -83,41 +56,26 @@ extension APIService {
     }
 }
 
-// MARK: - Single-resource fetch
-
 extension APIService {
-    /// Issues a one-off request through the same `Network.Service` the actor
-    /// owns. Lets a service unify "list + parallel detail" (`requestData`)
-    /// and per-id lookups behind a single networking dependency instead of
-    /// dragging a bare `Network.Service` alongside the `APIService` actor.
     func request<T: Decodable & Sendable>(_ requestable: Requestable) async throws -> T {
         try await networkService.request(requestable)
     }
 }
 
-// MARK: - Parameter keys
-
-/// Centralised query-parameter keys used by paginated PokeAPI endpoints.
-/// Each `Requestable` reads these `rawValue`s when building its parameters
-/// so the key names stay consistent across services.
+/// Centralised query-parameter keys for PokeAPI endpoints.
 enum ParameterKey: String {
     case offset
     case limit
 }
 
-// MARK: - Default network service for the PokeAPI
 extension Network.Service {
-    /// Process-wide network service pointing at the PokeAPI base URL.
-    /// `static let` so the URL is parsed once at first access and the same
-    /// `Network.Service` instance is reused everywhere (rather than rebuilt
-    /// on every property access).
     static let `default`: Network.Service = {
         let url = try! "https://pokeapi.co/api/v2/".asURL()
         return Network.Service(server: .basic(baseURL: url), logger: SilentNetworkLogger())
     }()
 }
 
-/// No-op logger for bulk network operations.
+/// No-op network logger that suppresses all request/response output.
 struct SilentNetworkLogger: NetworkLoggerProtocol {
     func logRequest(_ request: URLRequest) {}
     func logResponse(_ data: Data, _ response: URLResponse, printJSON: Bool) {}

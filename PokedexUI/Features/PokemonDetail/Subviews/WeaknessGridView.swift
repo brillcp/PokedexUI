@@ -1,14 +1,11 @@
 import SwiftUI
 
-/// Computes type effectiveness vs the species' types and renders a bucketed
-/// grid (×4 / ×2 / ×½ / ×¼ / ×0). Reads the loaded `TypeChartLoader` directly
-/// so first-paint shows nothing until the chart is hydrated.
+/// Bucketed type-effectiveness grid showing damage multipliers.
 struct WeaknessGridView: View {
     let pokemon: PokemonViewModel
     let typeChart: TypeChartLoader
     let textColor: Color
 
-    /// Bucket attacker types by the multiplier they produce against this pokemon.
     private var buckets: [(label: String, types: [String])] {
         let defenders = pokemon.typeNames
         guard let chart = typeChart.chart else { return [] }
@@ -46,9 +43,6 @@ struct WeaknessGridView: View {
         }
     }
 
-    /// Type-tinted chips matching the row in the detail view's main
-    /// `typesRow`. Wraps with `FlowLayout` so long buckets (e.g. ×1/2 for
-    /// dual-type pokemon) wrap onto multiple lines instead of clipping.
     private func typeChips(_ types: [String]) -> some View {
         FlowLayout(spacing: 4) {
             ForEach(types, id: \.self) { type in

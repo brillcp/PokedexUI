@@ -1,10 +1,6 @@
 import SwiftUI
 
-/// Lightweight async sprite loader backed by the shared `SpriteLoader`
-/// cache. Shows a placeholder until the image lands. Used across battle
-/// screens, evolution chains, opponent pickers, and item rows. Optional
-/// `onLoaded` callback lets the parent act on the raw `UIImage` (e.g.
-/// color analysis) without a redundant cache lookup.
+/// Async sprite loader backed by the shared `SpriteLoader` cache.
 struct SpriteImage: View {
     enum Style { case circle, plain }
 

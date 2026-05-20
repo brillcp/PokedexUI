@@ -1,13 +1,6 @@
 import SwiftUI
 
-// MARK: - Setup side effects (entrance, sprite colors, winner cry)
-
 extension BattleViewModel {
-    /// Resolve each combatant's dominant sprite color in parallel. The
-    /// `ImageColorAnalyzer` caches by pokemon id, so a detail view that
-    /// already opened the same pokemon makes this a cache hit. Colors land
-    /// on the animator's per-side cue bundle and tint the pokemon's name
-    /// in the log.
     func loadSpriteColors() async {
         async let playerImage   = spriteLoader.spriteImage(from: playerPokemon.frontSprite)
         async let opponentImage = spriteLoader.spriteImage(from: opponentPokemon.frontSprite)
@@ -20,8 +13,6 @@ extension BattleViewModel {
         }
     }
 
-    /// Animate sprites in from off-stage and play the opponent's cry so the
-    /// battle opens with a recognisable audio beat.
     func playEntrance() async {
         await animator.playEntrance()
         if let cry = opponentPokemon.latestCry {
@@ -29,8 +20,6 @@ extension BattleViewModel {
         }
     }
 
-    /// Play the winning side's cry after a short beat so it lands on top
-    /// of the celebration tilt rather than the final hit's SFX.
     func playWinnerCry() async {
         guard let winner else { return }
         let cry = winner == .player ? playerPokemon.latestCry : opponentPokemon.latestCry

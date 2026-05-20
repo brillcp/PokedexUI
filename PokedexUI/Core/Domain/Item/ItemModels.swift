@@ -1,7 +1,6 @@
 import SwiftData
 
-/// One individual item from PokeAPI (Pokéball, Potion, TM, etc.). Stores
-/// the localized display name + sprite + category reference + effect list.
+/// One individual PokeAPI item with sprite, category, and effect list.
 @Model
 final class ItemDetail: Decodable {
     @Attribute(.unique) var id: Int
@@ -38,16 +37,12 @@ final class ItemDetail: Decodable {
 }
 
 extension ItemDetail {
-    /// First Effect's short text, pre-formatted. Empty string when no effect available.
     var prettyEffect: String {
         effect.first?.prettyEffect ?? ""
     }
 }
 
-// MARK: -
-
-/// Item category bucket (e.g. "Standard balls", "Healing", "Berries"). Holds
-/// the localized title + the list of `ItemDetail`s inside that category.
+/// Item category bucket holding a title and list of `ItemDetail`s.
 @Model
 final class ItemData {
     var title: String
@@ -67,10 +62,7 @@ extension ItemData {
     }
 }
 
-// MARK: -
-
-/// Optional default sprite URL for an item. Items without official sprites
-/// (rare) decode to `nil`.
+/// Optional default sprite URL for an item.
 @Model
 final class ItemSprite: Decodable {
     var `default`: String?
@@ -89,11 +81,7 @@ final class ItemSprite: Decodable {
     }
 }
 
-// MARK: -
-
-/// Short-form effect text for an item ("Restores 20 HP", etc.). PokeAPI
-/// ships one effect per language; we keep the raw short text and a
-/// pre-formatted `prettyEffect` for display.
+/// Short-form effect text for an item.
 @Model
 final class Effect: Decodable {
     var effect: String
@@ -119,7 +107,6 @@ final class Effect: Decodable {
     }
 }
 
-// MARK: -  Mock item
 extension ItemDetail {
     static var common: ItemDetail {
         .init(

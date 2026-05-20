@@ -1,15 +1,15 @@
 import SwiftUI
 
-/// Extracts the dominant color from a sprite via a downsampled 50x50 pixel
-/// scan. Caches results per pokemon id so repeat lookups in the same session
-/// skip the pixel work. Off-main by being an actor; the scan is CPU-only and
-/// short (a few ms per sprite) so it doesn't need any further parallelisation.
-actor ImageColorAnalyzer {
-    private var cache = [Int: Color]()
+/// Extracts and caches dominant sprite colors via downsampled pixel scanning.
+/// Shared via `AppContainer.imageColorAnalyzer`.
+protocol ImageColorAnalyzing: Sendable {
+    /// Extract the dominant non-black/white color for a pokemon sprite.
+    func dominantColor(for id: Int, image: UIImage) async -> Color?
 }
 
-// MARK: - Public functions
-extension ImageColorAnalyzer {
+actor ImageColorAnalyzer: ImageColorAnalyzing {
+    private var cache = [Int: Color]()
+
     func dominantColor(for id: Int, image: UIImage) -> Color? {
         if let cached = cache[id] { return cached }
 
@@ -56,11 +56,7 @@ extension ImageColorAnalyzer {
     }
 }
 
-// MARK: - Private properties
 private extension ImageColorAnalyzer {
-    /// Compact RGB triple for histogram counting. Kept private because the
-    /// outer actor's only output is a `UIColor`; this is an implementation
-    /// detail of the scan.
     struct RGB: Hashable {
         let r: UInt8
         let g: UInt8

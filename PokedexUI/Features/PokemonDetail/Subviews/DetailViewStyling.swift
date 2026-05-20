@@ -2,9 +2,6 @@ import SwiftUI
 import SwiftData
 
 extension View {
-    /// Wraps the detail view in the pixel-font toolbar, a heart-bookmark
-    /// primary action, and a vertical gradient background derived from the
-    /// dominant sprite color. Shared modifier so the view's body stays terse.
     func applyDetailViewStyling(
         viewModel: PokemonDetailViewModelProtocol,
         textColor: Color,

@@ -1,44 +1,26 @@
 import UIKit
 
-/// An actor responsible for asynchronously loading and caching sprite images from remote URLs.
-///
-/// This loader uses `URLSession` for networking and `URLCache` for in-memory/disk caching.
-/// Requests are deduplicated through the actor model, and cache hits return instantly.
-actor SpriteLoader {
-    // MARK: - Private properties
-    /// The URL session used for downloading sprite image data.
-    private let session: URLSession
+/// Async sprite loader with URL-level caching. Shared across all sprite
+/// surfaces (grid, detail, battle, items) via `AppContainer.spriteLoader`.
+protocol SpriteLoading: Sendable {
+    /// Load a sprite from a remote URL string, returning a cached hit instantly.
+    func spriteImage(from urlString: String) async -> UIImage?
+}
 
-    /// The cache used to store sprite image responses.
+actor SpriteLoader: SpriteLoading {
+    private let session: URLSession
     private let cache: URLCache
 
-    // MARK: - Initialization
-    /// Creates a new sprite loader with optional custom session and cache.
-    ///
-    /// - Parameters:
-    ///   - session: The `URLSession` instance to use. Defaults to `.shared`.
-    ///   - cache: The `URLCache` instance to use. Defaults to `.shared`.
     init(session: URLSession = .shared, cache: URLCache = .shared) {
         self.session = session
         self.cache = cache
     }
-}
 
-// MARK: - Public functions
-extension SpriteLoader {
-    /// Loads a sprite from a remote URL string.
-    ///
-    /// This method checks the cache before making a network request.
-    /// If a cached response is found, it returns the sprite immediately.
-    ///
-    /// - Parameter urlString: The remote sprite URL as a string.
-    /// - Returns: A `UIImage` if the sprite was successfully loaded or cached, otherwise `nil`.
     func spriteImage(from urlString: String) async -> UIImage? {
         guard let url = URL(string: urlString) else { return nil }
 
         let request = URLRequest(url: url)
 
-        // Return cached image if available
         if let cachedResponse = cache.cachedResponse(for: request),
            let sprite = UIImage(data: cachedResponse.data) {
             return sprite
@@ -54,14 +36,7 @@ extension SpriteLoader {
     }
 }
 
-// MARK: - Cache helper function
 private extension URLCache {
-    /// Stores a response in the cache if it is a valid HTTP response (status code 2xx).
-    ///
-    /// - Parameters:
-    ///   - response: The `URLResponse` returned by the server.
-    ///   - data: The sprite data to cache.
-    ///   - request: The associated `URLRequest` key.
     func cache(response: URLResponse, withData data: Data, for request: URLRequest) {
         guard let httpResponse = response as? HTTPURLResponse,
               200 ..< 300 ~= httpResponse.statusCode else {

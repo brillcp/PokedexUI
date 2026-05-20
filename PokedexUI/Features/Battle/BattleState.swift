@@ -1,7 +1,6 @@
 import Foundation
 
-/// Which combatant a battle event applies to. The opposite side is the
-/// natural target for damage, status, and stat-change events.
+/// Which side of the battle an event applies to.
 enum BattleSide: Hashable, Sendable {
     case player
     case opponent
@@ -9,9 +8,7 @@ enum BattleSide: Hashable, Sendable {
     var opposite: BattleSide { self == .player ? .opponent : .player }
 }
 
-/// MVP status ailment set: paralysis, burn, poison. Sleep/freeze/confusion
-/// are deliberately deferred. `displayName` is the 3-letter badge shown on
-/// the HP card.
+/// Status ailments a combatant can have.
 enum BattleStatus: String, Sendable {
     case none
     case paralysis
@@ -30,17 +27,14 @@ enum BattleStatus: String, Sendable {
     }
 }
 
-/// Engine state machine. Transitions: `.selectingMove → .resolving → .ended`
-/// (or back to `.selectingMove` for the next round). Drives whether the move
-/// grid accepts taps.
+/// Battle engine phase state machine.
 enum BattlePhase: Sendable {
     case selectingMove
     case resolving
     case ended(winner: BattleSide?)
 }
 
-/// One thing that happens during a turn. The view consumes events sequentially
-/// and animates each one (damage tween, status flash, faint, etc.).
+/// Discrete event emitted during a turn for sequential animation playback.
 enum BattleEvent: Sendable {
     case used(BattleSide, moveName: String)
     case missed(BattleSide)
@@ -58,10 +52,7 @@ enum BattleEvent: Sendable {
     case ended(winner: BattleSide?)
 }
 
-/// One side of a fight: identity + stats + mutable in-battle state (current
-/// HP, status ailment, stat stages). Built from a `PokemonViewModel` plus a
-/// chosen movepool; the engine mutates `currentHP`, `status`, and
-/// `statStages` as the round resolves.
+/// One side of a fight with identity, stats, and mutable in-battle state.
 struct BattleCombatant: Sendable {
     let id: Int
     let name: String
@@ -103,7 +94,6 @@ struct BattleCombatant: Sendable {
 
     var isFainted: Bool { currentHP <= 0 }
 
-    /// Speed accounting for paralysis halving.
     var effectiveSpeed: Int {
         status == .paralysis ? speed / 2 : speed
     }
@@ -116,16 +106,12 @@ struct BattleCombatant: Sendable {
     }
 }
 
-/// Standard Pokémon stat-stage multiplier: ±1 ≈ 1.5×, ±2 = 2×, capped at ±6.
 func statStageMultiplier(_ stage: Int) -> Double {
     let s = max(-6, min(6, stage))
     return s >= 0 ? Double(2 + s) / 2.0 : 2.0 / Double(2 - s)
 }
 
-/// Snapshot of an in-flight battle. `BattleEngine` owns the canonical state;
-/// `BattleViewModel` keeps a `state` copy that mutates one event at a time so
-/// SwiftUI animates each step in sequence rather than jumping to the final
-/// frame.
+/// Snapshot of an in-flight battle.
 struct BattleState: Sendable {
     var player: BattleCombatant
     var opponent: BattleCombatant

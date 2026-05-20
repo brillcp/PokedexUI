@@ -1,12 +1,6 @@
 import SwiftUI
 
-// MARK: - Round playback
-
 extension BattleViewModel {
-    /// Run one full round: ask the AI for the opponent's move, resolve the
-    /// engine, then walk the event list appending log lines and dispatching
-    /// each event's animation through `BattleAnimator` with a beat between
-    /// events so the player can read them.
     func submit(_ move: MoveDetail) async {
         guard let engine,
               let typeChart,
@@ -17,10 +11,6 @@ extension BattleViewModel {
         animator.attackTick += 1
         isResolvingTurn = true
 
-        // Ask the on-device AI for the opponent's move. The brain wraps
-        // the service + rolling history; service falls back to a random
-        // pick automatically if Apple Intelligence is unavailable or the
-        // model returns garbage, so this always returns a legal move.
         let opponentMove = await brain.nextMove(
             attacker:  snapshot.opponent,
             defender:  snapshot.player,
@@ -52,12 +42,7 @@ extension BattleViewModel {
     }
 }
 
-// MARK: - Private
-
 private extension BattleViewModel {
-    /// Mutate the displayed state for a single event so the HP gauge animates
-    /// only after its matching log line appears. Damage-shaped events also
-    /// trigger the floating "-N" popup through the animator.
     func apply(_ event: BattleEvent) {
         guard var snapshot = state else { return }
         switch event {
@@ -91,8 +76,6 @@ private extension BattleViewModel {
         }
     }
 
-    /// Dispatch one event to the animator. Side-effect free for events that
-    /// don't carry a visual cue (`.missed`, `.healed`, status text only).
     func play(_ event: BattleEvent) async {
         switch event {
         case .used(let side, _):

@@ -1,16 +1,12 @@
 import Foundation
 import SwiftData
 
-/// `/evolution-chain/{id}` payload. Root of a recursive evolution tree
-/// (Pichu → Pikachu → Raichu, etc.). PokedexUI flattens this into a linear
-/// stage list for the detail-view evolution row.
+/// Root of a recursive evolution tree from `/evolution-chain/{id}`.
 struct EvolutionChain: Codable, Sendable {
     let chain: EvolutionLink
 }
 
-/// SwiftData-backed cache of one `/evolution-chain/{id}` response. The wire
-/// payload is stored as JSON `Data` so the recursive `EvolutionChain` struct
-/// stays decoupled from SwiftData's relationship model.
+/// SwiftData-backed cache of one evolution chain response.
 @Model
 final class EvolutionChainEntity {
     @Attribute(.unique) var chainId: String
@@ -22,9 +18,7 @@ final class EvolutionChainEntity {
     }
 }
 
-/// One node in the evolution tree. Each link points at one species and
-/// carries any number of `evolvesTo` children with the trigger details
-/// (level, item, friendship, etc.).
+/// One node in the evolution tree pointing at a species with trigger details.
 struct EvolutionLink: Codable, Sendable {
     let species: SpeciesRef
     let evolvesTo: [EvolutionLink]
@@ -37,9 +31,7 @@ struct EvolutionLink: Codable, Sendable {
     }
 }
 
-/// Trigger metadata for an evolution edge. PokeAPI exposes many fields; we
-/// pull the most common ones (level, item, time of day, friendship) and let
-/// the UI pick whichever is most descriptive.
+/// Trigger metadata for an evolution edge (level, item, friendship, etc.).
 struct EvolutionDetail: Codable, Sendable {
     let minLevel: Int?
     let trigger: SpeciesRef?
@@ -58,8 +50,7 @@ struct EvolutionDetail: Codable, Sendable {
     }
 }
 
-/// Name + URL reference to a species. `id` parses the trailing path
-/// component of `url` so callers can map a stage back to a `Pokemon`.
+/// Name + URL reference to a species with a parsed id from the URL path.
 struct SpeciesRef: Codable, Sendable, Hashable {
     let name: String
     let url: String?
@@ -73,18 +64,13 @@ struct SpeciesRef: Codable, Sendable, Hashable {
     }
 }
 
-// MARK: - Flattened stage view
 extension EvolutionChain {
-    /// Flattened evolution stage: one species plus the trigger that produced
-    /// it (nil for the first stage). Used directly by `EvolutionChainView`.
     struct Stage: Identifiable {
         let species: SpeciesRef
         let trigger: EvolutionDetail?
         var id: String { species.name }
     }
 
-    /// Linear flattening: picks the first branch at each fork. Sufficient for
-    /// most pokemon; branched evolutions (eevee, wurmple) will only show one path.
     var stages: [Stage] {
         var out: [Stage] = [Stage(species: chain.species, trigger: nil)]
         var node = chain

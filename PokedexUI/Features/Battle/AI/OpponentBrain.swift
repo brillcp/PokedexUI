@@ -1,9 +1,6 @@
 import Foundation
 
-/// Stateful wrapper around `BattleAIServiceProtocol` that owns the rolling
-/// move-history window the AI prompt uses to avoid repetitive play. Lets
-/// `BattleViewModel` ask "what's the opponent's next move?" without
-/// shuttling the history buffer + trim logic through its own properties.
+/// Wraps `BattleAIServiceProtocol` with a rolling move-history window.
 @MainActor
 final class OpponentBrain {
     private let service: BattleAIServiceProtocol
@@ -15,10 +12,6 @@ final class OpponentBrain {
         self.historyLimit = historyLimit
     }
 
-    /// Resolve the opponent's next move and append it to the rolling
-    /// history window. Falls back to the underlying service's behavior on
-    /// AI unavailability (random pick), so the returned move is always
-    /// legal.
     func nextMove(
         attacker: BattleCombatant,
         defender: BattleCombatant,

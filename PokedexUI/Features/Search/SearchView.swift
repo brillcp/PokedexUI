@@ -1,8 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// Search tab. Owns its own `@Query` against the SwiftData store so it
-/// always reflects the full corpus without prop-drilling from the grid.
+/// Search tab backed by its own SwiftData `@Query` against the full corpus.
 struct SearchView: View {
     @FocusState private var isSearchFocused: Bool
     @Namespace private var namespace
@@ -43,8 +42,6 @@ struct SearchView: View {
         .sensoryFeedback(.impact(weight: .light), trigger: viewModel.query)
     }
 }
-
-// MARK: - Subviews
 
 private extension SearchView {
     @ViewBuilder

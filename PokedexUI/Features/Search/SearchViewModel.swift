@@ -1,8 +1,7 @@
 import Foundation
 import SwiftData
 
-/// Search works against the full `[Pokemon]` corpus from SwiftData.
-/// The view model owns only the query string and the filter logic.
+/// Search protocol owning the query string and filter logic against a Pokemon corpus.
 @MainActor
 protocol SearchViewModelProtocol {
     /// The filtered list based on the current query.
@@ -24,10 +23,7 @@ protocol SearchViewModelProtocol {
     func clearRecentSearches()
 }
 
-// MARK: - SearchViewModel
-
-/// Live implementation of `SearchViewModelProtocol`. Corpus is fed from
-/// SearchView's `@Query`; no network calls involved.
+/// Live implementation of `SearchViewModelProtocol` fed from SearchView's `@Query`.
 @Observable
 final class SearchViewModel {
     private static let recentSearchesKey = "search.recentSearches"
@@ -40,11 +36,6 @@ final class SearchViewModel {
         "electric bug", "ghost dark"
     ]
 
-    /// Pokemon + a normalized search haystack pre-built once when the corpus
-    /// lands. Concatenates name, types, genus, habitat, and abilities so the
-    /// keystroke-time filter is a flat substring scan instead of triggering
-    /// SwiftData relationship faults + repeated `normalize` allocations on
-    /// every row, every keystroke.
     private struct Entry {
         let pokemon: Pokemon
         let haystack: String
@@ -54,16 +45,9 @@ final class SearchViewModel {
     private var indexTask: Task<Void, Never>?
     private let defaults: UserDefaults
 
-    /// The filtered data.
     var filtered: [Pokemon] = []
-
-    /// The current search query entered by the user.
     var query: String = ""
-
-    /// Most-recent submitted search terms, newest first.
     var recentSearches: [String]
-
-    /// Two random Pokemon sampled once from the corpus.
     var suggestedPokemon: [Pokemon] = []
 
     init(defaults: UserDefaults = .standard) {
@@ -71,8 +55,6 @@ final class SearchViewModel {
         self.recentSearches = defaults.stringArray(forKey: Self.recentSearchesKey) ?? []
     }
 }
-
-// MARK: - SearchViewModelProtocol
 
 extension SearchViewModel: SearchViewModelProtocol {
     func updateCorpus(_ corpus: [Pokemon]) {
@@ -85,7 +67,6 @@ extension SearchViewModel: SearchViewModelProtocol {
         }
     }
 
-    /// Filters the internal list based on the current query.
     func updateFilteredPokemon() {
         let queryTerms = query
             .split(whereSeparator: \.isWhitespace)
@@ -119,14 +100,7 @@ extension SearchViewModel: SearchViewModelProtocol {
     }
 }
 
-// MARK: - Private
-
 private extension SearchViewModel {
-    /// Walks the corpus in chunks, building each pokemon's haystack and
-    /// yielding to the main run loop between batches so the SwiftData
-    /// relationship faults (types, abilities) don't block the keyboard
-    /// while the user is typing. Re-runs cheap rebuilds when the corpus
-    /// updates.
     @MainActor
     func rebuildIndex(corpus: [Pokemon]) async {
         var built: [Entry] = []

@@ -1,11 +1,9 @@
 import SwiftUI
 
-/// Items tab. Paginated list of every PokeAPI item (potions, balls, TMs,
-/// etc.). Tapping a row pushes `ItemDetailView`.
+/// Items tab showing a paginated list of every PokeAPI item.
 struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
     @State var viewModel: ViewModel
 
-    // MARK: - Body
     var body: some View {
         List(viewModel.items, id: \.title) { item in
             itemRow(for: item)
@@ -26,7 +24,6 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
     }
 }
 
-// MARK: - View Components
 private extension ItemListView {
     func itemRow(for item: ItemData) -> some View {
         ZStack {

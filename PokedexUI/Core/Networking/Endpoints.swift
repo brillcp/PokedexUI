@@ -1,6 +1,6 @@
 import Networking
 
-/// An enumeration for all the possible endpoints for the backend
+/// All PokeAPI endpoint paths.
 enum Endpoint {
     case itemDetails(String)
     case pokemonDetails(String)
@@ -14,7 +14,6 @@ enum Endpoint {
     case evolutionChain(String)
 }
 
-// MARK: - EndpointType
 extension Endpoint: EndpointType {
     var path: String {
         switch self {

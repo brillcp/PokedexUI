@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Grid of `Pokemon` rows used by the pokedex, search, and bookmarks tabs.
-/// Tapping a cell pushes `PokemonDetailView`. `isLoading` only shows a
-/// spinner on a cold start when the list is still empty.
+/// Shared Pokemon grid used by the pokedex, search, and bookmarks tabs.
 struct PokedexGridView: View {
     @Namespace private var namespace
     @Environment(\.container) private var container
@@ -42,10 +40,7 @@ struct PokedexGridView: View {
     }
 }
 
-// MARK: - Indexing overlay
-
-/// Full-screen overlay shown during first-load API fetch with a
-/// determinate progress bar and percentage label.
+/// Full-screen progress overlay shown during first-load API fetch.
 private struct IndexingOverlay: View {
     let progress: Double
 
@@ -61,11 +56,7 @@ private struct IndexingOverlay: View {
     }
 }
 
-// MARK: - Grid item
-
-/// Single cell in the pokedex grid. Loads the dominant sprite color for
-/// the background tint and uses `SpriteImage` for the sprite itself.
-/// Overlays id + name in 3-column layout.
+/// Single cell in the pokedex grid with sprite and color-tinted background.
 private struct PokedexGridItem: View {
     @Environment(\.container) private var container
 
@@ -102,10 +93,7 @@ private struct PokedexGridItem: View {
     }
 }
 
-// MARK: - Card overlay
-
-/// Id pill (top-right) + name (bottom-left) overlaid on the sprite.
-/// Foreground color flips to black on light sprite backgrounds.
+/// Id pill and name overlaid on the sprite cell.
 private struct CardOverlay: View {
     let id: Int
     let name: String

@@ -1,10 +1,9 @@
 import Networking
 
 /// Network surface for the `/type` PokeAPI endpoint. Loads damage relations
-/// for the 18 elemental types in one parallel sweep at app start.
+/// for the 18 elemental types.
 protocol TypeServiceProtocol {
-    /// Fetch the full type chart (18 entries). Filters out the meta-types
-    /// `unknown` and `shadow` which carry no battle data.
+    /// Fetch the full type chart (18 entries), filtering meta-types.
     func requestTypes() async throws -> [TypeDetail]
 }
 
@@ -24,8 +23,6 @@ extension TypeService: TypeServiceProtocol {
 }
 
 extension TypeService {
-    /// Generic `ServiceConfiguration` plugged into `APIService`. Drives the
-    /// list-then-detail fetch pattern for the type chart.
     struct Config: ServiceConfiguration {
         typealias ResponseType = TypeDetail & Sendable
         typealias OutputModel = TypeDetail
@@ -38,7 +35,6 @@ extension TypeService {
             TypeRequest.detail(urlComponent)
         }
 
-        /// Drop generated meta-types (`unknown`, `shadow`) that have no battle data.
         func transformResponse(_ response: [ResponseType]) -> [OutputModel] {
             response.filter { !$0.name.isEmpty && $0.name != "unknown" && $0.name != "shadow" }
         }

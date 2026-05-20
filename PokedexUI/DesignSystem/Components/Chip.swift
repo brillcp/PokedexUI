@@ -1,12 +1,6 @@
 import SwiftUI
 
-/// Small inline pill used throughout the app: type chips, generation badges,
-/// effectiveness markers, status tags. All chips share the same squared
-/// 4-point corner radius so the gameboy-style aesthetic is consistent
-/// (capsule corners look too modern next to the pixel font).
-///
-/// Pass a `Style` to switch between the common tint variants instead of
-/// passing raw colors at every call site. Custom one-offs can use `.custom`.
+/// Small inline pill used for type chips, badges, and status tags.
 struct Chip: View {
     let text: String
     let style: Style
@@ -31,23 +25,13 @@ struct Chip: View {
     }
 }
 
-// MARK: - Style
-
 extension Chip {
-    /// Visual tint of the chip. Map any new use case to one of these instead
-    /// of inventing a color inline at the call site.
     enum Style {
-        /// Subtle white-on-dark fill. Default for type tags and metadata.
         case neutral
-        /// Translucent accent used for "GEN I" style version badges.
         case accent
-        /// Red call-out for legendary, mythical, VS badges.
         case primary
-        /// Green for super-effective markers, "x2" / win banners.
         case success
-        /// Red for resisted-effectiveness, lose banners.
         case danger
-        /// Caller-supplied colors for one-off variants.
         case custom(background: Color, foreground: Color = .white)
 
         var background: Color {
@@ -70,8 +54,6 @@ extension Chip {
         }
     }
 
-    /// Font + padding scale. `small` is the default chip; `medium` is for
-    /// hero badges like the "VS" between two fighter cards.
     enum Size {
         case small
         case medium

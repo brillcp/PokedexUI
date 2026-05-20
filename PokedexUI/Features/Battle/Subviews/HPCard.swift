@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Name, status pill, HP gauge and HP text for one combatant. Equatable so
-/// SwiftUI's diffing can skip re-rendering the other side's card during
-/// per-event animations.
+/// HP gauge card for one battle combatant.
 struct HPCard: View, Equatable {
     let name: String
     let currentHP: Int

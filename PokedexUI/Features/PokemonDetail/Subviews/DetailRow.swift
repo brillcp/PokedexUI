@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Circular glass icon button used for the action row above the sprite
-/// (Fight, Play Cry). Tap target padded for thumb comfort.
+/// Circular glass icon button used for the action row above the sprite.
 struct DetailButton: View {
     let icon: String
     let action: () -> Void
@@ -18,8 +17,7 @@ struct DetailButton: View {
     }
 }
 
-/// Generic "Label: value" row used throughout the detail content section.
-/// Label width is fixed so multiple rows align cleanly.
+/// Generic "Label: value" row with fixed-width labels for alignment.
 struct DetailRow: View {
     let title: String
     let subtitle: String
@@ -35,8 +33,7 @@ struct DetailRow: View {
     }
 }
 
-/// A labelled gauge used for the six base stats. Abbreviates long stat names
-/// (`special-attack` → `SATK`) so the row fits on narrow widths.
+/// Labelled gauge for base stats with abbreviated stat names.
 struct DetailRowStat: View {
     let title: String
     let value: Int

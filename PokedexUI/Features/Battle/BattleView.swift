@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Gameboy-styled turn-based battle screen. Renders the arena (sprites + HP
-/// cards), a scrolling event log, and a 2x2 move grid. The view itself owns
-/// no battle logic; it animates events produced by `BattleViewModel` +
-/// `BattleEngine`.
+/// Gameboy-styled turn-based battle screen.
 struct BattleView: View {
     @State var viewModel: BattleViewModel
 
@@ -25,8 +22,6 @@ struct BattleView: View {
     }
 
 }
-
-// MARK: - Layout
 
 private extension BattleView {
     @ViewBuilder
@@ -57,8 +52,6 @@ private extension BattleView {
         .padding(.bottom, 24.0)
     }
 
-    /// Classic Gameboy-style layout: opponent top-right with HP top-left,
-    /// player bottom-left (back sprite) with HP bottom-right.
     func arena(state: BattleState) -> some View {
         VStack(spacing: 48.0) {
             HStack(alignment: .top) {
@@ -99,10 +92,6 @@ private extension BattleView {
         )
     }
 
-    /// HP card with type chips. Opponent shows chips ABOVE the glass card,
-    /// player shows them BELOW, so each side's "id badge" sits next to the
-    /// sprite it represents (opponent sprite is below its card, player sprite
-    /// is above its card).
     func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
         VStack(alignment: side == .opponent ? .leading : .trailing, spacing: 8) {
             if side == .opponent {

@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Two-tone horizontal bar showing male/female distribution from PokeAPI's
-/// `gender_rate` (−1 = genderless, else `rate/8` is the female fraction).
+/// Two-tone horizontal bar showing male/female distribution.
 struct GenderRow: View {
     let rate: Int
     let textColor: Color

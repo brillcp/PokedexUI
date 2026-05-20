@@ -1,34 +1,21 @@
 import Foundation
 import FoundationModels
 
-/// On-device AI for the battle screen: picks moves, opponents, and loadouts.
-///
-/// Each call gets a fresh `LanguageModelSession` to avoid context-window
-/// overflow and session-state corruption across turns.
-///
-/// `.permissiveContentTransformations` guardrails are required because Pokemon
-/// move/status names ("hyper-beam", "burn", "poison") false-positive the
-/// default safety classifier. This is string-only generation; guided
-/// generation (@Generable) re-enables default guardrails and would break this.
-///
-/// Every call degrades gracefully to a deterministic fallback if Apple
-/// Intelligence is unavailable or generation fails.
+/// On-device AI for battle decisions with deterministic fallbacks.
 protocol BattleAIServiceProtocol: Sendable {
+    /// Pick the best move for this turn.
     func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String]) async -> MoveDetail
-    /// Pick an opponent id from the supplied candidate snapshots. The caller
-    /// maps the returned id back to a SwiftData `Pokemon` on the main actor.
-    /// Falls back to a deterministic matchup heuristic when the model is
-    /// unavailable or can't decide.
+    /// Pick an opponent id from candidate snapshots.
     func chooseOpponent(player: OpponentCandidateSnapshot, candidates: [OpponentCandidateSnapshot], typeChart: TypeChart?) async -> Int?
+    /// Pick a 4-move loadout for a 1v1 battle.
     func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
 }
 
+/// Battle AI actor backed by on-device Foundation Models.
 actor BattleAIService: BattleAIServiceProtocol {
     private let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
     private let prompts = BattleAIPromptBuilder()
     private var isGenerating = false
-
-    // MARK: - BattleAIServiceProtocol
 
     func chooseMove(
         attacker: BattleCombatant,
@@ -57,8 +44,7 @@ actor BattleAIService: BattleAIServiceProtocol {
                moves.indices.contains(originalIdx) {
                 let modelMove = moves[originalIdx]
                 let modelEff = effectiveness[originalIdx]
-                // Only override immune picks. The loadout was already
-                // vetted; tactical variety is desirable, not a bug.
+                // Only override immune picks
                 if modelEff == 0, fallback.name != modelMove.name {
                     print("[llm] chooseMove: repaired \(modelMove.name) -> \(fallback.name) (immune)")
                     return fallback
@@ -148,8 +134,6 @@ actor BattleAIService: BattleAIServiceProtocol {
     }
 
 }
-
-// MARK: - Private
 
 private extension BattleAIService {
     var isAvailable: Bool {

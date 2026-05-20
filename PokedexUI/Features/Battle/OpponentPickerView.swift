@@ -1,20 +1,9 @@
 import SwiftUI
 import SwiftData
 
-/// Sheet shown from `PokemonDetailView` to choose a battle opponent. Backed by
-/// `Pokemon` rows (the same lightweight store the pokedex grid uses), so
-/// the picker pops instantly even on a cold install where full pokemon haven't
-/// been hydrated yet.
-///
-/// The picker owns its own `NavigationStack` so tapping an opponent pushes
-/// `BattleSetupView` on top. System back returns to the picker; "Battle!"
-/// dismisses the whole sheet and bubbles the launch payload up to the detail
-/// view, which then pushes `BattleView` on its own nav stack.
+/// Sheet for choosing a battle opponent from the full pokedex.
 struct OpponentPickerView: View {
     let player: Pokemon
-    /// Player's type names (e.g. ["grass", "poison"]). Passed straight into
-    /// the AI prompt for smart-pick so the model picks against the actual
-    /// matchup instead of relying on training recall.
     let playerTypes: [String]
     let onStart: (BattleLaunch) -> Void
 
@@ -22,10 +11,7 @@ struct OpponentPickerView: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
     @Query private var allPokemon: [Pokemon]
-    /// `true` while the AI is running on a button-tap. Disables the button
-    /// + flips the label to "Thinking" so the user sees the work happen.
     @State private var isAIThinking = false
-    /// When non-nil, pushes `BattleSetupView` onto this view's nav stack.
     @State private var setupOpponent: Pokemon?
 
     init(
@@ -36,7 +22,6 @@ struct OpponentPickerView: View {
         self.player = player
         self.playerTypes = playerTypes
         self.onStart = onStart
-        // Exclude the player from the candidate list. Sort by id (pokedex order).
         let playerId = player.id
         _allPokemon = Query(
             filter: #Predicate<Pokemon> { $0.id != playerId },
@@ -83,8 +68,6 @@ struct OpponentPickerView: View {
                         typeChart: container.typeChart
                     ),
                     onStart: { launch in
-                        // Sheet collapses; detail view picks up the launch
-                        // and pushes the battle screen.
                         dismiss()
                         onStart(launch)
                     }
@@ -94,8 +77,6 @@ struct OpponentPickerView: View {
     }
 
 }
-
-// MARK: - Subviews + actions
 
 private extension OpponentPickerView {
     var pickerButton: some View {
@@ -108,10 +89,6 @@ private extension OpponentPickerView {
         .padding(.horizontal, 24)
     }
 
-    /// Pre-flight check on the main actor, snapshot what the AI needs, then
-    /// fan out three parallel off-main tasks: bootstrap the battle caches
-    /// (moves + type chart) so the loadout view doesn't cold-start, and run
-    /// the AI inference against pure Sendable snapshots.
     func pickSmart() {
         guard !allPokemon.isEmpty, !isAIThinking else { return }
         isAIThinking = true
@@ -120,8 +97,6 @@ private extension OpponentPickerView {
         runOpponentPick(pool: pool)
     }
 
-    /// Fire-and-forget bootstrap for the loadout view's dependencies. Both
-    /// services guard internally, so re-tapping Random is a no-op.
     func warmBattleCaches() {
         let modelContainer = modelContext.container
         let appContainer = container
@@ -133,9 +108,6 @@ private extension OpponentPickerView {
         }
     }
 
-    /// Build Sendable snapshots on main, run the AI off-main, map the
-    /// picked id back to a SwiftData `Pokemon` on return. Falls back to a
-    /// random candidate if the AI returns nothing.
     func runOpponentPick(pool: [Pokemon]) {
         let playerSnapshot = OpponentCandidateSnapshot.player(player, fallbackTypes: playerTypes)
         let candidateSnapshots = pool.map(OpponentCandidateSnapshot.candidate)
@@ -156,11 +128,7 @@ private extension OpponentPickerView {
     }
 }
 
-// MARK: - Cell
-
-/// Sprite-over-name grid cell shared by the opponent picker and the search
-/// empty-state suggestions. Caller wraps in a `Button` / `NavigationLink` to
-/// supply the tap behavior.
+/// Sprite-over-name grid cell for the opponent picker.
 struct PokemonSpriteCard: View, Equatable {
     let pokemon: Pokemon
 
