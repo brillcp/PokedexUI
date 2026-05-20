@@ -38,7 +38,7 @@ protocol BattleSetupViewModelProtocol {
 
 /// Live implementation of `BattleSetupViewModelProtocol`.
 @Observable
-final class BattleSetupViewModel: BattleSetupViewModelProtocol {
+final class BattleSetupViewModel {
     let playerSummary:   Pokemon
     let opponentSummary: Pokemon
     let maxSelections:   Int = 4
@@ -68,7 +68,9 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
         self.aiService      = aiService
         self.typeChartLoader = typeChart
     }
+}
 
+extension BattleSetupViewModel: BattleSetupViewModelProtocol {
     var isReady: Bool {
         playerPokemon != nil
             && opponentPokemon != nil
@@ -95,8 +97,6 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
         let byName = Dictionary(uniqueKeysWithValues: playerMovePool.map { ($0.name, $0) })
         return selectionOrder.compactMap { byName[$0] }
     }
-
-    // MARK: - Preparation
 
     func prepare(modelContext: ModelContext) async {
         let player   = PokemonViewModel(pokemon: playerSummary)
@@ -147,7 +147,6 @@ final class BattleSetupViewModel: BattleSetupViewModelProtocol {
             }
         }
     }
-
 }
 
 private extension BattleSetupViewModel {

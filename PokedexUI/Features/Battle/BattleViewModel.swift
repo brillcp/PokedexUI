@@ -31,7 +31,7 @@ protocol BattleViewModelProtocol: AnyObject {
 /// Live implementation of `BattleViewModelProtocol`.
 @MainActor
 @Observable
-final class BattleViewModel: BattleViewModelProtocol {
+final class BattleViewModel {
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
     let playerMoves:     [MoveDetail]
@@ -82,7 +82,9 @@ final class BattleViewModel: BattleViewModelProtocol {
             activateEngine(state: initialState, chart: chart)
         }
     }
+}
 
+extension BattleViewModel: BattleViewModelProtocol {
     func prepare() async {
         if engine == nil {
             await typeChartLoader.loadIfNeeded()
