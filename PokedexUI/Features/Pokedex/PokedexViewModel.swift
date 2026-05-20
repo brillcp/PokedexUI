@@ -44,7 +44,6 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         guard !isLoading else { return }
 
         if let cached = try? await fetcher.fetchStoredData(), !cached.isEmpty {
-            await fetcher.warmCachedCaches()
             return
         }
 

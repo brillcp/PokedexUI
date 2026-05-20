@@ -147,11 +147,11 @@ struct PokemonFetcher: DataFetcher {
     }
 
     func fetchStoredData() async throws -> [Pokemon] {
-        try await storage.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
-    }
-
-    func warmCachedCaches() async {
-        await typeChart.warmUp(modelContainer: modelContainer)
+        let cached = try await storage.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
+        if !cached.isEmpty {
+            await typeChart.warmUp(modelContainer: modelContainer)
+        }
+        return cached
     }
 
     func fetchAPIData() async throws -> [Pokemon] {
