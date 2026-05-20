@@ -38,7 +38,7 @@ struct BattlerSprite: View {
         AsyncImage(url: url.flatMap(URL.init(string:))) { image in
             image.resizable().aspectRatio(contentMode: .fit)
         } placeholder: {
-            Color(.systemGray4).clipShape(Circle())
+            Color.cardBackground.clipShape(Circle())
         }
         .frame(width: 120, height: 148)
         .modifier(ShakeEffect(animatableData: CGFloat(shakeTick)))

@@ -19,7 +19,7 @@ struct ItemSpriteView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } else {
-                Color(.systemGray4)
+                Color.cardBackground
                     .clipShape(Circle())
             }
         }

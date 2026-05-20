@@ -15,7 +15,7 @@ struct AsyncSpriteView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGray4)
+            Color.cardBackground
             if let sprite {
                 sprite
                     .resizable()
@@ -36,13 +36,13 @@ struct AsyncSpriteView: View {
         .aspectRatio(1.0, contentMode: .fit)
         .task(id: viewModel.id) {
             guard let image = await container.spriteLoader.spriteImage(from: viewModel.frontSprite),
-                  let uicolor = await container.imageColorAnalyzer.dominantColor(for: viewModel.id, image: image)
+                  let color = await container.imageColorAnalyzer.dominantColor(for: viewModel.id, image: image)
             else { return }
 
-            let resolved = Color(uiColor: uicolor)
+            let resolved = color
             isLight = resolved.isLight
             withAnimation(.easeInOut(duration: 0.4)) {
-                color = resolved
+                self.color = resolved
                 sprite = Image(uiImage: image)
             }
         }

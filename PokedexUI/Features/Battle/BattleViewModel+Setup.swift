@@ -12,11 +12,11 @@ extension BattleViewModel {
         async let playerImage   = spriteLoader.spriteImage(from: playerPokemon.frontSprite)
         async let opponentImage = spriteLoader.spriteImage(from: opponentPokemon.frontSprite)
         let (pImg, oImg) = await (playerImage, opponentImage)
-        if let pImg, let ui = await imageColorAnalyzer.dominantColor(for: playerPokemon.id, image: pImg) {
-            animator.mutateCues(.player) { $0.color = Color(uiColor: ui) }
+        if let pImg, let color = await imageColorAnalyzer.dominantColor(for: playerPokemon.id, image: pImg) {
+            animator.mutateCues(.player) { $0.color = color }
         }
-        if let oImg, let ui = await imageColorAnalyzer.dominantColor(for: opponentPokemon.id, image: oImg) {
-            animator.mutateCues(.opponent) { $0.color = Color(uiColor: ui) }
+        if let oImg, let color = await imageColorAnalyzer.dominantColor(for: opponentPokemon.id, image: oImg) {
+            animator.mutateCues(.opponent) { $0.color = color }
         }
     }
 

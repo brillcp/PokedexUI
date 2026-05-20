@@ -154,13 +154,9 @@ private extension SearchView {
         ) {
             ForEach(viewModel.suggestedPokemon, id: \.id) { pokemon in
                 NavigationLink(value: pokemon) {
-                    PokemonSpriteCard(
-                        id: pokemon.id,
-                        name: pokemon.name.capitalized,
-                        spriteURL: pokemon.frontSprite
-                    )
-                    .matchedTransitionSource(id: pokemon.id, in: namespace)
-                    .tint(.white)
+                    PokemonSpriteCard(pokemon: pokemon)
+                        .matchedTransitionSource(id: pokemon.id, in: namespace)
+                        .tint(.white)
                 }
             }
         }

@@ -58,11 +58,7 @@ struct OpponentPickerView: View {
                         Button {
                             setupOpponent = pokemon
                         } label: {
-                            PokemonSpriteCard(
-                                id: pokemon.id,
-                                name: pokemon.name.capitalized,
-                                spriteURL: pokemon.frontSprite
-                            )
+                            PokemonSpriteCard(pokemon: pokemon)
                         }
                         .buttonStyle(.plain)
                     }
@@ -166,23 +162,24 @@ private extension OpponentPickerView {
 /// empty-state suggestions. Caller wraps in a `Button` / `NavigationLink` to
 /// supply the tap behavior.
 struct PokemonSpriteCard: View, Equatable {
-    let id: Int
-    let name: String
-    let spriteURL: String
-
-    static func == (lhs: PokemonSpriteCard, rhs: PokemonSpriteCard) -> Bool {
-        lhs.id == rhs.id && lhs.name == rhs.name && lhs.spriteURL == rhs.spriteURL
-    }
+    let pokemon: Pokemon
 
     var body: some View {
-        VStack(spacing: 0) {
-            SpritePlaceholder(url: spriteURL)
+        VStack(spacing: 12) {
+            SpritePlaceholder(url: pokemon.frontSprite)
                 .frame(height: 92)
-                .frame(maxWidth: .infinity)
-            Text(name)
+            Text(pokemon.name)
                 .font(.pixel12)
-                .padding(.bottom, 12)
+            HStack {
+                ForEach(pokemon.types) { type in
+                    Chip(
+                        type.type.name.uppercased(),
+                        style: .custom(background: TypeColor.color(for: type.type.name))
+                    )
+                }
+            }
         }
+        .padding(.vertical)
         .frame(maxWidth: .infinity)
         .background(Color.cardBackground)
     }
@@ -201,11 +198,11 @@ private struct SpritePlaceholder: View, Equatable {
             case .success(let image):
                 image.resizable().aspectRatio(contentMode: .fit)
             case .empty, .failure:
-                Color(.systemGray4)
+                Color.cardBackground
                     .clipShape(Circle())
                     .padding(24)
             @unknown default:
-                Color(.systemGray4).clipShape(Circle()).padding(24)
+                Color.cardBackground.clipShape(Circle()).padding(24)
             }
         }
     }

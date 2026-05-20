@@ -111,14 +111,24 @@ extension MoveDetail {
         "shadow-force", "geomancy", "meteor-beam"
     ]
 
+    /// Moves that KO the user after firing. The engine doesn't
+    /// implement self-destruct; without the blacklist these land as
+    /// free 250-power hits with no drawback.
+    private static let selfKOMoves: Set<String> = [
+        "explosion", "self-destruct", "memento", "healing-wish",
+        "lunar-dance", "final-gambit", "misty-explosion"
+    ]
+
     var isRechargeMove: Bool { Self.rechargeMoves.contains(name) }
     var isChargingMove: Bool { Self.chargingMoves.contains(name) }
+    var isSelfKOMove: Bool { Self.selfKOMoves.contains(name) }
 
     /// `true` when the battle engine can meaningfully resolve this move.
     /// Filters out protection, field effects, charging moves, and other
     /// unimplemented mechanics so they never appear in the battle move picker.
     var isBattleReady: Bool {
         if isChargingMove { return false }
+        if isSelfKOMove { return false }
         if (power ?? 0) > 0 { return true }
         if healing > 0 || name == "rest" { return true }
         if !statChangeNames.isEmpty { return true }

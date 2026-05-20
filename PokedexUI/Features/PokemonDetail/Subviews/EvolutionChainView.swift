@@ -46,7 +46,7 @@ private extension EvolutionChainView {
                     AsyncImage(url: URL(string: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(id).png")) { image in
                         image.resizable().aspectRatio(contentMode: .fit)
                     } placeholder: {
-                        Color(.systemGray4).clipShape(Circle())
+                        Color.cardBackground.clipShape(Circle())
                     }
                     .frame(width: 72, height: 72)
                 }

@@ -64,20 +64,3 @@ extension RoundedRectangle {
         RoundedRectangle(cornerRadius: CornerRadius.card)
     }
 }
-
-extension UIColor {
-    /// 6-character lowercase hex (no `#`), e.g. "ffcb05". Used to persist the
-    /// dominant sprite color onto `Pokemon` so the next detail-view open
-    /// renders its gradient background on frame 1.
-    var hexString: String {
-        var red: CGFloat = 0
-        var green: CGFloat = 0
-        var blue: CGFloat = 0
-        var alpha: CGFloat = 0
-        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        let r = Int(round(red * 255))
-        let g = Int(round(green * 255))
-        let b = Int(round(blue * 255))
-        return String(format: "%02x%02x%02x", r, g, b)
-    }
-}

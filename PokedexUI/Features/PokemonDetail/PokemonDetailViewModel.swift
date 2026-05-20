@@ -86,9 +86,8 @@ extension PokemonDetailViewModel: PokemonDetailViewModelProtocol {
     func loadSpritesAndColor() async {
         guard let image = await spriteLoader.spriteImage(from: pokemon.frontSprite) else { return }
         sprite = Image(uiImage: image)
-        if color == nil,
-           let uicolor = await imageColorAnalyzer.dominantColor(for: pokemon.id, image: image) {
-            color = Color(uiColor: uicolor)
+        if color == nil, let color = await imageColorAnalyzer.dominantColor(for: pokemon.id, image: image) {
+            self.color = color
         }
     }
 

@@ -1,16 +1,16 @@
-import UIKit
+import SwiftUI
 
 /// Extracts the dominant color from a sprite via a downsampled 50x50 pixel
 /// scan. Caches results per pokemon id so repeat lookups in the same session
 /// skip the pixel work. Off-main by being an actor; the scan is CPU-only and
 /// short (a few ms per sprite) so it doesn't need any further parallelisation.
 actor ImageColorAnalyzer {
-    private var cache = [Int: UIColor]()
+    private var cache = [Int: Color]()
 }
 
 // MARK: - Public functions
 extension ImageColorAnalyzer {
-    func dominantColor(for id: Int, image: UIImage) -> UIColor? {
+    func dominantColor(for id: Int, image: UIImage) -> Color? {
         if let cached = cache[id] { return cached }
 
         guard let cgImage = image.resize(to: CGSize(width: 50, height: 50))?.cgImage,
@@ -45,17 +45,12 @@ extension ImageColorAnalyzer {
 
         guard var dominant = sortedColors.first?.key else { return nil }
 
-        if dominant.isBlackOrWhite {
-            for (candidate, count) in sortedColors.dropFirst() {
-                if Double(count) / Double(colorCounts[dominant] ?? 1) > 0.3,
-                   !candidate.isBlackOrWhite {
-                    dominant = candidate
-                    break
-                }
-            }
+        if dominant.isBlackOrWhite,
+           let fallback = sortedColors.first(where: { !$0.key.isBlackOrWhite })?.key {
+            dominant = fallback
         }
 
-        let final = dominant.toUIColor()
+        let final = dominant.toColor()
         cache[id] = final
         return final
     }
@@ -80,8 +75,8 @@ private extension ImageColorAnalyzer {
             return luminance < 127.5
         }
 
-        func toUIColor() -> UIColor {
-            UIColor(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: 1)
+        func toColor() -> Color {
+            Color(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255)
         }
     }
 }

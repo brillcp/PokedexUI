@@ -10,7 +10,7 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
         List(viewModel.items, id: \.title) { item in
             itemRow(for: item)
                 .listRowBackground(Color.clear)
-                .listRowSeparatorTint(Color(.systemGray4))
+                .listRowSeparatorTint(Color.cardBackground)
         }
         .font(.pixel14)
         .foregroundStyle(.white)
