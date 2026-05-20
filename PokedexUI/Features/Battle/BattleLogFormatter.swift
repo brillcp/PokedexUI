@@ -85,7 +85,7 @@ private extension BattleLogFormatter {
     func legibleColor(_ color: Color) -> Color {
         let resolved = color.resolve(in: .init())
         let luminance = 0.2126 * Double(resolved.red) + 0.7152 * Double(resolved.green) + 0.0722 * Double(resolved.blue)
-        return luminance < 0.18 ? .white : color
+        return luminance < 0.32 ? .white : color
     }
 
     func statusColor(_ status: BattleStatus) -> Color {
