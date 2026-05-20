@@ -78,7 +78,7 @@ private struct PokedexGridItem: View {
 
     var body: some View {
         NavigationLink(value: pokemon) {
-            SpriteImage(url: pokemon.frontSprite) { uiImage in
+            SpriteImage(url: pokemon.frontSprite, style: .plain) { uiImage in
                 guard let resolved = await container.imageColorAnalyzer.dominantColor(for: pokemon.id, image: uiImage)
                 else { return }
                 isLight = resolved.isLight

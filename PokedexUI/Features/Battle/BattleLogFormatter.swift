@@ -27,12 +27,12 @@ struct BattleLogFormatter {
         }
         switch event {
         case .used(let side, let moveName):
-            return nameAttr(side) + plain(" used ") + bold(moveName) + plain("!")
+            return nameAttr(side) + plain(" used ") + bold(moveName)
         case .missed(let side):
             return nameAttr(side) + plain("'s attack missed.")
         case .damaged(let side, let amount, let effectiveness, let crit):
             if effectiveness == 0 {
-                return plain("It had no effect on ") + nameAttr(side) + plain("!")
+                return plain("It had no effect on ") + nameAttr(side)
             }
             var line = nameAttr(side) + plain(" took ") + colored("\(amount) dmg", .red)
             if crit { line += colored(" (critical hit!)", .yellow) }
@@ -48,9 +48,9 @@ struct BattleLogFormatter {
             let direction = delta > 0 ? "rose" : "fell"
             let magnitude = abs(delta) >= 2 ? " sharply" : ""
             let tint: Color = delta > 0 ? .green : .red
-            return nameAttr(side) + plain("'s \(pretty)\(magnitude) ") + colored(direction, tint) + plain("!")
+            return nameAttr(side) + plain("'s \(pretty)\(magnitude) ") + colored(direction, tint)
         case .healed(let side, let amount):
-            return nameAttr(side) + plain(" restored ") + colored("\(amount) HP", .green) + plain("!")
+            return nameAttr(side) + plain(" restored ") + colored("\(amount) HP", .green)
         case .recoil(let side, let amount):
             return nameAttr(side) + plain(" took ") + colored("\(amount) recoil", .red) + plain(" damage!")
         case .wokeUp(let side):
@@ -58,9 +58,9 @@ struct BattleLogFormatter {
         case .fastAsleep(let side):
             return nameAttr(side) + plain(" is ") + colored("fast asleep", statusColor(.sleep)) + plain(".")
         case .recharging(let side):
-            return nameAttr(side) + plain(" must ") + colored("recharge", .gray) + plain("!")
+            return nameAttr(side) + plain(" must ") + colored("recharge", .gray)
         case .fullyParalyzed(let side):
-            return nameAttr(side) + plain(" is ") + colored("fully paralyzed", statusColor(.paralysis)) + plain("!")
+            return nameAttr(side) + plain(" is ") + colored("fully paralyzed", statusColor(.paralysis))
         case .fainted(let side):
             return nameAttr(side) + colored(" fainted!", .red)
         case .ended(let w):
