@@ -20,11 +20,12 @@ final class BattleEngine {
             playerMove: playerMove,
             opponentMove: opponentMove
         )
+        var hitThisRound: Set<BattleSide> = []
 
         for side in order {
             if combatant(side).isFainted || combatant(side.opposite).isFainted { continue }
             let move = side == .player ? playerMove : opponentMove
-            performAction(side: side, move: move, events: &events)
+            performAction(side: side, move: move, events: &events, hitThisRound: &hitThisRound)
 
             if combatant(side).isFainted {
                 events.append(.fainted(side))
@@ -58,13 +59,23 @@ final class BattleEngine {
 }
 
 private extension BattleEngine {
-    func performAction(side: BattleSide, move: MoveDetail, events: inout [BattleEvent]) {
+    func performAction(
+        side: BattleSide,
+        move: MoveDetail,
+        events: inout [BattleEvent],
+        hitThisRound: inout Set<BattleSide>
+    ) {
         events.append(.used(side, moveName: move.displayName))
         let baselineEventCount = events.count
 
         if combatant(side).mustRecharge {
             mutate(side) { $0.mustRecharge = false }
             events.append(.recharging(side))
+            return
+        }
+
+        if move.name == "focus-punch", hitThisRound.contains(side) {
+            events.append(.lostFocus(side))
             return
         }
 
@@ -124,6 +135,7 @@ private extension BattleEngine {
             damageDealt = damage
             mutate(side.opposite) { $0.currentHP = max(0, $0.currentHP - damage) }
             events.append(.damaged(side.opposite, amount: damage, effectiveness: effectiveness, crit: crit))
+            if damage > 0 { hitThisRound.insert(side.opposite) }
         }
 
         if move.isRechargeMove { mutate(side) { $0.mustRecharge = true } }

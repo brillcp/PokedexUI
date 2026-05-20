@@ -48,6 +48,7 @@ enum BattleEvent: Sendable {
     case wokeUp(BattleSide)
     case fastAsleep(BattleSide)
     case fullyParalyzed(BattleSide)
+    case lostFocus(BattleSide)
     case fainted(BattleSide)
     case ended(winner: BattleSide?)
 }

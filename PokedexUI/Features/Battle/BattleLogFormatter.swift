@@ -53,6 +53,8 @@ struct BattleLogFormatter {
             return nameAttr(side) + plain(" must ") + colored("recharge", .gray)
         case .fullyParalyzed(let side):
             return nameAttr(side) + plain(" is ") + colored("fully paralyzed", statusColor(.paralysis))
+        case .lostFocus(let side):
+            return nameAttr(side) + plain(" lost its ") + colored("focus", .gray)
         case .fainted(let side):
             return nameAttr(side) + colored(" fainted!", .red)
         case .ended(let w):
