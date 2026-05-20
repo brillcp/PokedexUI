@@ -2,14 +2,14 @@ import SwiftUI
 import SwiftData
 
 /// Loadout screen for picking 4 moves before battle.
-struct BattleSetupView: View {
+struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
 
-    @State private var viewModel: BattleSetupViewModel
+    @State private var viewModel: ViewModel
     private let onStart: (BattleLaunch) -> Void
 
-    init(viewModel: BattleSetupViewModel, onStart: @escaping (BattleLaunch) -> Void) {
+    init(viewModel: ViewModel, onStart: @escaping (BattleLaunch) -> Void) {
         self.viewModel = viewModel
         self.onStart = onStart
     }

@@ -4,6 +4,9 @@ import SwiftData
 /// Search protocol owning the query string and filter logic against a Pokemon corpus.
 @MainActor
 protocol SearchViewModelProtocol {
+    /// Curated chips shown in the search empty-state.
+    static var suggestedTerms: [String] { get }
+
     /// The filtered list based on the current query.
     var filtered: [Pokemon] { get }
     /// The user's search input query.
@@ -31,8 +34,7 @@ final class SearchViewModel {
 
     static let suggestedTerms = [
         "cave", "fire", "water", "psychic", "dragon",
-        "forest", "sea",
-        "mouse", "bird", "legendary",
+        "forest", "sea", "mouse", "bird", "legendary",
         "electric bug", "ghost dark"
     ]
 

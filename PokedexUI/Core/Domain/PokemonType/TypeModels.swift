@@ -4,7 +4,7 @@ import SwiftData
 /// as a `@Model` and read by `TypeChartLoader`, which snapshots it into a
 /// value-type `TypeChart` for off-main lookups.
 @Model
-final class TypeDetail: Decodable, @unchecked Sendable {
+final class TypeDetail: Decodable {
     @Attribute(.unique) var name: String
     var doubleDamageTo: [String] = []
     var doubleDamageFrom: [String] = []

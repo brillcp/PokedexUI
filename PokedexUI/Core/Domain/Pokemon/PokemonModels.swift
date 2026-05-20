@@ -2,7 +2,7 @@ import SwiftData
 
 /// Full hydrated pokemon record cached on first fetch.
 @Model
-final class Pokemon: Decodable, Sendable {
+final class Pokemon: Decodable {
     @Attribute(.unique) var id: Int
     var name: String
     var weight: Int

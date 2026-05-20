@@ -2,7 +2,7 @@ import SwiftData
 
 /// Fully resolved per-move record persisted as a `@Model`.
 @Model
-final class MoveDetail: Decodable, @unchecked Sendable {
+final class MoveDetail: Decodable {
     @Attribute(.unique) var name: String
     var power: Int? = nil
     var accuracy: Int? = nil

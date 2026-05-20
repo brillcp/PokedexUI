@@ -2,7 +2,7 @@ import SwiftData
 
 /// Generic `{ name, url }` row returned by every paginated PokeAPI list endpoint.
 @Model
-final class APIItem: Decodable, Sendable {
+final class APIItem: Decodable {
     var name: String
     var url: String
 

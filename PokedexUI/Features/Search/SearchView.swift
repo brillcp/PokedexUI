@@ -2,13 +2,13 @@ import SwiftUI
 import SwiftData
 
 /// Search tab backed by its own SwiftData `@Query` against the full corpus.
-struct SearchView: View {
+struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     @FocusState private var isSearchFocused: Bool
     @Namespace private var namespace
     @Environment(\.container) private var container
     @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
 
-    @State var viewModel: SearchViewModel
+    @State var viewModel: ViewModel
     @Binding var selectedTab: Tabs
 
     var body: some View {
@@ -82,7 +82,7 @@ private extension SearchView {
         VStack(alignment: .leading, spacing: 8.0) {
             sectionHeader(title: "Try searching for", systemImage: "magnifyingglass")
             FlowLayout(spacing: 6.0) {
-                ForEach(SearchViewModel.suggestedTerms, id: \.self) { term in
+                ForEach(ViewModel.suggestedTerms, id: \.self) { term in
                     Button {
                         viewModel.query = term
                         viewModel.recordSearch()

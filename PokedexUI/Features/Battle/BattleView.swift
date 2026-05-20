@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Gameboy-styled turn-based battle screen.
-struct BattleView: View {
-    @State var viewModel: BattleViewModel
+struct BattleView<ViewModel: BattleViewModelProtocol>: View {
+    @State var viewModel: ViewModel
 
     var body: some View {
         content
