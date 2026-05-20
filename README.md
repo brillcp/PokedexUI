@@ -134,7 +134,7 @@ The opponent is driven entirely by **Apple's `FoundationModels` framework**, run
 PokedexUI uses `SystemLanguageModel.default` in three places:
 
 1. **Opponent picking** ("Smart pick" button in the picker sheet)
-   The model receives the player's name and types plus a roster of 60 candidate pokemon and returns a `pokedex id` representing a worthy matchup.
+   The model receives the player's name and types plus a roster of 40 candidate pokemon and returns a `pokedex id` representing a worthy matchup.
 2. **Loadout selection** (background task during the loadout screen)
    The model receives the opponent's typing, the player's typing, and a 40-move sample of the opponent's full movepool with pre-computed type-effectiveness multipliers. It returns 4 zero-based indices: the moves the opponent brings into battle.
 3. **Per-turn move selection** (every time the player commits a move)

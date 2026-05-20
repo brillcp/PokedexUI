@@ -77,7 +77,7 @@ private extension BattleViewModel {
             mutate(side, in: &snapshot) { $0.status = .none; $0.sleepTurns = 0 }
         case .statChanged(let side, let stat, let delta):
             mutate(side, in: &snapshot) { $0.applyStage(stat, delta: delta) }
-        case .used, .missed, .fullyParalyzed, .fastAsleep, .fainted, .ended:
+        case .used, .missed, .fullyParalyzed, .fastAsleep, .recharging, .fainted, .ended:
             break
         }
         state = snapshot

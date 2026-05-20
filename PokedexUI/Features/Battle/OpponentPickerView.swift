@@ -147,7 +147,8 @@ private extension OpponentPickerView {
         Task {
             let pickedId = await aiService.chooseOpponent(
                 player: playerSnapshot,
-                candidates: candidateSnapshots
+                candidates: candidateSnapshots,
+                typeChart: container.typeChart.chart
             )
             isAIThinking = false
             if let pickedId, let match = allPokemon.first(where: { $0.id == pickedId }) {

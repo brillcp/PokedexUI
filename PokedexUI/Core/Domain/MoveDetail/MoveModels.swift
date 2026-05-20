@@ -96,10 +96,29 @@ extension MoveDetail {
 
     var hasSelfDebuff: Bool { Self.selfDebuffMoves.contains(name) }
 
+    /// Moves that skip the user's next turn after firing.
+    private static let rechargeMoves: Set<String> = [
+        "blast-burn", "frenzy-plant", "giga-impact", "hydro-cannon",
+        "hyper-beam", "meteor-assault", "prismatic-laser",
+        "roar-of-time", "rock-wrecker"
+    ]
+
+    /// Moves that need a charging turn the engine doesn't implement.
+    /// Letting these through gives a free 140-power hit with no drawback.
+    private static let chargingMoves: Set<String> = [
+        "sky-attack", "solar-beam", "solar-blade", "skull-bash",
+        "razor-wind", "fly", "dig", "dive", "bounce", "phantom-force",
+        "shadow-force", "geomancy", "meteor-beam"
+    ]
+
+    var isRechargeMove: Bool { Self.rechargeMoves.contains(name) }
+    var isChargingMove: Bool { Self.chargingMoves.contains(name) }
+
     /// `true` when the battle engine can meaningfully resolve this move.
-    /// Filters out protection, field effects, and other unimplemented
-    /// mechanics so they never appear in the battle move picker.
+    /// Filters out protection, field effects, charging moves, and other
+    /// unimplemented mechanics so they never appear in the battle move picker.
     var isBattleReady: Bool {
+        if isChargingMove { return false }
         if (power ?? 0) > 0 { return true }
         if healing > 0 || name == "rest" { return true }
         if !statChangeNames.isEmpty { return true }

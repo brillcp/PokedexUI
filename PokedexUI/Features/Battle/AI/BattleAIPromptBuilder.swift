@@ -22,21 +22,30 @@ struct BattleAIPromptBuilder {
         let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
             indexMap[displayIdx] = originalIdx
             let move = moves[originalIdx]
-            return describe(move, index: displayIdx, effectiveness: effectiveness[safe: originalIdx] ?? 1.0, annotation: annotations[originalIdx])
+            let row = describeLoadoutMove(
+                move,
+                index: displayIdx,
+                fighter: attacker,
+                opponent: defender,
+                effectiveness: effectiveness[safe: originalIdx] ?? 1.0
+            )
+            guard let annotation = annotations[originalIdx] else { return row }
+            return "\(row) [\(annotation)]"
         }.joined(separator: "\n")
         let historyLine = recentMoves.isEmpty
             ? ""
-            : "\n        Your last move was \(recentMoves.last!). Pick a different one.\n"
+            : "\n        Your last move was \(recentMoves.last!). Prefer a different one only if it is still strong.\n"
         let prompt = """
-        Pick a move. Do not repeat your last move.
+        Pick a move. Prefer variety, but repeat the best move if it is clearly strongest.
 
-        Attacker: \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(statusDescription(attacker.status)))
-        Defender: \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(statusDescription(defender.status)))
+        Attacker: \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(statusDescription(attacker.status)), stats ATK \(attacker.attack)/SPA \(attacker.specialAttack)/SPE \(attacker.speed), stages \(stageSummary(attacker)))
+        Defender: \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(statusDescription(defender.status)), stats DEF \(defender.defense)/SPD \(defender.specialDefense)/SPE \(defender.speed), stages \(stageSummary(defender)))
         \(historyLine)
         Moves:
         \(movesBlock)
 
         Return ONLY the index number.
+        Pick the highest-impact move this turn. Do not choose low-power filler when a much higher damage score is available.
         """
         return (prompt, indexMap)
     }
@@ -54,22 +63,31 @@ struct BattleAIPromptBuilder {
         loadoutSize: Int
     ) -> String {
         let movesBlock = moves.enumerated().map { idx, move in
-            describe(move, index: idx, effectiveness: effectiveness[safe: idx] ?? 1.0)
+            describeLoadoutMove(
+                move,
+                index: idx,
+                fighter: fighter,
+                opponent: opponent,
+                effectiveness: effectiveness[safe: idx] ?? 1.0
+            )
         }.joined(separator: "\n")
         return """
         Pick \(loadoutSize) moves for \(fighter.name) to bring into a 1v1 battle.
 
         Fighter: \(fighter.name)
         - Types: \(fighter.typeNames.joined(separator: ", "))
+        - Stats: HP \(fighter.maxHP)/ATK \(fighter.attack)/DEF \(fighter.defense)/SPA \(fighter.specialAttack)/SPD \(fighter.specialDefense)/SPE \(fighter.speed)
 
         Opponent: \(opponent.name)
         - Types: \(opponent.typeNames.joined(separator: ", "))
+        - Stats: HP \(opponent.maxHP)/ATK \(opponent.attack)/DEF \(opponent.defense)/SPA \(opponent.specialAttack)/SPD \(opponent.specialDefense)/SPE \(opponent.speed)
 
-        Full movepool (index: name. details):
+        Full movepool (index: name. details and matchup notes):
         \(movesBlock)
 
         Return ONLY a comma-separated list of exactly \(loadoutSize) distinct indices (e.g. "0, 3, 7, 12"). No other text.
-        Prefer a balanced set: at least one super-effective damaging move when possible, no duplicate types, mix damaging and utility if it helps.
+        Pick the best 4 moves for this exact 1v1. Prioritise high expected damage, STAB, super-effective coverage, accuracy, and moves that use the fighter's stronger attacking stat.
+        Utility is only worth a slot when it clearly helps this matchup. Avoid speed boosts if the fighter is already faster. Avoid attack/special boosts when the fighter lacks good matching damaging moves.
         """
     }
 
@@ -80,14 +98,16 @@ struct BattleAIPromptBuilder {
     /// actor call.
     func buildOpponentPrompt(
         player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot]
+        candidates: [OpponentCandidateSnapshot],
+        typeChart: TypeChart?
     ) -> String {
         let roster = candidates.map { candidate in
             let types = candidate.typeNames.joined(separator: "/")
-            return "- \(candidate.id): \(candidate.name) (\(types), BST \(candidate.baseStatTotal)\(flagSuffix(candidate)))"
+            let matchup = opponentMatchupSummary(player: player, candidate: candidate, typeChart: typeChart)
+            return "- \(candidate.id): \(candidate.name) (\(types), BST \(candidate.baseStatTotal), \(matchup)\(flagSuffix(candidate)))"
         }.joined(separator: "\n")
         return """
-        Pick a worthy, exciting opponent for \(player.name).
+        Pick a competitive, exciting opponent for \(player.name). Prioritise matchups where BOTH sides can threaten each other. Avoid hard counters (4x STAB advantage) and avoid opponents the player completely walls. The best fight is one where either side could win.
 
         Player: \(player.name) (id \(player.id))
         - Types: \(player.typeNames.joined(separator: "/"))
@@ -95,7 +115,7 @@ struct BattleAIPromptBuilder {
         - Base stat total: \(player.baseStatTotal)
         - Stats: \(compactStats(player))
 
-        Candidates (id: name (types, BST, flags)):
+        Candidates (id: name (types, BST, matchup, flags)):
         \(roster)
 
         Return ONLY the exact pokedex id (integer) from the list above.
@@ -114,11 +134,109 @@ private extension BattleAIPromptBuilder {
         if move.power == nil || (move.power ?? 0) == 0 {
             effectivenessText = "status"
         } else {
-            effectivenessText = "×\(format(effectiveness)) vs defender"
+            effectivenessText = "x\(format(effectiveness)) vs defender"
         }
         let tag = annotation.map { " [\($0)]" } ?? ""
         return "\(index): \(move.name). \(move.typeName) \(move.damageClass), power \(power), acc \(accuracy), \(effectivenessText)\(tag)"
     }
+
+    func describeLoadoutMove(
+        _ move: MoveDetail,
+        index: Int,
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        effectiveness: Double
+    ) -> String {
+        let base = describe(move, index: index, effectiveness: effectiveness)
+        let notes = loadoutNotes(move, fighter: fighter, opponent: opponent, effectiveness: effectiveness)
+        guard !notes.isEmpty else { return base }
+        return "\(base) [\(notes.joined(separator: ", "))]"
+    }
+
+    func loadoutNotes(
+        _ move: MoveDetail,
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        effectiveness: Double
+    ) -> [String] {
+        var notes: [String] = []
+        if fighter.typeNames.contains(move.typeName) { notes.append("STAB") }
+        if effectiveness >= 2 { notes.append("super-effective") }
+        if effectiveness == 0 { notes.append("no-effect") }
+        if effectiveness > 0 && effectiveness < 1 { notes.append("resisted") }
+
+        switch move.damageClassKind {
+        case .physical:
+            notes.append(fighter.attack >= fighter.specialAttack ? "uses stronger ATK" : "uses weaker ATK")
+            if opponent.defense > opponent.specialDefense + 15 { notes.append("targets high DEF") }
+        case .special:
+            notes.append(fighter.specialAttack >= fighter.attack ? "uses stronger SPA" : "uses weaker SPA")
+            if opponent.specialDefense > opponent.defense + 15 { notes.append("targets high SPD") }
+        case .status:
+            notes.append(contentsOf: statusMoveNotes(move, fighter: fighter, opponent: opponent))
+        }
+
+        if let power = move.power, power > 0 {
+            let expected = expectedDamageSignal(move, fighter: fighter, opponent: opponent, effectiveness: effectiveness)
+            notes.append("damage score \(Int(expected.rounded()))")
+            if expected >= Double(opponent.currentHP) { notes.append("likely KO") }
+            if power < 60 { notes.append("low power") }
+        }
+        if move.accuracy ?? 100 < 85 { notes.append("risky accuracy") }
+        if move.hasSelfDebuff { notes.append("self-debuff") }
+        if move.isRechargeMove { notes.append("SKIPS NEXT TURN after use") }
+        return notes
+    }
+
+    func statusMoveNotes(_ move: MoveDetail, fighter: BattleCombatant, opponent: BattleCombatant) -> [String] {
+        var notes: [String] = []
+        for (index, stat) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
+            let delta = move.statChangeDeltas[index]
+            if stat == "speed", delta > 0, fighter.effectiveSpeed > opponent.effectiveSpeed {
+                notes.append("speed boost low value")
+            } else if stat == "attack", delta > 0, fighter.attack < fighter.specialAttack {
+                notes.append("attack boost low value")
+            } else if stat == "special-attack", delta > 0, fighter.specialAttack < fighter.attack {
+                notes.append("special boost low value")
+            } else {
+                notes.append("\(stat) \(signed(delta))")
+            }
+        }
+        if move.ailment != "none" {
+            notes.append("\(move.ailment) \(move.ailmentChance)%")
+        }
+        if move.healing > 0 || move.name == "rest" {
+            notes.append("healing")
+        }
+        return notes
+    }
+
+    func expectedDamageSignal(
+        _ move: MoveDetail,
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        effectiveness: Double
+    ) -> Double {
+        guard let power = move.power, power > 0, move.damageClassKind != .status else { return 0 }
+        let attackStat: Int
+        let defenseStat: Int
+        switch move.damageClassKind {
+        case .physical:
+            attackStat = fighter.attack
+            defenseStat = max(1, opponent.defense)
+        case .special:
+            attackStat = fighter.specialAttack
+            defenseStat = max(1, opponent.specialDefense)
+        case .status:
+            return 0
+        }
+        let stab = fighter.typeNames.contains(move.typeName) ? 1.5 : 1.0
+        let accuracy = Double(move.accuracy ?? 100) / 100
+        let levelFactor = 22.0
+        let base = (((levelFactor * Double(power) * Double(attackStat) / Double(defenseStat)) / 50.0) + 2.0)
+        return base * stab * effectiveness * accuracy
+    }
+
 
     /// Annotates moves with recent usage info so the model naturally
     /// gravitates toward variety.
@@ -166,6 +284,30 @@ private extension BattleAIPromptBuilder {
             .uppercased() ?? "?"
     }
 
+    func opponentMatchupSummary(
+        player: OpponentCandidateSnapshot,
+        candidate: OpponentCandidateSnapshot,
+        typeChart: TypeChart?
+    ) -> String {
+        let delta = candidate.baseStatTotal - player.baseStatTotal
+        guard let typeChart else {
+            return "BST delta \(signed(delta))"
+        }
+        let candidatePressure = bestSTABMultiplier(attackerTypes: candidate.typeNames, defenderTypes: player.typeNames, typeChart: typeChart)
+        let playerPressure = bestSTABMultiplier(attackerTypes: player.typeNames, defenderTypes: candidate.typeNames, typeChart: typeChart)
+        return "BST delta \(signed(delta)), candidate STAB x\(format(candidatePressure)) vs player, player STAB x\(format(playerPressure)) vs candidate"
+    }
+
+    func bestSTABMultiplier(attackerTypes: [String], defenderTypes: [String], typeChart: TypeChart) -> Double {
+        attackerTypes
+            .map { typeChart.multiplier(attacking: $0, defenders: defenderTypes) }
+            .max() ?? 1.0
+    }
+
+    func signed(_ value: Int) -> String {
+        value >= 0 ? "+\(value)" : "\(value)"
+    }
+
     func statusDescription(_ status: BattleStatus) -> String {
         switch status {
         case .none: return "healthy"
@@ -174,6 +316,14 @@ private extension BattleAIPromptBuilder {
         case .poison: return "poisoned (-1/8 HP/turn)"
         case .sleep: return "asleep (skips turns, wakes in 1-3 turns)"
         }
+    }
+
+    func stageSummary(_ combatant: BattleCombatant) -> String {
+        let active = combatant.statStages
+            .filter { $0.value != 0 }
+            .sorted { $0.key < $1.key }
+            .map { "\($0.key) \(signed($0.value))" }
+        return active.isEmpty ? "none" : active.joined(separator: ", ")
     }
 }
 

@@ -50,6 +50,7 @@ enum BattleEvent: Sendable {
     case statChanged(BattleSide, stat: String, delta: Int)
     case healed(BattleSide, amount: Int)
     case recoil(BattleSide, amount: Int)
+    case recharging(BattleSide)
     case wokeUp(BattleSide)
     case fastAsleep(BattleSide)
     case fullyParalyzed(BattleSide)
@@ -76,6 +77,7 @@ struct BattleCombatant: Sendable {
     var currentHP: Int
     var status: BattleStatus
     var sleepTurns: Int = 0
+    var mustRecharge: Bool = false
     var statStages: [String: Int]
     let moves: [MoveDetail]
 

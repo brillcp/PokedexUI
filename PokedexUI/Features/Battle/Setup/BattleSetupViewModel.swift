@@ -187,14 +187,13 @@ private extension BattleSetupViewModel {
         }
     }
 
-    /// Sample up to 60 names from the pokemon's full movepool and read the
-    /// matching `MoveDetail` rows out of SwiftData. The `MovePrefetcher`
-    /// awaited above guarantees the rows are persisted (or the prepare
-    /// flow has already surfaced an error).
+    /// Read the pokemon's full movepool out of SwiftData. The AI service
+    /// ranks and trims the prompt-facing sample after it knows the exact
+    /// matchup, so strong moves are not lost to random pre-sampling.
     func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) -> [MoveDetail] {
         let names = pokemon.pokemon.moves.map(\.move.name)
         guard !names.isEmpty else { return [] }
-        let capped = Set(names.shuffled().prefix(60))
+        let capped = Set(names)
         let descriptor = FetchDescriptor<MoveDetail>(
             predicate: #Predicate { capped.contains($0.name) }
         )

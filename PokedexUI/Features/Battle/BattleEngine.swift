@@ -76,6 +76,13 @@ private extension BattleEngine {
         events.append(.used(side, moveName: move.displayName))
         let baselineEventCount = events.count
 
+        // Recharge check: skip turn, clear flag.
+        if combatant(side).mustRecharge {
+            mutate(side) { $0.mustRecharge = false }
+            events.append(.recharging(side))
+            return
+        }
+
         // Sleep check: decrement counter, skip turn if still asleep.
         if combatant(side).status == .sleep {
             mutate(side) { $0.sleepTurns -= 1 }
@@ -139,6 +146,9 @@ private extension BattleEngine {
             mutate(side.opposite) { $0.currentHP = max(0, $0.currentHP - damage) }
             events.append(.damaged(side.opposite, amount: damage, effectiveness: effectiveness, crit: crit))
         }
+
+        // Recharge flag: user must skip next turn.
+        if move.isRechargeMove { mutate(side) { $0.mustRecharge = true } }
 
         // Drain (positive = heal attacker by % of damage, e.g. Giga Drain).
         if move.drain > 0, damageDealt > 0 {
