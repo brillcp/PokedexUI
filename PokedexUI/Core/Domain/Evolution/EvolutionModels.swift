@@ -18,6 +18,13 @@ final class EvolutionChainEntity {
     }
 }
 
+/// Sendable snapshot of one freshly fetched chain. Crosses actor boundaries;
+/// the consumer rehydrates it into an `EvolutionChainEntity` for storage.
+struct EvolutionChainPayload: Sendable {
+    let chainId: String
+    let payload: Data
+}
+
 /// One node in the evolution tree pointing at a species with trigger details.
 struct EvolutionLink: Codable, Sendable {
     let species: SpeciesRef

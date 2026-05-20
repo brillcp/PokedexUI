@@ -1,6 +1,7 @@
 import Foundation
 
 /// Protocol for a view model that provides item details and a title for display.
+@MainActor
 protocol ItemDetailViewModelProtocol {
     /// The collection of item details to be displayed.
     var items: [ItemDetail] { get }

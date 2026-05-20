@@ -102,7 +102,7 @@ struct PokemonFetcher: DataFetcher {
 
     struct Bootstrap {
         let pokemon: [Pokemon]
-        let chainEntities: [EvolutionChainEntity]
+        let chainPayloads: [EvolutionChainPayload]
     }
 
     private let storage: DataStorageReader
@@ -133,13 +133,16 @@ struct PokemonFetcher: DataFetcher {
         )
 
         await typeLoad
-        return Bootstrap(pokemon: pokemon, chainEntities: chains)
+        return Bootstrap(pokemon: pokemon, chainPayloads: chains)
     }
 
     func persist(_ bootstrap: Bootstrap) async throws {
         try await storage.store(bootstrap.pokemon)
-        if !bootstrap.chainEntities.isEmpty {
-            try await storage.store(bootstrap.chainEntities)
+        if !bootstrap.chainPayloads.isEmpty {
+            let entities = bootstrap.chainPayloads.map {
+                EvolutionChainEntity(chainId: $0.chainId, payload: $0.payload)
+            }
+            try await storage.store(entities)
         }
     }
 

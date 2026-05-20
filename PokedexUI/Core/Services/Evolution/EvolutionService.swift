@@ -7,9 +7,10 @@ import SwiftData
 protocol EvolutionServiceProtocol: Sendable {
     /// Fetch the chain by id. Cache-first.
     func requestChain(id: String) async throws -> EvolutionChain
-    /// Bulk pre-fetch chain ids in parallel. Returns newly fetched entities
-    /// for the caller to persist. `onTick` fires once per chain processed.
-    func prefetchChains(modelContainer: ModelContainer, ids: [String], onTick: (@Sendable () async -> Void)?) async -> [EvolutionChainEntity]
+    /// Bulk pre-fetch chain ids in parallel. Returns Sendable payloads for the
+    /// caller to persist as `EvolutionChainEntity` rows. `onTick` fires once
+    /// per chain processed.
+    func prefetchChains(modelContainer: ModelContainer, ids: [String], onTick: (@Sendable () async -> Void)?) async -> [EvolutionChainPayload]
 }
 
 /// Shared actor living on `AppContainer.evolutionService`.
@@ -38,7 +39,7 @@ final actor EvolutionService: EvolutionServiceProtocol {
         modelContainer: ModelContainer,
         ids: [String],
         onTick: (@Sendable () async -> Void)?
-    ) async -> [EvolutionChainEntity] {
+    ) async -> [EvolutionChainPayload] {
         attach(modelContainer: modelContainer)
         guard let storage else { return [] }
 
@@ -59,7 +60,7 @@ final actor EvolutionService: EvolutionServiceProtocol {
         }
         guard !missing.isEmpty else { return [] }
 
-        var fresh: [EvolutionChainEntity] = []
+        var fresh: [EvolutionChainPayload] = []
         fresh.reserveCapacity(missing.count)
         await withTaskGroup(of: (String, EvolutionChain)?.self) { group in
             for id in missing {
@@ -72,8 +73,8 @@ final actor EvolutionService: EvolutionServiceProtocol {
             for await result in group {
                 if let (id, chain) = result {
                     cache[id] = chain
-                    if let entity = try? encode(id: id, chain: chain) {
-                        fresh.append(entity)
+                    if let data = try? JSONEncoder().encode(chain) {
+                        fresh.append(EvolutionChainPayload(chainId: id, payload: data))
                     }
                 }
                 await onTick?()

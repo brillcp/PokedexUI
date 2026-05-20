@@ -16,7 +16,7 @@ struct WeaknessGridView: View {
             guard m != 1.0 else { continue }
             rows[m, default: []].append(attackerName)
         }
-        let order: [(Double, String)] = [(4, "×4"), (2, "×2"), (0.5, "×1/2"), (0.25, "×1/4"), (0, "×0")]
+        let order: [(Double, String)] = [(4, "×4"), (2, "×2"), (0.5, "×0.5"), (0.25, "×0.25"), (0, "×0")]
         return order.compactMap { mult, label in
             guard let names = rows[mult], !names.isEmpty else { return nil }
             return (label, names.sorted())

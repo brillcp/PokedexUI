@@ -17,11 +17,13 @@ final class MoveDetail: Decodable {
     var category: String = "damage"
     var statChangeNames: [String] = []
     var statChangeDeltas: [Int] = []
+    var effectChance: Int? = nil
 
     private enum CodingKeys: String, CodingKey {
         case name, power, accuracy, pp, priority, type, meta
         case damageClass = "damage_class"
         case statChanges = "stat_changes"
+        case effectChance = "effect_chance"
     }
 
     private enum MetaKeys: String, CodingKey {
@@ -57,6 +59,7 @@ final class MoveDetail: Decodable {
         let statChanges = try c.decodeIfPresent([StatChangeDTO].self, forKey: .statChanges) ?? []
         self.statChangeNames = statChanges.map { $0.stat.name }
         self.statChangeDeltas = statChanges.map { $0.change }
+        self.effectChance = try c.decodeIfPresent(Int.self, forKey: .effectChance)
     }
 
     init(name: String) {
