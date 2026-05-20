@@ -26,14 +26,13 @@ final class PokedexViewModel {
     private static let totalDownloadUnits: Int = 1024 + 1024 + 540 + 1
 
     private let fetcher: PokemonFetcher
+    private var downloadTicks: Int = 0
 
     var isLoading: Bool = false
     var loadingProgress: Double = 0
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
     var sortType: SortType = .number
-
-    private var downloadTicks: Int = 0
 
     init(modelContext: ModelContext, container: AppContainer) {
         self.fetcher = PokemonFetcher(modelContext: modelContext, container: container)

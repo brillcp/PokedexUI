@@ -12,11 +12,14 @@ protocol BattleAIServiceProtocol: Sendable {
 }
 
 /// Battle AI actor backed by on-device Foundation Models.
-actor BattleAIService: BattleAIServiceProtocol {
+actor BattleAIService {
     private let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
     private let prompts = BattleAIPromptBuilder()
     private var isGenerating = false
+}
 
+// MARK: - BattleAIServiceProtocol
+extension BattleAIService: BattleAIServiceProtocol {
     func chooseMove(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -44,7 +47,6 @@ actor BattleAIService: BattleAIServiceProtocol {
                moves.indices.contains(originalIdx) {
                 let modelMove = moves[originalIdx]
                 let modelEff = effectiveness[originalIdx]
-                // Only override immune picks
                 if modelEff == 0, fallback.name != modelMove.name {
                     print("[llm] chooseMove: repaired \(modelMove.name) -> \(fallback.name) (immune)")
                     return fallback
@@ -52,7 +54,9 @@ actor BattleAIService: BattleAIServiceProtocol {
                 print("[llm] chooseMove: shuffled \(shuffledIdx) -> original \(originalIdx) (\(modelMove.name))")
                 return modelMove
             }
-        } catch { logGenerationError(error, label: "chooseMove", prompt: prompt) }
+        } catch {
+            logGenerationError(error, label: "chooseMove", prompt: prompt)
+        }
         return fallback
     }
 
@@ -134,7 +138,6 @@ actor BattleAIService: BattleAIServiceProtocol {
         } catch { logGenerationError(error, label: "chooseLoadout", prompt: prompt) }
         return fallback
     }
-
 }
 
 private extension BattleAIService {

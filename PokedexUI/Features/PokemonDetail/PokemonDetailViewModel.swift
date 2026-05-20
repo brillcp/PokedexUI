@@ -32,19 +32,18 @@ protocol PokemonDetailViewModelProtocol {
 /// Live implementation of `PokemonDetailViewModelProtocol`.
 @Observable
 final class PokemonDetailViewModel {
+    private let evolutionService: EvolutionServiceProtocol
+    private let spriteLoader: SpriteLoading
+    private let imageColorAnalyzer: ImageColorAnalyzing
+    private let audioPlayer: AudioPlaying
+
+    let typeChart: TypeChartLoader
     var pokemon: PokemonViewModel
     var isLoadingDetails: Bool = false
     var isBookmarked: Bool
     var sprite: Image?
     var color: Color?
     var evolutionStages: [EvolutionChain.Stage] = []
-
-    let typeChart: TypeChartLoader
-
-    private let evolutionService: EvolutionServiceProtocol
-    private let spriteLoader: SpriteLoading
-    private let imageColorAnalyzer: ImageColorAnalyzing
-    private let audioPlayer: AudioPlaying
 
     init(summary: Pokemon, container: AppContainer) {
         self.isBookmarked = summary.isBookmarked
