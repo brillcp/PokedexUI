@@ -35,7 +35,7 @@ struct BattleLogFormatter {
                 return plain("It had no effect on ") + nameAttr(side)
             }
             var line = nameAttr(side) + plain(" took ") + colored("\(amount) dmg", .red)
-            if crit { line += colored(" (critical hit!)", .yellow) }
+            if crit { line += colored(" (critical hit)", .yellow) }
             if effectiveness >= 2 { line += colored(" (super effective)", .green) }
             else if effectiveness < 1 { line += colored(" (not very effective)", .gray) }
             return line
@@ -52,9 +52,9 @@ struct BattleLogFormatter {
         case .healed(let side, let amount):
             return nameAttr(side) + plain(" restored ") + colored("\(amount) HP", .green)
         case .recoil(let side, let amount):
-            return nameAttr(side) + plain(" took ") + colored("\(amount) recoil", .red) + plain(" damage!")
+            return nameAttr(side) + plain(" took ") + colored("\(amount) recoil", .red) + plain(" damage")
         case .wokeUp(let side):
-            return nameAttr(side) + plain(" woke up!")
+            return nameAttr(side) + plain(" woke up")
         case .fastAsleep(let side):
             return nameAttr(side) + plain(" is ") + colored("fast asleep", statusColor(.sleep)) + plain(".")
         case .recharging(let side):
