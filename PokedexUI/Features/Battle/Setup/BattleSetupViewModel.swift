@@ -5,15 +5,25 @@ import SwiftUI
 /// Pre-battle loadout preparation protocol.
 @MainActor
 protocol BattleSetupViewModelProtocol {
+    /// Raw player pokemon passed in from the picker.
     var playerSummary:   Pokemon { get }
+    /// Raw opponent pokemon chosen by AI or user.
     var opponentSummary: Pokemon { get }
+    /// Hydrated player view model, populated by `prepare`.
     var playerPokemon:   PokemonViewModel? { get }
+    /// Hydrated opponent view model, populated by `prepare`.
     var opponentPokemon: PokemonViewModel? { get }
+    /// Player's selectable move pool, ranked by combat impact.
     var playerMovePool:  [MoveDetail] { get }
+    /// AI-chosen opponent loadout; `nil` until the AI task resolves.
     var opponentLoadout: [MoveDetail]? { get }
+    /// Names of moves the player has currently selected.
     var selectedMoveNames: Set<String> { get }
+    /// True once both sides, the player move pool, and the type chart are loaded.
     var isReady: Bool { get }
+    /// Maximum number of moves the player may pick.
     var maxSelections: Int { get }
+    /// User-facing error surfaced by `prepare` failures.
     var errorMessage: String? { get }
 
     /// Hydrate both sides, fetch move pools, kick off AI loadout.

@@ -2,8 +2,36 @@ import SwiftUI
 
 /// Drives `BattleView` as a conductor over engine, animator, log, and audio.
 @MainActor
+protocol BattleViewModelProtocol: AnyObject {
+    /// Display-ready player view model.
+    var playerPokemon: PokemonViewModel { get }
+    /// Display-ready opponent view model.
+    var opponentPokemon: PokemonViewModel { get }
+    /// Sprite + HUD animation coordinator.
+    var animator: BattleAnimator { get }
+    /// Current battle state once initialized.
+    var state: BattleState? { get }
+    /// Turn resolver; `nil` until the type chart has loaded.
+    var engine: BattleEngine? { get }
+    /// Rendered log lines surfaced in the feed.
+    var log: [AttributedString] { get }
+    /// `true` while a round is being resolved.
+    var isResolvingTurn: Bool { get }
+    /// Winning side once the battle ends.
+    var winner: BattleSide? { get }
+    /// User-facing error surfaced by `prepare`.
+    var errorMessage: String? { get }
+
+    /// Warm up battle state, sprite colors, and entrance animation.
+    func prepare() async
+    /// Submit a player move and resolve the round.
+    func submit(_ move: MoveDetail) async
+}
+
+/// Live implementation of `BattleViewModelProtocol`.
+@MainActor
 @Observable
-final class BattleViewModel {
+final class BattleViewModel: BattleViewModelProtocol {
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
     let playerMoves:     [MoveDetail]

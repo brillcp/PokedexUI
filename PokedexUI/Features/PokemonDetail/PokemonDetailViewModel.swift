@@ -4,12 +4,19 @@ import SwiftData
 /// Pokemon detail view model protocol.
 @MainActor
 protocol PokemonDetailViewModelProtocol {
+    /// Display-ready data for the focused pokemon.
     var pokemon: PokemonViewModel { get }
+    /// `true` while evolution chain or other secondary data is in-flight.
     var isLoadingDetails: Bool { get }
+    /// Bookmark state mirrored from SwiftData.
     var isBookmarked: Bool { get }
+    /// Front sprite image once loaded, otherwise `nil`.
     var sprite: Image? { get }
+    /// Dominant color extracted from the sprite, used as accent.
     var color: Color? { get }
+    /// Resolved evolution chain stages; empty until `loadEvolutionChain` runs.
     var evolutionStages: [EvolutionChain.Stage] { get }
+    /// Shared type chart loader feeding the weakness grid.
     var typeChart: TypeChartLoader { get }
 
     /// Load front sprite image and extract dominant color.
