@@ -211,6 +211,50 @@ enum BattleAIResponseParser {
         return picked
     }
 
+    /// Enforce 2 DMG + 1 BOOST + 1 DISRUPT composition, replacing excess damage moves.
+    static func enforceComposition(
+        _ loadout: [MoveDetail],
+        pool: [MoveDetail],
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        typeChart: TypeChart
+    ) -> [MoveDetail] {
+        var result = loadout
+        var usedNames = Set(result.map(\.name))
+        let hasBoost = result.contains { $0.loadoutCategory == "BOOST" }
+        let hasDisrupt = result.contains { $0.loadoutCategory == "DISRUPT" }
+        let damageMoves = result.enumerated().filter { ($0.element.power ?? 0) > 0 }
+
+        guard damageMoves.count > 2 else { return result }
+
+        let sorted = damageMoves.sorted {
+            estimatedDamage(move: $0.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+            < estimatedDamage(move: $1.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+        }
+
+        func bestFromPool(category: String) -> MoveDetail? {
+            pool.filter { !usedNames.contains($0.name) && $0.loadoutCategory == category }
+                .max {
+                    loadoutScore(move: $0, fighter: fighter, opponent: opponent, effectiveness: typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames))
+                    < loadoutScore(move: $1, fighter: fighter, opponent: opponent, effectiveness: typeChart.multiplier(attacking: $1.typeName, defenders: opponent.typeNames))
+                }
+        }
+
+        var replaced = 0
+        for item in sorted {
+            guard replaced < damageMoves.count - 2 else { break }
+            let needed: String? = !hasBoost && replaced == 0 ? "BOOST" :
+                !hasDisrupt ? "DISRUPT" :
+                ["BOOST", "DISRUPT"].randomElement()
+            guard let category = needed, let swap = bestFromPool(category: category) else { continue }
+            result[item.offset] = swap
+            usedNames.insert(swap.name)
+            replaced += 1
+            print("[ai] composition: replaced \(item.element.name) with \(swap.name) (\(category))")
+        }
+        return result
+    }
+
     /// Downgrade one damage move to a weak alternative for balance.
     static func handicapLoadout(
         _ loadout: [MoveDetail],

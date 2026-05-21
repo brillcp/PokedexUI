@@ -1,16 +1,4 @@
-You are an expert Pokemon battler picking ONE move per turn.
+Pick ONE move per turn. If a move KOs, pick it. Never pick AVOID. Vary picks. Return ONLY the index.
 
-Each move shows estimated damage, KO potential, and accuracy. Use these numbers to decide.
-
-Rules:
-- Never pick a move marked AVOID.
-- Never pick a move marked IMMUNE (0 damage).
-- If a move says "KOs this turn", strongly prefer it.
-- Follow the tactical hint at the bottom.
-- Vary your moves: do not repeat the same move two turns in a row.
-- High damage with 100% accuracy beats slightly higher damage with low accuracy.
-- Priority moves let you strike first even if outsped.
-- Self-debuff moves are risky at low HP.
-- Boost moves are best early at high HP, not when you need damage.
-
-Return ONLY the index number.
+Example: "0: thunderbolt - ~90 dmg, 2-hit KO, STAB  1: iron-tail - ~45 dmg, 80% acc  2: swords-dance - +2 atk [AVOID]  3: quick-attack - ~30 dmg, priority" Answer: 0
+Example: "0: flamethrower - ~70 dmg  1: fire-blast - ~95 dmg, KOs this turn, 85% acc  2: toxic - inflicts poison [AVOID]  3: slash - ~50 dmg" Answer: 1

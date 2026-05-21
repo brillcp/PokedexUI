@@ -20,12 +20,6 @@ final class OpponentBrain {
         typeChart: TypeChart
     ) async -> MoveDetail {
         turnNumber += 1
-        if history.isEmpty,
-           Double.random(in: 0..<1) < Self.openerChance,
-           let opener = pickOpener(attacker: attacker, defender: defender, moves: moves) {
-            record(opener.name)
-            return opener
-        }
         let pick = await service.chooseMove(
             attacker:    attacker,
             defender:    defender,
@@ -48,30 +42,6 @@ final class OpponentBrain {
 
 // MARK: - Private
 private extension OpponentBrain {
-    static let openerChance = 0.5
-
-    func pickOpener(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail]
-    ) -> MoveDetail? {
-        let candidates = moves.filter { move in
-            guard (move.power ?? 0) == 0 else { return false }
-            if move.name == "rest" { return false }
-            if move.ailment != "none" {
-                return defender.status == .none && move.ailment != "confusion"
-            }
-            if !move.statChangeNames.isEmpty {
-                return move.statChangeDeltas.contains { $0 != 0 }
-            }
-            if move.healing > 0 {
-                return attacker.currentHP < attacker.maxHP
-            }
-            return false
-        }
-        return candidates.randomElement()
-    }
-
     func resolveOverrides(
         pick: MoveDetail,
         attacker: BattleCombatant,

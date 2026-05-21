@@ -20,22 +20,18 @@ struct BattleAIPromptBuilder {
             let eff = effectiveness[safe: originalIdx] ?? 1.0
             var row = richMoveDescription(move, index: displayIdx, attacker: attacker, defender: defender, effectiveness: eff)
             if let annotation = annotations[originalIdx] {
-                row += " [AVOID: \(annotation)]"
+                row += " [AVOID]"
             }
             return row
         }.joined(separator: "\n")
-        let situation = battleContext(attacker: attacker, defender: defender, recentMoves: recentMoves, turnNumber: turnNumber)
-        let survival = survivalContext(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness)
+        let situation = compactBattleContext(attacker: attacker, defender: defender, turnNumber: turnNumber)
         let hint = tacticalHint(attacker: attacker, defender: defender, moves: moves)
         let prompt = """
         \(situation)
-        \(survival)
 
-        Your moves:
         \(movesBlock)
 
-        \(hint)
-        Return ONLY the index number.
+        \(hint) Never pick AVOID. Return ONLY the index.
         """
         return (prompt, indexMap)
     }
@@ -56,16 +52,12 @@ struct BattleAIPromptBuilder {
             )
         }.joined(separator: "\n")
 
-        let playerProfile = playerProfile(player)
         let prompt = """
-        You are a Pokemon matchmaker. Pick a fun, fair opponent for:
-        \(playerProfile)
+        Pick a fair opponent for \(player.name) (\(player.typeNames.joined(separator: "/")), BST \(playerBST)).
 
-        Candidates:
         \(roster)
 
-        A great fight means either side could win. Prefer slightly weaker over dominant.
-        Return ONLY the number.
+        If "mutual threat", prefer it. If "stronger", avoid it. Return ONLY the number.
         """
         return (prompt, indexMap)
     }
@@ -78,16 +70,10 @@ struct BattleAIPromptBuilder {
         playerMoves: [MoveDetail],
         playerEffectiveness: [Double]
     ) -> (prompt: String, indexMap: [Int: Int]) {
-        let threatAnalysis = playerThreatAnalysis(
-            playerMoves: playerMoves,
-            playerEffectiveness: playerEffectiveness,
-            fighter: fighter,
-            opponent: opponent
+        let biggestThreat = playerBiggestThreat(
+            playerMoves: playerMoves, playerEffectiveness: playerEffectiveness,
+            fighter: fighter, opponent: opponent
         )
-        let fighterProfile = combatantProfile(fighter, label: "You")
-        let opponentProfile = combatantProfile(opponent, label: "Opponent")
-        let speedNote = fighter.speed > opponent.speed ? "You outspeed the opponent." :
-            fighter.speed < opponent.speed ? "Opponent outspeeds you." : "Same speed tier."
 
         let shuffled = Array(moves.indices).shuffled()
         var indexMap: [Int: Int] = [:]
@@ -108,14 +94,7 @@ struct BattleAIPromptBuilder {
         }
 
         let prompt = """
-        You are \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))). Pick 4 moves to fight \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
-
-        \(fighterProfile)
-        \(opponentProfile)
-        \(speedNote)
-
-        Player's threat to you:
-        \(threatAnalysis)
+        Pick 4 moves for \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))) vs \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))). \(biggestThreat)
 
         DMG (pick 2):
         \(dmgRows.joined(separator: "\n"))
@@ -126,7 +105,7 @@ struct BattleAIPromptBuilder {
         DISRUPT (pick 1):
         \(disruptRows.joined(separator: "\n"))
 
-        Pick moves that counter the player's threats. Return ONLY 4 index numbers.
+        Pick highest ~dmg for DMG. Never pick IMMUNE. Return ONLY 4 index numbers.
         """
         return (prompt, indexMap)
     }
@@ -242,73 +221,20 @@ private extension BattleAIPromptBuilder {
         }
     }
 
-    func battleContext(
+    func compactBattleContext(
         attacker: BattleCombatant,
         defender: BattleCombatant,
-        recentMoves: [String],
         turnNumber: Int
     ) -> String {
-        let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double(max(1, $0.maxHP)) * 100) }
-        var lines: [String] = []
-        lines.append("Turn \(turnNumber). You are \(attacker.name) (\(attacker.typeNames.joined(separator: "/"))).")
-        lines.append("\(attacker.name): \(attacker.currentHP)/\(attacker.maxHP) HP (\(hpPct(attacker))%).")
-        lines.append("\(defender.name) (\(defender.typeNames.joined(separator: "/"))): \(defender.currentHP)/\(defender.maxHP) HP (\(hpPct(defender))%).")
-
-        var atkTraits: [String] = []
-        if attacker.status != .none { atkTraits.append(attacker.status.label) }
+        let atkHP = Int(Double(attacker.currentHP) / Double(max(1, attacker.maxHP)) * 100)
+        let defHP = Int(Double(defender.currentHP) / Double(max(1, defender.maxHP)) * 100)
+        var parts = ["Turn \(turnNumber). \(attacker.name) \(atkHP)% HP vs \(defender.name) \(defHP)% HP."]
         let boosts = attacker.statStages.filter { $0.value != 0 }
             .map { "\($0.value > 0 ? "+" : "")\($0.value) \(shortStat($0.key))" }
-        if !boosts.isEmpty { atkTraits.append(boosts.joined(separator: ", ")) }
-        if !atkTraits.isEmpty { lines.append("Your status: \(atkTraits.joined(separator: ", ")).") }
-
-        var defTraits: [String] = []
-        if defender.status != .none { defTraits.append(defender.status.label) }
-        let defBoosts = defender.statStages.filter { $0.value != 0 }
-            .map { "\($0.value > 0 ? "+" : "")\($0.value) \(shortStat($0.key))" }
-        if !defBoosts.isEmpty { defTraits.append(defBoosts.joined(separator: ", ")) }
-        if !defTraits.isEmpty { lines.append("Opponent status: \(defTraits.joined(separator: ", ")).") }
-
-        if attacker.effectiveSpeed > defender.effectiveSpeed {
-            lines.append("You outspeed \(defender.name) and move first.")
-        } else if defender.effectiveSpeed > attacker.effectiveSpeed {
-            lines.append("\(defender.name) outspeeds you and moves first.")
-        }
-
-        if let last = recentMoves.last {
-            lines.append("Your last move was \(last).")
-        }
-
-        return lines.joined(separator: " ")
-    }
-
-    func survivalContext(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
-        effectiveness: [Double]
-    ) -> String {
-        let bestDmg = moves.enumerated().compactMap { idx, move -> Int? in
-            let eff = effectiveness[safe: idx] ?? 1
-            let dmg = estimateDamage(move: move, attacker: attacker, defender: defender, effectiveness: eff)
-            return dmg > 0 ? dmg : nil
-        }.max() ?? 0
-
-        var lines: [String] = []
-        if bestDmg > 0 {
-            let bestKO = turnsToKO(bestDmg, hp: defender.currentHP)
-            lines.append("Your best move deals ~\(bestDmg) dmg. You can KO in \(bestKO) hit\(bestKO == 1 ? "" : "s").")
-        }
-        return lines.joined(separator: " ")
-    }
-
-    // MARK: Opponent prompt helpers
-
-    func playerProfile(_ player: OpponentCandidateSnapshot) -> String {
-        let types = player.typeNames.joined(separator: "/")
-        var line = "\(player.name) (\(types), BST \(player.baseStatTotal))"
-        if player.isLegendary { line += " [legendary]" }
-        if player.isMythical { line += " [mythical]" }
-        return line
+        if !boosts.isEmpty { parts.append("You: \(boosts.joined(separator: ", ")).") }
+        if attacker.status != .none { parts.append("You are \(attacker.status.label).") }
+        if defender.status != .none { parts.append("Opponent is \(defender.status.label).") }
+        return parts.joined(separator: " ")
     }
 
     func richCandidateDescription(
@@ -390,37 +316,24 @@ private extension BattleAIPromptBuilder {
         return parts.joined(separator: " - ")
     }
 
-    func playerThreatAnalysis(
+    func playerBiggestThreat(
         playerMoves: [MoveDetail],
         playerEffectiveness: [Double],
         fighter: BattleCombatant,
         opponent: BattleCombatant
     ) -> String {
-        let rows = playerMoves.enumerated().map { idx, move -> String in
+        var bestDmg = 0
+        var bestName = ""
+        for (idx, move) in playerMoves.enumerated() {
             let eff = playerEffectiveness[safe: idx] ?? 1
             let dmg = estimateDamage(move: move, attacker: opponent, defender: fighter, effectiveness: eff)
-            var tags: [String] = []
-            if dmg > 0 {
-                let koTurns = turnsToKO(dmg, hp: fighter.maxHP)
-                tags.append("~\(dmg) dmg to you")
-                if koTurns <= 3 { tags.append("\(koTurns)-hit KO") }
-                if eff >= 2 { tags.append("SE") }
-            }
-            if move.ailment != "none" { tags.append("inflicts \(move.ailment)") }
-            if move.statChangeDeltas.contains(where: { $0 > 0 }) { tags.append("boosts") }
-            if move.statChangeDeltas.contains(where: { $0 < 0 }), (move.power ?? 0) == 0 { tags.append("debuffs you") }
-            if move.healing > 0 || move.name == "rest" { tags.append("heals") }
-            let tagStr = tags.isEmpty ? "low threat" : tags.joined(separator: ", ")
-            return "- \(move.displayName): \(tagStr)"
+            if dmg > bestDmg { bestDmg = dmg; bestName = move.displayName }
         }
-        return rows.joined(separator: "\n")
-    }
-
-    func combatantProfile(_ c: BattleCombatant, label: String) -> String {
-        let physical = c.attack >= c.specialAttack
-        let offLabel = physical ? "physical attacker (atk \(c.attack))" : "special attacker (spa \(c.specialAttack))"
-        let bulkLabel = "def \(c.defense)/spd \(c.specialDefense)"
-        return "\(label): \(c.name) (\(c.typeNames.joined(separator: "/"))), \(offLabel), \(bulkLabel), spe \(c.speed), HP \(c.maxHP)."
+        if bestDmg > 0 {
+            let ko = turnsToKO(bestDmg, hp: fighter.maxHP)
+            return "Player's strongest: \(bestName) (~\(bestDmg) dmg, \(ko)-hit KO vs you)."
+        }
+        return ""
     }
 
     // MARK: Shared
@@ -436,7 +349,7 @@ private extension BattleAIPromptBuilder {
         }
     }
 
-    /// Phase-based tactical hint that steers the model toward setup/disrupt/attack.
+    /// One-line tactical directive based on game state.
     func tacticalHint(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -444,18 +357,15 @@ private extension BattleAIPromptBuilder {
     ) -> String {
         let hpFrac = Double(attacker.currentHP) / Double(max(1, attacker.maxHP))
         let defHpFrac = Double(defender.currentHP) / Double(max(1, defender.maxHP))
-        let defStatused = defender.status != .none
-        let hasBoost = moves.contains { ($0.power ?? 0) == 0 && $0.statChangeDeltas.contains(where: { $0 > 0 }) }
-        let hasDisrupt = moves.contains {
-            ($0.power ?? 0) == 0 && ($0.ailment != "none" || $0.statChangeDeltas.contains(where: { $0 < 0 }))
-        }
 
-        if hpFrac <= 0.30 { return "Low HP. Go for max damage to finish before you faint." }
-        if defHpFrac <= 0.30 { return "Opponent is low. Pick a move that KOs this turn." }
-        if !attacker.isBoosted, hpFrac >= 0.70, hasBoost { return "Early game. Consider boosting to sweep later." }
-        if attacker.isBoosted, !defStatused, hasDisrupt { return "You are boosted. Disrupting the opponent locks in your advantage." }
-        if attacker.isBoosted { return "You are boosted. Pick your highest-damage move to capitalize." }
-        return "Pick the move that deals the most damage this turn."
+        if defHpFrac <= 0.30 { return "Opponent is low. Pick the move that KOs." }
+        if hpFrac <= 0.30 { return "Low HP. Pick highest damage." }
+        if !attacker.isBoosted, hpFrac >= 0.70,
+           moves.contains(where: { ($0.power ?? 0) == 0 && $0.statChangeDeltas.contains { $0 > 0 } }) {
+            return "Consider a boost move to set up."
+        }
+        if attacker.isBoosted { return "You are boosted. Pick highest damage." }
+        return "Pick highest damage."
     }
 }
 
