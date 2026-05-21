@@ -6,6 +6,7 @@ final class OpponentBrain {
     private let service: BattleAIServiceProtocol
     private let historyLimit: Int
     private var history: [String] = []
+    private var turnNumber: Int = 0
 
     init(service: BattleAIServiceProtocol, historyLimit: Int = 4) {
         self.service = service
@@ -18,6 +19,7 @@ final class OpponentBrain {
         moves: [MoveDetail],
         typeChart: TypeChart
     ) async -> MoveDetail {
+        turnNumber += 1
         if history.isEmpty,
            Double.random(in: 0..<1) < Self.openerChance,
            let opener = pickOpener(attacker: attacker, defender: defender, moves: moves) {
@@ -29,7 +31,8 @@ final class OpponentBrain {
             defender:    defender,
             moves:       moves,
             typeChart:   typeChart,
-            recentMoves: history
+            recentMoves: history,
+            turnNumber:  turnNumber
         )
         let final = resolveOverrides(
             pick: pick,

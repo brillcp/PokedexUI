@@ -85,7 +85,6 @@ private struct PokedexGridItem: View {
                     CardOverlay(
                         id: pokemon.id,
                         name: pokemon.name,
-                        isBookmarked: pokemon.isBookmarked,
                         isLight: isLight
                     )
                 }
@@ -100,15 +99,11 @@ private struct PokedexGridItem: View {
 private struct CardOverlay: View {
     let id: Int
     let name: String
-    let isBookmarked: Bool
     let isLight: Bool
 
     var body: some View {
         VStack {
             HStack {
-                if isBookmarked {
-                    Image(systemName: "heart.fill")
-                }
                 Spacer()
                 Text("#\(id)")
             }

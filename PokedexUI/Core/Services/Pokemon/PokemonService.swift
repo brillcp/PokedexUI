@@ -141,17 +141,14 @@ struct PokemonFetcher: DataFetcher {
     }
 
     func persist(_ bootstrap: Bootstrap) async throws {
-        let chunkSize = 150
-        for chunkStart in stride(from: 0, to: bootstrap.pokemon.count, by: chunkSize) {
-            let chunk = Array(bootstrap.pokemon[chunkStart..<min(chunkStart + chunkSize, bootstrap.pokemon.count)])
-            try await storage.store(chunk)
+        try await storage.store(bootstrap.pokemon)
+
+        guard !bootstrap.chainPayloads.isEmpty else { return }
+
+        let entities = bootstrap.chainPayloads.map {
+            EvolutionChainEntity(chainId: $0.chainId, payload: $0.payload)
         }
-        if !bootstrap.chainPayloads.isEmpty {
-            let entities = bootstrap.chainPayloads.map {
-                EvolutionChainEntity(chainId: $0.chainId, payload: $0.payload)
-            }
-            try await storage.store(entities)
-        }
+        try await storage.store(entities)
     }
 
     func fetchStoredData() async throws -> [Pokemon] {

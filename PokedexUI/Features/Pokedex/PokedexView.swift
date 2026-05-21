@@ -58,14 +58,12 @@ private extension PokedexView {
 
 /// Pokedex tab content with grid and toolbar.
 private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
-    @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
-
     let viewModel: ViewModel
 
     var body: some View {
         NavigationStack {
             PokedexGridView(
-                pokemon: corpus.sorted(by: viewModel.sortType.comparator),
+                pokemon: viewModel.pokemon.sorted(by: viewModel.sortType.comparator),
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading,
                 loadingProgress: viewModel.loadingProgress

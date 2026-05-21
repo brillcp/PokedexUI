@@ -5,6 +5,8 @@ import SwiftUI
 /// Observable view model behind the pokedex grid.
 @MainActor
 protocol PokedexViewModelProtocol {
+    /// All fetched Pokemon for the grid.
+    var pokemon: [Pokemon] { get }
     /// `true` while fetching is in-flight.
     var isLoading: Bool { get }
     /// 0...1 progress during first-load API fetch.
@@ -13,7 +15,7 @@ protocol PokedexViewModelProtocol {
     var selectedTab: Tabs { get set }
     /// Current pokedex grid layout (3 cols vs 4 cols).
     var grid: GridLayout { get set }
-    /// Active sort applied to the grid's `@Query` corpus.
+    /// Active sort applied to the pokemon array.
     var sortType: SortType { get set }
 
     /// Load all Pokemon: cache first, then network if needed.
@@ -29,6 +31,7 @@ final class PokedexViewModel {
     private let fetcher: PokemonFetcher
     private var downloadTicks: Int = 0
 
+    var pokemon: [Pokemon] = []
     var isLoading: Bool = false
     var loadingProgress: Double = 0
     var selectedTab: Tabs = .pokedex
@@ -47,6 +50,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         guard !isLoading else { return }
 
         if let cached = try? await fetcher.fetchStoredData(), !cached.isEmpty {
+            pokemon = cached
             return
         }
 
@@ -60,6 +64,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
         do {
             let bootstrap = try await fetcher.fetchBootstrap(onTick: tick)
             loadingProgress = 1.0
+            pokemon = bootstrap.pokemon
             try await fetcher.persist(bootstrap)
         } catch {
             print("PokedexViewModel: fetch failed: \(error)")

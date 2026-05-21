@@ -4,7 +4,7 @@ import FoundationModels
 /// On-device AI for battle decisions with deterministic fallbacks.
 protocol BattleAIServiceProtocol: Sendable {
     /// Pick the best move for this turn.
-    func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String]) async -> MoveDetail
+    func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String], turnNumber: Int) async -> MoveDetail
     /// Pick an opponent id from candidate snapshots.
     func chooseOpponent(player: OpponentCandidateSnapshot, candidates: [OpponentCandidateSnapshot], typeChart: TypeChart?) async -> Int?
     /// Pick a 4-move loadout for a 1v1 battle, informed by what the player chose.
@@ -25,7 +25,8 @@ extension BattleAIService: BattleAIServiceProtocol {
         defender: BattleCombatant,
         moves: [MoveDetail],
         typeChart: TypeChart,
-        recentMoves: [String]
+        recentMoves: [String],
+        turnNumber: Int
     ) async -> MoveDetail {
         guard let first = moves.first else { return MoveDetail(name: "tackle") }
         let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: defender.typeNames) }
@@ -48,7 +49,7 @@ extension BattleAIService: BattleAIServiceProtocol {
         }
 
         guard isAvailable else { return adjust(fallback) }
-        let (prompt, indexMap) = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves)
+        let (prompt, indexMap) = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves, turnNumber: turnNumber)
         print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name)), recent: \(recentMoves)")
         do {
             let raw = try await generate(label: "chooseMove", prompt: prompt, temperature: 0.35, session: moveSession)

@@ -8,9 +8,9 @@ struct BattleAIPromptBuilder {
         defender: BattleCombatant,
         moves: [MoveDetail],
         effectiveness: [Double],
-        recentMoves: [String]
+        recentMoves: [String],
+        turnNumber: Int
     ) -> (prompt: String, indexMap: [Int: Int]) {
-        let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double($0.maxHP) * 100) }
         let annotations = moveAnnotations(moves: moves, recentMoves: recentMoves, attacker: attacker, defender: defender)
         let shuffled = Array(moves.indices).shuffled()
         var indexMap: [Int: Int] = [:]
@@ -24,13 +24,11 @@ struct BattleAIPromptBuilder {
             }
             return row
         }.joined(separator: "\n")
-        let historyLine = recentMoves.isEmpty
-            ? ""
-            : "\nLast move: \(recentMoves.last!). Vary if possible.\n"
+        let situation = battleContext(attacker: attacker, defender: defender, recentMoves: recentMoves, turnNumber: turnNumber)
         let hint = tacticalHint(attacker: attacker, defender: defender, moves: moves)
         let prompt = """
-        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(attacker.status.label)\(attacker.isBoosted ? ", boosted" : "")) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(defender.status.label)).
-        \(historyLine)
+        \(situation)
+
         \(movesBlock)
 
         \(hint)
@@ -152,6 +150,52 @@ private extension BattleAIPromptBuilder {
                 warnings.append("AVOID: opponent already statused")
             }
             return warnings.isEmpty ? nil : warnings.joined(separator: ", ")
+        }
+    }
+
+    func battleContext(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        recentMoves: [String],
+        turnNumber: Int
+    ) -> String {
+        let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double(max(1, $0.maxHP)) * 100) }
+        var lines: [String] = []
+        lines.append("Turn \(turnNumber). \(attacker.name) \(hpPct(attacker))% HP vs \(defender.name) \(hpPct(defender))% HP.")
+
+        var atkTraits: [String] = []
+        if attacker.status != .none { atkTraits.append(attacker.status.label) }
+        let boosts = attacker.statStages.filter { $0.value > 0 }.map { "+\($0.value) \(shortStat($0.key))" }
+        if !boosts.isEmpty { atkTraits.append(boosts.joined(separator: ", ")) }
+        if !atkTraits.isEmpty { lines.append("You: \(atkTraits.joined(separator: ", ")).") }
+
+        var defTraits: [String] = []
+        if defender.status != .none { defTraits.append(defender.status.label) }
+        let defBoosts = defender.statStages.filter { $0.value > 0 }.map { "+\($0.value) \(shortStat($0.key))" }
+        if !defBoosts.isEmpty { defTraits.append(defBoosts.joined(separator: ", ")) }
+        if !defTraits.isEmpty { lines.append("Opponent: \(defTraits.joined(separator: ", ")).") }
+
+        if attacker.effectiveSpeed > defender.effectiveSpeed {
+            lines.append("You are faster.")
+        } else if defender.effectiveSpeed > attacker.effectiveSpeed {
+            lines.append("Opponent is faster.")
+        }
+
+        if let last = recentMoves.last {
+            lines.append("Your last move: \(last).")
+        }
+
+        return lines.joined(separator: " ")
+    }
+
+    func shortStat(_ stat: String) -> String {
+        switch stat {
+        case "attack": return "atk"
+        case "defense": return "def"
+        case "special-attack": return "spa"
+        case "special-defense": return "spd"
+        case "speed": return "spe"
+        default: return stat
         }
     }
 
