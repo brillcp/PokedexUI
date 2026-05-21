@@ -20,20 +20,17 @@ actor LanguageModelClient {
     }
 
     func generate(
-        label: String,
         prompt: String,
         temperature: Double,
         instructions: Instructions
     ) async throws -> String {
         var lastError: Error?
-        for attempt in 1...maxAttempts {
+        for _ in 1...maxAttempts {
             await waitForGenerationSlot()
             do {
                 defer { isGenerating = false }
                 let session = LanguageModelSession(model: model, instructions: instructions.text)
-                let response = try await session.respond(to: prompt, options: .init(temperature: temperature)).content
-                if attempt > 1 { print("[llm] \(label): retry \(attempt) succeeded") }
-                return response
+                return try await session.respond(to: prompt, options: .init(temperature: temperature)).content
             } catch {
                 isGenerating = false
                 lastError = error

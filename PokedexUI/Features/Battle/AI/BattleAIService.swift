@@ -38,35 +38,24 @@ extension BattleAIService: BattleAIServiceProtocol {
         ) ?? first
 
         let adjust: (MoveDetail) -> MoveDetail = { pick in
-            let adjusted = MoveStrategy.phaseAdjust(
+            MoveStrategy.phaseAdjust(
                 pick: pick, attacker: attacker, defender: defender, moves: moves, typeChart: typeChart
             )
-            if adjusted.name != pick.name {
-                print("[ai] chooseMove: phase override \(pick.name) -> \(adjusted.name)")
-            }
-            return adjusted
         }
 
         guard await client.isAvailable else { return adjust(fallback) }
         let output = MovePrompt.build(
             attacker: attacker, defender: defender, moves: moves, typeChart: typeChart, turnNumber: turnNumber
         )
-        print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name)), recent: \(recentMoves)")
         do {
             let raw = try await client.generate(
-                label: "chooseMove", prompt: output.prompt, temperature: 0.35, instructions: .move
+                prompt: output.prompt, temperature: 0.35, instructions: .move
             )
-            print("[llm] chooseMove: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             if let pick = MovePrompt.parsePick(raw: raw, indexMap: output.indexMap, moves: moves) {
                 let repaired = MoveStrategy.immuneRepair(pick: pick, defender: defender, typeChart: typeChart, fallback: fallback)
-                if repaired.name != pick.name {
-                    print("[llm] chooseMove: repaired \(pick.name) -> \(repaired.name) (immune)")
-                }
                 return adjust(repaired)
             }
-        } catch {
-            print("[llm error] \(error.localizedDescription): prompt chars \(output.prompt.count)")
-        }
+        } catch {}
         return adjust(fallback)
     }
 
@@ -80,19 +69,14 @@ extension BattleAIService: BattleAIServiceProtocol {
         let fallback = OpponentStrategy.heuristicPick(player: player, candidates: pool, typeChart: typeChart)
         guard await client.isAvailable else { return fallback }
         let output = OpponentPrompt.build(player: player, candidates: pool, typeChart: typeChart)
-        print("[llm] chooseOpponent: for \(player.name) (\(player.typeNames.joined(separator: "/"))) from \(pool.count) candidates")
         do {
             let raw = try await client.generate(
-                label: "chooseOpponent", prompt: output.prompt, temperature: 0.3, instructions: .opponent
+                prompt: output.prompt, temperature: 0.3, instructions: .opponent
             )
-            print("[llm] chooseOpponent: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             if let pokemonId = OpponentPrompt.parsePick(raw: raw, indexMap: output.indexMap) {
-                print("[llm] chooseOpponent: -> id \(pokemonId)")
                 return pokemonId
             }
-        } catch {
-            print("[llm error] \(error.localizedDescription): prompt chars \(output.prompt.count)")
-        }
+        } catch {}
         return fallback
     }
 
@@ -117,38 +101,26 @@ extension BattleAIService: BattleAIServiceProtocol {
             )
         }
 
-        guard await client.isAvailable else {
-            let result = balance(fallback)
-            print("[ai] chooseLoadout: deterministic \(fighter.name) vs \(opponent.name): \(result.map(\.name))")
-            return result
-        }
+        guard await client.isAvailable else { return balance(fallback) }
         let shortMoves = LoadoutStrategy.shortlist(
             fighter: fighter, opponent: opponent, moves: moves, typeChart: typeChart
         )
         let output = LoadoutPrompt.build(
             fighter: fighter, opponent: opponent, moves: shortMoves, playerMoves: playerMoves, typeChart: typeChart
         )
-        print("[llm] chooseLoadout: \(fighter.name) vs \(opponent.name), pool \(moves.count)/\(shortMoves.count)")
         do {
             let raw = try await client.generate(
-                label: "chooseLoadout", prompt: output.prompt, temperature: 0.4, instructions: .loadout
+                prompt: output.prompt, temperature: 0.4, instructions: .loadout
             )
-            print("[llm] chooseLoadout: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
             let parsed = LoadoutPrompt.parsePicks(raw: raw, indexMap: output.indexMap, moves: shortMoves)
             if !parsed.isEmpty {
                 let filled = LoadoutStrategy.fill(
                     seed: parsed, fighter: fighter, opponent: opponent,
                     moves: shortMoves, typeChart: typeChart, count: 4
                 )
-                let result = balance(filled)
-                print("[llm] chooseLoadout: picked \(result.map(\.name)) (llm seeded \(parsed.count))")
-                return result
+                return balance(filled)
             }
-        } catch {
-            print("[llm error] \(error.localizedDescription): prompt chars \(output.prompt.count)")
-        }
-        let result = balance(fallback)
-        print("[ai] chooseLoadout: fallback \(result.map(\.name))")
-        return result
+        } catch {}
+        return balance(fallback)
     }
 }

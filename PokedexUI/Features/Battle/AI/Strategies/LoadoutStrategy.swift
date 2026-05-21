@@ -162,7 +162,6 @@ enum LoadoutStrategy {
             result[item.offset] = swap
             usedNames.insert(swap.name)
             replaced += 1
-            print("[ai] composition: replaced \(item.element.name) with \(swap.name) (\(category))")
         }
         return result
     }
@@ -202,7 +201,6 @@ enum LoadoutStrategy {
         guard let replacement = bottomHalf.randomElement() else { return loadout }
         var result = loadout
         result[weakest.offset] = replacement
-        print("[ai] handicap: swapped \(weakest.element.name) -> \(replacement.name)")
         return result
     }
 }
