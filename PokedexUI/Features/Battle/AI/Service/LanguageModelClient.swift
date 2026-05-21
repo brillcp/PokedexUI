@@ -38,6 +38,26 @@ actor LanguageModelClient {
         }
         throw lastError ?? CancellationError()
     }
+
+    /// Run one battle decision: returns the adjusted fallback if the model
+    /// is unavailable or the generation/parse cycle fails; otherwise
+    /// returns the adjusted LLM pick. `adjust` runs against both branches
+    /// so post-pick corrections always apply.
+    func decide<Pick>(
+        fallback: Pick,
+        prompt: @autoclosure () -> String,
+        temperature: Double,
+        instructions: Instructions,
+        parse: (String) -> Pick?,
+        adjust: (Pick) -> Pick
+    ) async -> Pick {
+        guard isAvailable else { return adjust(fallback) }
+        do {
+            let raw = try await generate(prompt: prompt(), temperature: temperature, instructions: instructions)
+            if let pick = parse(raw) { return adjust(pick) }
+        } catch {}
+        return adjust(fallback)
+    }
 }
 
 // MARK: - Instructions

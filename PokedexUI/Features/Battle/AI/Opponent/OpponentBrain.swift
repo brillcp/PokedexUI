@@ -1,7 +1,11 @@
 import BattleKit
 import Foundation
 
-/// Wraps `BattleAIServiceProtocol` with a rolling move-history window.
+/// Wraps `BattleAIServiceProtocol` with rolling move history and a turn
+/// counter so the service can score recency penalties and embed turn
+/// numbers in prompts. Move-selection corrections live in
+/// ``MoveStrategy/adjust(pick:attacker:defender:moves:typeChart:fallback:)``;
+/// this type is pure stateful glue.
 @MainActor
 final class OpponentBrain {
     private let service: BattleAIServiceProtocol
@@ -29,51 +33,13 @@ final class OpponentBrain {
             recentMoves: history,
             turnNumber:  turnNumber
         )
-        let final = resolveOverrides(
-            pick: pick,
-            attacker: attacker,
-            defender: defender,
-            moves: moves,
-            typeChart: typeChart
-        )
-        record(final.name)
-        return final
+        record(pick.name)
+        return pick
     }
 }
 
 // MARK: - Private
 private extension OpponentBrain {
-    func resolveOverrides(
-        pick: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
-        typeChart: TypeChart
-    ) -> MoveDetail {
-        let pickDamage = DamageCalculator.estimateDamage(
-            move: pick, attacker: attacker, defender: defender, typeChart: typeChart
-        )
-        let pickKOs = pickDamage >= defender.currentHP
-        if !pickKOs,
-           let killer = DamageCalculator.guaranteedKO(
-                attacker: attacker, defender: defender, moves: moves, typeChart: typeChart
-           ),
-           killer.name != pick.name {
-            return killer
-        }
-
-        if pick.ailment != "none", (pick.power ?? 0) == 0, defender.status != .none {
-            let alternatives = moves.filter { $0.name != pick.name }
-            if let best = DamageCalculator.strongestMove(
-                attacker: attacker, defender: defender, moves: alternatives, typeChart: typeChart
-            ) {
-                return best.move
-            }
-        }
-
-        return pick
-    }
-
     func record(_ name: String) {
         history.append(name)
         if history.count > historyLimit {

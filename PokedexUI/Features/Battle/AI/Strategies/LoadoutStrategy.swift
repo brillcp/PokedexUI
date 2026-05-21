@@ -54,8 +54,8 @@ enum LoadoutStrategy {
 
     /// Deterministic 4-move loadout: 1 SE damage + 1 lesser damage + 1
     /// self-boost + 1 disruption. Falls back to best available when a slot
-    /// category has no candidates.
-    static func assemble(
+    /// category has no candidates. Used as the LLM-unavailable fallback.
+    static func heuristicPick(
         fighter: BattleCombatant,
         opponent: BattleCombatant,
         moves: [MoveDetail],
@@ -98,6 +98,20 @@ enum LoadoutStrategy {
         return picked
     }
 
+    /// Post-pick correction pipeline applied to every loadout regardless
+    /// of source: enforce 2 DMG + 1 BOOST + 1 DISRUPT composition, then
+    /// downgrade one damage move to keep matchups fair.
+    static func adjust(
+        picks: [MoveDetail],
+        pool: [MoveDetail],
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        typeChart: TypeChart
+    ) -> [MoveDetail] {
+        let composed = enforceComposition(picks, pool: pool, fighter: fighter, opponent: opponent, typeChart: typeChart)
+        return handicap(composed, pool: pool, fighter: fighter, opponent: opponent, typeChart: typeChart)
+    }
+
     /// Pad LLM-seeded picks to `count` using deterministic scoring.
     static func fill(
         seed: [MoveDetail],
@@ -121,6 +135,11 @@ enum LoadoutStrategy {
         }
         return picked
     }
+
+}
+
+// MARK: - Private
+private extension LoadoutStrategy {
 
     /// Enforce 2 DMG + 1 BOOST + 1 DISRUPT composition by swapping excess
     /// damage moves for boost or disrupt picks from the pool.

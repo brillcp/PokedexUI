@@ -1,12 +1,16 @@
 import BattleKit
 import Foundation
 
-/// Deterministic AI logic for in-battle move selection: heuristic fallback
-/// when the LLM is unavailable, post-pick adjustments for wasted boosts and
-/// re-statusing, and immune-move repair.
+/// Deterministic AI logic for in-battle move selection.
+///
+/// ``heuristicPick`` produces a fallback used when the LLM is unavailable
+/// or returns an invalid pick. ``adjust`` runs the post-pick correction
+/// pipeline applied to every chosen move regardless of source (heuristic
+/// or LLM): immune-move repair, wasted-boost / re-status overrides,
+/// guaranteed-KO upgrade, and redundant-status downgrade.
 enum MoveStrategy {
 
-    /// Highest-scoring move accounting for damage, recency, low-HP bias.
+    /// Highest-scoring move accounting for damage, recency, and low-HP bias.
     static func heuristicPick(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -18,6 +22,43 @@ enum MoveStrategy {
             inBattleScore(move: lhs, attacker: attacker, defender: defender, typeChart: typeChart, recentMoves: recentMoves)
             < inBattleScore(move: rhs, attacker: attacker, defender: defender, typeChart: typeChart, recentMoves: recentMoves)
         }
+    }
+
+    /// Run the full post-pick correction pipeline against `pick`. Pipeline
+    /// order: immune repair → phase adjust → KO override → redundant-status
+    /// override. Each step is a no-op when its precondition isn't met.
+    static func adjust(
+        pick: MoveDetail,
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail],
+        typeChart: TypeChart,
+        fallback: MoveDetail
+    ) -> MoveDetail {
+        var current = pick
+        current = immuneRepair(pick: current, defender: defender, typeChart: typeChart, fallback: fallback)
+        current = phaseAdjust(pick: current, attacker: attacker, defender: defender, moves: moves, typeChart: typeChart)
+        current = koOverride(pick: current, attacker: attacker, defender: defender, moves: moves, typeChart: typeChart)
+        current = statusRedundancyOverride(pick: current, attacker: attacker, defender: defender, moves: moves, typeChart: typeChart)
+        return current
+    }
+}
+
+// MARK: - Private
+private extension MoveStrategy {
+
+    /// Swap an immune pick for the heuristic fallback when possible.
+    static func immuneRepair(
+        pick: MoveDetail,
+        defender: BattleCombatant,
+        typeChart: TypeChart,
+        fallback: MoveDetail
+    ) -> MoveDetail {
+        let eff = typeChart.multiplier(attacking: pick.typeName, defenders: defender.typeNames)
+        if eff == 0, fallback.name != pick.name {
+            return fallback
+        }
+        return pick
     }
 
     /// Override boost/status picks when game state makes them wasteful.
@@ -39,23 +80,41 @@ enum MoveStrategy {
         return pick
     }
 
-    /// Swap an immune pick for the heuristic fallback when possible.
-    static func immuneRepair(
+    /// Upgrade `pick` to a guaranteed-KO move when one exists and `pick`
+    /// can't finish the defender this turn.
+    static func koOverride(
         pick: MoveDetail,
+        attacker: BattleCombatant,
         defender: BattleCombatant,
-        typeChart: TypeChart,
-        fallback: MoveDetail
+        moves: [MoveDetail],
+        typeChart: TypeChart
     ) -> MoveDetail {
-        let eff = typeChart.multiplier(attacking: pick.typeName, defenders: defender.typeNames)
-        if eff == 0, fallback.name != pick.name {
-            return fallback
-        }
-        return pick
+        let pickDamage = DamageCalculator.estimateDamage(
+            move: pick, attacker: attacker, defender: defender, typeChart: typeChart
+        )
+        guard pickDamage < defender.currentHP else { return pick }
+        guard let killer = DamageCalculator.guaranteedKO(
+            attacker: attacker, defender: defender, moves: moves, typeChart: typeChart
+        ), killer.name != pick.name else { return pick }
+        return killer
     }
-}
 
-// MARK: - Private
-private extension MoveStrategy {
+    /// Swap a redundant pure-status move for the strongest damage move when
+    /// the defender already has a non-`none` status.
+    static func statusRedundancyOverride(
+        pick: MoveDetail,
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail],
+        typeChart: TypeChart
+    ) -> MoveDetail {
+        guard pick.ailment != "none", (pick.power ?? 0) == 0, defender.status != .none else { return pick }
+        let alternatives = moves.filter { $0.name != pick.name }
+        guard let best = DamageCalculator.strongestMove(
+            attacker: attacker, defender: defender, moves: alternatives, typeChart: typeChart
+        ) else { return pick }
+        return best.move
+    }
 
     static func inBattleScore(
         move: MoveDetail,

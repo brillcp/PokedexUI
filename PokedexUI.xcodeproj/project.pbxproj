@@ -274,17 +274,31 @@
 		D5BA13062E70000000000207 /* AI */ = {
 			isa = PBXGroup;
 			children = (
-				D5BA13012E70000000000202 /* BattleAIService.swift */,
-				D5A1B00000000000000000B6 /* BattleContext.swift */,
-				D5A1B00000000000000000B7 /* LLMResponseParser.swift */,
-				D5A1B00000000000000000B1 /* LanguageModelClient.swift */,
-				D5A1B00000000000000000B2 /* MoveScoring.swift */,
+				D5A1B00000000000000000C1 /* Service */,
 				D5C46D882FBF567F0085527B /* Strategies */,
 				D5C46D892FBF56910085527B /* Prompts */,
+				D5A1B00000000000000000C2 /* Shared */,
 				D5C46D8A2FBF56C40085527B /* Opponent */,
 				D5C46D8B2FBF56E00085527B /* LLMInstructions */,
 			);
 			path = AI;
+			sourceTree = "<group>";
+		};
+		D5A1B00000000000000000C1 /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				D5BA13012E70000000000202 /* BattleAIService.swift */,
+				D5A1B00000000000000000B1 /* LanguageModelClient.swift */,
+			);
+			path = Service;
+			sourceTree = "<group>";
+		};
+		D5A1B00000000000000000C2 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D5A1B00000000000000000B6 /* BattleContext.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		D5BA130C2E70000000000305 /* Setup */ = {
@@ -311,6 +325,7 @@
 				D5A1B00000000000000000B3 /* MoveStrategy.swift */,
 				D5A1B00000000000000000B4 /* OpponentStrategy.swift */,
 				D5A1B00000000000000000B5 /* LoadoutStrategy.swift */,
+				D5A1B00000000000000000B2 /* MoveScoring.swift */,
 			);
 			path = Strategies;
 			sourceTree = "<group>";
@@ -321,6 +336,7 @@
 				D5A1B00000000000000000B8 /* MovePrompt.swift */,
 				D5A1B00000000000000000B9 /* OpponentPrompt.swift */,
 				D5A1B00000000000000000BA /* LoadoutPrompt.swift */,
+				D5A1B00000000000000000B7 /* LLMResponseParser.swift */,
 			);
 			path = Prompts;
 			sourceTree = "<group>";
