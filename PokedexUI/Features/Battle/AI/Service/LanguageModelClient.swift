@@ -68,12 +68,18 @@ extension LanguageModelClient {
     struct Instructions: Sendable {
         let text: String
 
-        static let move = Instructions(resource: "BattleAIMoveInstructions",
-                                       fallback: "You are an expert Pokemon battler.")
-        static let opponent = Instructions(resource: "BattleAIOpponentInstructions",
-                                           fallback: "You are a Pokemon battle matchmaker.")
-        static let loadout = Instructions(resource: "BattleAILoadoutInstructions",
-                                          fallback: "You are an expert Pokemon battler picking a loadout.")
+        static let move = Instructions(
+            resource: "BattleAIMoveInstructions",
+            fallback: "You are an expert Pokemon battler."
+        )
+        static let opponent = Instructions(
+            resource: "BattleAIOpponentInstructions",
+            fallback: "You are a Pokemon battle matchmaker."
+        )
+        static let loadout = Instructions(
+            resource: "BattleAILoadoutInstructions",
+            fallback: "You are an expert Pokemon battler picking a loadout."
+        )
 
         private init(resource: String, fallback: String) {
             guard let url = Bundle.main.url(forResource: resource, withExtension: "md"),
