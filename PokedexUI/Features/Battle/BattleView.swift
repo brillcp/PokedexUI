@@ -133,7 +133,7 @@ private extension BattleView {
         ]
         let opponentTypes = state.opponent.typeNames
         return LazyVGrid(columns: columns, spacing: spacing) {
-            ForEach(state.player.moves, id: \.name) { move in
+            ForEach(viewModel.displayMoves, id: \.name) { move in
                 let effectiveness: Double? = opponentTypes.isEmpty
                     ? nil
                     : container.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)

@@ -57,6 +57,8 @@ extension PokemonViewModel {
     var isMythical: Bool { pokemon.isMythical }
 }
 
+extension PokemonViewModel: BattlePokemonData {}
+
 extension PokemonViewModel: Hashable {
     static func == (lhs: PokemonViewModel, rhs: PokemonViewModel) -> Bool {
         lhs.id == rhs.id

@@ -26,21 +26,15 @@ public struct BattleEngine: Sendable {
 
         for side in order {
             if combatant(side).isFainted || combatant(side.opposite).isFainted { continue }
-            let move: any BattleMoveData = side == .player ? playerMove : opponentMove
-            performAction(side: side, move: move, events: &events, hitThisRound: &hitThisRound)
-
-            if combatant(side).isFainted {
-                events.append(.fainted(side))
-                state.phase = .ended(winner: side.opposite)
-                events.append(.ended(winner: side.opposite))
-                return events
+            switch side {
+            case .player:
+                performAction(side: .player, move: playerMove, events: &events, hitThisRound: &hitThisRound)
+            case .opponent:
+                performAction(side: .opponent, move: opponentMove, events: &events, hitThisRound: &hitThisRound)
             }
 
-            if combatant(side.opposite).isFainted {
-                events.append(.fainted(side.opposite))
-                state.phase = .ended(winner: side)
-                events.append(.ended(winner: side))
-                return events
+            if let result = checkFaint(after: side, events: &events) {
+                return result
             }
         }
 
@@ -219,6 +213,22 @@ private extension BattleEngine {
 
     func combatant(_ side: BattleSide) -> BattleCombatant {
         side == .player ? state.player : state.opponent
+    }
+
+    mutating func checkFaint(after side: BattleSide, events: inout [BattleEvent]) -> [BattleEvent]? {
+        if combatant(side).isFainted {
+            events.append(.fainted(side))
+            state.phase = .ended(winner: side.opposite)
+            events.append(.ended(winner: side.opposite))
+            return events
+        }
+        if combatant(side.opposite).isFainted {
+            events.append(.fainted(side.opposite))
+            state.phase = .ended(winner: side)
+            events.append(.ended(winner: side))
+            return events
+        }
+        return nil
     }
 
     mutating func mutate(_ side: BattleSide, _ body: (inout BattleCombatant) -> Void) {

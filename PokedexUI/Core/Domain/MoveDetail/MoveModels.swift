@@ -1,3 +1,4 @@
+import BattleKit
 import SwiftData
 
 /// Fully resolved per-move record persisted as a `@Model`.
@@ -131,5 +132,13 @@ extension MoveDetail {
         if !statChangeNames.isEmpty { return true }
         if ailment != "none" { return true }
         return false
+    }
+}
+
+// MARK: - BattleMoveData
+
+extension MoveDetail: BattleMoveData {
+    func snapshot() -> BattleMoveSnapshot {
+        BattleMoveSnapshot(from: self)
     }
 }

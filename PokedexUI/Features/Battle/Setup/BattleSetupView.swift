@@ -88,6 +88,8 @@ private extension BattleSetupView {
                 movePicker
             }
         }
+        .disabled(viewModel.isPickingLoadout)
+        .opacity(viewModel.isPickingLoadout ? Opacity.disabled : 1)
         .scrollIndicators(.hidden)
         .safeAreaBar(edge: .bottom) { battleButton }
     }
@@ -238,8 +240,6 @@ private extension BattleSetupView {
                     moveCard(move)
                 }
             }
-            .disabled(viewModel.isPickingLoadout)
-            .opacity(viewModel.isPickingLoadout ? Opacity.disabled : 1)
             .animation(.easeInOut(duration: 0.2), value: viewModel.isPickingLoadout)
         }
     }

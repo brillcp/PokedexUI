@@ -1,4 +1,5 @@
 import SwiftUI
+import BattleKit
 
 /// Drives `BattleView` as a conductor over engine, animator, log, and audio.
 @MainActor
@@ -21,6 +22,8 @@ protocol BattleViewModelProtocol: AnyObject {
     var winner: BattleSide? { get }
     /// User-facing error surfaced by `prepare`.
     var errorMessage: String? { get }
+    /// Player's moves for display in the move grid.
+    var displayMoves: [MoveDetail] { get }
 
     /// Warm up battle state, sprite colors, and entrance animation.
     func prepare() async
@@ -32,7 +35,6 @@ protocol BattleViewModelProtocol: AnyObject {
 @MainActor
 @Observable
 final class BattleViewModel {
-    private let playerMoves:        [MoveDetail]
     private let opponentMoves:      [MoveDetail]
     private let formatter:          BattleLogFormatter
     private let typeChartLoader:    TypeChartLoader
@@ -45,6 +47,7 @@ final class BattleViewModel {
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
     let animator:        BattleAnimator
+    let displayMoves:    [MoveDetail]
 
     var engine: BattleEngine?
     var state:  BattleState?
@@ -62,7 +65,7 @@ final class BattleViewModel {
     ) {
         self.playerPokemon      = player
         self.opponentPokemon    = opponent
-        self.playerMoves        = playerMoves
+        self.displayMoves       = playerMoves
         self.opponentMoves      = opponentMoves
         self.typeChartLoader    = container.typeChart
         self.audioPlayer        = container.audioPlayer
@@ -74,8 +77,8 @@ final class BattleViewModel {
             playerName:   player.name,
             opponentName: opponent.name
         )
-        let p = BattleCombatant(pokemon: player,   moves: playerMoves, hpBonus: 1.2)
-        let o = BattleCombatant(pokemon: opponent, moves: opponentMoves)
+        let p = BattleCombatant(pokemon: player,   moves: playerMoves.map { $0.snapshot() }, hpBonus: 1.2)
+        let o = BattleCombatant(pokemon: opponent, moves: opponentMoves.map { $0.snapshot() })
         let initialState = BattleState(player: p, opponent: o)
         self.state = initialState
         if let chart = container.typeChart.chart {
@@ -102,7 +105,7 @@ extension BattleViewModel: BattleViewModelProtocol {
     }
 
     func submit(_ move: MoveDetail) async {
-        guard let engine,
+        guard var eng = engine,
               let typeChart,
               !isResolvingTurn,
               winner == nil,
@@ -114,10 +117,11 @@ extension BattleViewModel: BattleViewModelProtocol {
         let opponentMove = await brain.nextMove(
             attacker:  snapshot.opponent,
             defender:  snapshot.player,
-            moves:     snapshot.opponent.moves,
+            moves:     opponentMoves,
             typeChart: typeChart
         )
-        let events = engine.resolveRound(playerMove: move, opponentMove: opponentMove)
+        let events = eng.resolveRound(playerMove: move, opponentMove: opponentMove)
+        self.engine = eng
         for event in events {
             let line = formatter.format(
                 event,
@@ -137,7 +141,7 @@ extension BattleViewModel: BattleViewModelProtocol {
                 break
             }
         }
-        state = engine.state
+        state = eng.state
         isResolvingTurn = false
     }
 }

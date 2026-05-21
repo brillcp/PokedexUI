@@ -1,7 +1,7 @@
 import Foundation
 
 /// Minimal Pokemon data the battle engine needs to build a combatant.
-public protocol BattlePokemonData: Sendable {
+public protocol BattlePokemonData {
     var id: Int { get }
     var name: String { get }
     var frontSprite: String { get }
