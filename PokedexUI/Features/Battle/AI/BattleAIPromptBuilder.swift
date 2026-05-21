@@ -105,7 +105,7 @@ struct BattleAIPromptBuilder {
         DISRUPT (pick 1):
         \(disruptRows.joined(separator: "\n"))
 
-        Pick highest ~dmg for DMG. Never pick IMMUNE. Return ONLY 4 index numbers.
+        Pick highest dmg for DMG. Never pick IMMUNE. Return ONLY 4 index numbers.
         """
         return (prompt, indexMap)
     }
@@ -166,7 +166,7 @@ private extension BattleAIPromptBuilder {
             let dmg = estimateDamage(move: move, attacker: attacker, defender: defender, effectiveness: effectiveness)
             let acc = move.accuracy ?? 100
             let koTurns = turnsToKO(dmg, hp: defender.currentHP)
-            var dmgStr = "~\(dmg) dmg"
+            var dmgStr = "\(dmg) dmg"
             if koTurns == 1 { dmgStr += ", KOs this turn" }
             else if koTurns == 2 { dmgStr += ", 2-hit KO" }
             else if koTurns == 3 { dmgStr += ", 3-hit KO" }
@@ -289,7 +289,7 @@ private extension BattleAIPromptBuilder {
             let dmg = estimateDamage(move: move, attacker: fighter, defender: opponent, effectiveness: effectiveness)
             let koTurns = turnsToKO(dmg, hp: opponent.maxHP)
             var tags: [String] = []
-            tags.append("~\(dmg) dmg")
+            tags.append("\(dmg) dmg")
             if koTurns <= 2 { tags.append("\(koTurns)-hit KO") }
             if fighter.typeNames.contains(move.typeName) { tags.append("STAB") }
             if effectiveness >= 2 { tags.append("SE") }
@@ -331,7 +331,7 @@ private extension BattleAIPromptBuilder {
         }
         if bestDmg > 0 {
             let ko = turnsToKO(bestDmg, hp: fighter.maxHP)
-            return "Player's strongest: \(bestName) (~\(bestDmg) dmg, \(ko)-hit KO vs you)."
+            return "Player's strongest: \(bestName) (\(bestDmg) dmg, \(ko)-hit KO vs you)."
         }
         return ""
     }
