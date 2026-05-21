@@ -11,7 +11,7 @@ struct BattleAIPromptBuilder {
         recentMoves: [String]
     ) -> (prompt: String, indexMap: [Int: Int]) {
         let hpPct: (BattleCombatant) -> Int = { Int(Double($0.currentHP) / Double($0.maxHP) * 100) }
-        let annotations = moveAnnotations(moves: moves, recentMoves: recentMoves)
+        let annotations = moveAnnotations(moves: moves, recentMoves: recentMoves, attacker: attacker, defender: defender)
         let shuffled = Array(moves.indices).shuffled()
         var indexMap: [Int: Int] = [:]
         let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
@@ -75,14 +75,21 @@ struct BattleAIPromptBuilder {
 
         let shuffled = Array(moves.indices).shuffled()
         var indexMap: [Int: Int] = [:]
-        let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
+
+        var dmgRows: [String] = []
+        var boostRows: [String] = []
+        var disruptRows: [String] = []
+        for (displayIdx, originalIdx) in shuffled.enumerated() {
             indexMap[displayIdx] = originalIdx
             let move = moves[originalIdx]
             let eff = effectiveness[safe: originalIdx] ?? 1.0
-            var row = compactMoveDescription(move, index: displayIdx, fighter: fighter, effectiveness: eff)
-            row += " \(move.loadoutCategory)"
-            return row
-        }.joined(separator: "\n")
+            let row = compactMoveDescription(move, index: displayIdx, fighter: fighter, effectiveness: eff)
+            switch move.loadoutCategory {
+            case "BOOST": boostRows.append(row)
+            case "DISRUPT": disruptRows.append(row)
+            default: dmgRows.append(row)
+            }
+        }
 
         let prompt = """
         You are \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))). Pick 4 moves to fight \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
@@ -90,10 +97,16 @@ struct BattleAIPromptBuilder {
         Player's moves:
         \(playerBlock)
 
-        Your available moves:
-        \(movesBlock)
+        DMG (pick 2):
+        \(dmgRows.joined(separator: "\n"))
 
-        Rules: pick exactly 2 DMG, 1 BOOST, 1 DISRUPT. Counter the player. Return ONLY 4 numbers.
+        BOOST (pick 1):
+        \(boostRows.joined(separator: "\n"))
+
+        DISRUPT (pick 1):
+        \(disruptRows.joined(separator: "\n"))
+
+        Return ONLY 4 index numbers.
         """
         return (prompt, indexMap)
     }
@@ -119,16 +132,26 @@ private extension BattleAIPromptBuilder {
         return "\(index): \(move.name) (\(move.typeName), \(power))\(tagStr)"
     }
 
-    func moveAnnotations(moves: [MoveDetail], recentMoves: [String]) -> [String?] {
-        guard !recentMoves.isEmpty else { return Array(repeating: nil, count: moves.count) }
-        let last = recentMoves.last
+    func moveAnnotations(
+        moves: [MoveDetail],
+        recentMoves: [String],
+        attacker: BattleCombatant,
+        defender: BattleCombatant
+    ) -> [String?] {
         var counts: [String: Int] = [:]
         for name in recentMoves { counts[name, default: 0] += 1 }
         return moves.map { move in
+            var warnings: [String] = []
             let count = counts[move.name] ?? 0
-            if count >= 2 { return "used \(count) of last \(recentMoves.count) turns" }
-            if move.name == last { return "used last turn" }
-            return nil
+            if count >= 2 { warnings.append("AVOID: used \(count)x recently") }
+            else if move.name == recentMoves.last { warnings.append("used last turn") }
+            if (move.power ?? 0) == 0,
+               move.statChangeDeltas.contains(where: { $0 > 0 }),
+               attacker.isBoosted { warnings.append("AVOID: already boosted") }
+            if move.ailment != "none", defender.status != .none {
+                warnings.append("AVOID: opponent already statused")
+            }
+            return warnings.isEmpty ? nil : warnings.joined(separator: ", ")
         }
     }
 

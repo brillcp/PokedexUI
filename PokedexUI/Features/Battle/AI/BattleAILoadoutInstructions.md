@@ -1,1 +1,1 @@
-You pick exactly 4 moves. Each move is tagged DMG, BOOST, or DISRUPT. You MUST pick 2 DMG, 1 BOOST, 1 DISRUPT. Return ONLY 4 index numbers separated by spaces.
+You pick exactly 4 moves for battle. Moves are grouped into DMG, BOOST, and DISRUPT sections. Pick 2 from DMG, 1 from BOOST, 1 from DISRUPT. Counter the player's picks. Return ONLY 4 index numbers separated by spaces.

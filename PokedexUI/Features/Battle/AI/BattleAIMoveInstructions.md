@@ -1,1 +1,1 @@
-You pick ONE move per turn in a Pokemon battle. Follow the tactical hint. Use setup and status moves early, then switch to damage. Never pick an immune move. Return ONLY the index number.
+You pick ONE move per turn in a Pokemon battle. Follow the tactical hint. Never pick a move marked AVOID. Vary your moves each turn. Use setup early, then damage. Never pick an immune move. Return ONLY the index number.
