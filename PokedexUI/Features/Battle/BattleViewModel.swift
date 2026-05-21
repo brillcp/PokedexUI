@@ -142,6 +142,7 @@ extension BattleViewModel: BattleViewModelProtocol {
     }
 }
 
+// MARK: - Private
 private extension BattleViewModel {
     func activateEngine(state: BattleState, chart: TypeChart) {
         self.typeChart = chart

@@ -22,6 +22,7 @@ struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
     }
 }
 
+// MARK: - Private
 private extension BattleSetupView {
     func startBattle() {
         guard let player = viewModel.playerPokemon,

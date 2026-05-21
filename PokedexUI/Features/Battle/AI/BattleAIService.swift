@@ -115,6 +115,7 @@ extension BattleAIService: BattleAIServiceProtocol {
     }
 }
 
+// MARK: - Private
 private extension BattleAIService {
     var isAvailable: Bool {
         if case .available = model.availability { return true }

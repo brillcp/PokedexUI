@@ -24,6 +24,7 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
     }
 }
 
+// MARK: - Private
 private extension ItemListView {
     func itemRow(for item: ItemData) -> some View {
         ZStack {

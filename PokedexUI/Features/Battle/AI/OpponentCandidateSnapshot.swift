@@ -76,6 +76,7 @@ extension OpponentCandidateSnapshot {
     }
 }
 
+// MARK: - Private
 private extension OpponentCandidateSnapshot {
     /// BST closeness + mutual type threat, used to rank filtered pool before truncation.
     static func poolScore(

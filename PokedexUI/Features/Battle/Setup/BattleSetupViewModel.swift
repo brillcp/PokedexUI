@@ -152,6 +152,7 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
     }
 }
 
+// MARK: - Private
 private extension BattleSetupViewModel {
     static func rankedByImpact(_ moves: [MoveDetail]) -> [MoveDetail] {
         moves.sorted { lhs, rhs in

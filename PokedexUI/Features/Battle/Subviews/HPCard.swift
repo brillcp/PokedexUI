@@ -30,6 +30,7 @@ struct HPCard: View, Equatable {
     }
 }
 
+// MARK: - Private
 private extension HPCard {
     var hpTint: Color {
         let ratio = Double(currentHP) / Double(maxHP)

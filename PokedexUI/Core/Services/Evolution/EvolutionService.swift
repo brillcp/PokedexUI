@@ -88,6 +88,7 @@ extension EvolutionService: EvolutionServiceProtocol {
     }
 }
 
+// MARK: - Private
 private extension EvolutionService {
     func attach(modelContainer: ModelContainer) {
         if storage == nil {

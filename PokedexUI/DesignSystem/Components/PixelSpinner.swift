@@ -33,6 +33,7 @@ struct PixelSpinner: View {
     }
 }
 
+// MARK: - Private
 private extension PixelSpinner {
     var spokeRing: some View {
         ZStack {

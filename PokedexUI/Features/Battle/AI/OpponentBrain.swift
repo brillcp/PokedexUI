@@ -43,6 +43,7 @@ final class OpponentBrain {
     }
 }
 
+// MARK: - Private
 private extension OpponentBrain {
     static let openerChance = 0.5
 

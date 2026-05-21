@@ -39,6 +39,7 @@ extension ItemListViewModel: ItemListViewModelProtocol {
     }
 }
 
+// MARK: - Private
 private extension ItemListViewModel {
     func withLoadingState<T>(_ operation: () async throws -> T) async rethrows -> T {
         isLoading = true

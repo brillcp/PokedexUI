@@ -43,6 +43,7 @@ struct MoveCell: View, Equatable {
     }
 }
 
+// MARK: - Private
 private extension MoveCell {
     var header: some View {
         HStack {

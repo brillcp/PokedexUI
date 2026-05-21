@@ -25,6 +25,7 @@ struct BattleLogFeed: View {
     }
 }
 
+// MARK: - Private
 private extension BattleLogFeed {
     static let lineCount = 5
     static let lineHeight: CGFloat = 16

@@ -54,6 +54,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     }
 }
 
+// MARK: - Private
 private extension PokemonDetailView {
     var textColor: Color {
         viewModel.color?.isLight ?? false ? Color.darkGrey : .white
@@ -174,6 +175,7 @@ private extension PokemonDetailView {
     }
 }
 
+// MARK: - Private
 private extension PokemonDetailView {
     func actionButtons(pokemon: PokemonViewModel) -> some View {
         HStack {
@@ -191,6 +193,7 @@ private extension PokemonDetailView {
     }
 }
 
+// MARK: - Private
 private extension PokemonDetailView {
     func statsSection(pokemon: PokemonViewModel) -> some View {
         VStack(alignment: .leading) {

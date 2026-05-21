@@ -85,6 +85,7 @@ struct OpponentPickerView: View {
 
 }
 
+// MARK: - Private
 private extension OpponentPickerView {
     var pickerButton: some View {
         PrimaryCapsuleButton(

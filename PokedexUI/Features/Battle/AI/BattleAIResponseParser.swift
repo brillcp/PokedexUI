@@ -440,6 +440,7 @@ enum BattleAIResponseParser {
     }
 }
 
+// MARK: - Private
 private extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil

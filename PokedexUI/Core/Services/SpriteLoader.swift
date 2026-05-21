@@ -40,6 +40,7 @@ extension SpriteLoader: SpriteLoading {
     }
 }
 
+// MARK: - Private
 private extension URLCache {
     func cache(response: URLResponse, withData data: Data, for request: URLRequest) {
         guard let httpResponse = response as? HTTPURLResponse,

@@ -39,6 +39,7 @@ struct BattlerSprite: View {
     }
 }
 
+// MARK: - Private
 private extension BattlerSprite {
     var entryOffset: CGFloat {
         if isFainted {

@@ -30,6 +30,7 @@ struct EvolutionChainView: View {
     }
 }
 
+// MARK: - Private
 private extension EvolutionChainView {
     func stageCell(_ stage: EvolutionChain.Stage) -> some View {
         Button {

@@ -58,6 +58,7 @@ final class BattleEngine {
 
 }
 
+// MARK: - Private
 private extension BattleEngine {
     func performAction(
         side: BattleSide,

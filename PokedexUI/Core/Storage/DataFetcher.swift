@@ -30,6 +30,7 @@ extension DataFetcher {
     }
 }
 
+// MARK: - Private
 private extension DataFetcher {
     func fetchStoredDataSafely() async -> [StoredData]? {
         do {

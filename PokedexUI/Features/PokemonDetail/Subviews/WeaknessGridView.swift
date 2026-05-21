@@ -27,6 +27,7 @@ struct WeaknessGridView: View {
     }
 }
 
+// MARK: - Private
 private extension WeaknessGridView {
     var buckets: [(label: String, types: [String])] {
         let defenders = pokemon.typeNames

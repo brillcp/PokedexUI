@@ -34,6 +34,7 @@ struct SpriteImage: View {
     }
 }
 
+// MARK: - Private
 private extension SpriteImage {
     @ViewBuilder var placeholder: some View {
         switch style {

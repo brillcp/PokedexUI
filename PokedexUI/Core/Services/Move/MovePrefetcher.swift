@@ -29,6 +29,7 @@ extension MovePrefetcher: MovePrefetching {
     }
 }
 
+// MARK: - Private
 private extension MovePrefetcher {
     func attach(modelContainer: ModelContainer) {
         if storage == nil {

@@ -25,6 +25,7 @@ struct BattleView<ViewModel: BattleViewModelProtocol>: View {
 
 }
 
+// MARK: - Private
 private extension BattleView {
     @ViewBuilder
     var content: some View {

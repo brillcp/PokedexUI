@@ -67,6 +67,7 @@ extension PokedexViewModel: PokedexViewModelProtocol {
     }
 }
 
+// MARK: - Private
 private extension PokedexViewModel {
     func resetProgress() {
         downloadTicks = 0

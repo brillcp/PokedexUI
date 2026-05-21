@@ -29,6 +29,7 @@ struct FlowLayout: Layout {
     }
 }
 
+// MARK: - Private
 private extension FlowLayout {
     struct Row {
         var count: Int

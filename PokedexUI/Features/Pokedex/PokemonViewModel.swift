@@ -71,6 +71,7 @@ private protocol NameProvidable {
     var name: String { get }
 }
 
+// MARK: - Private
 private extension Array where Element: NameProvidable {
     var joinedCapitalizedNames: String {
         map { $0.name.capitalized }.joined(separator: ", ")

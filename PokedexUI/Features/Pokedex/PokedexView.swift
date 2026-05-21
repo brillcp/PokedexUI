@@ -25,6 +25,7 @@ struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemListViewModel
     }
 }
 
+// MARK: - Private
 private extension PokedexView {
     var pokedexTab: some View {
         PokedexContent(viewModel: viewModel)
@@ -107,6 +108,7 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
     }
 }
 
+// MARK: - Private
 private extension TabView {
     @MainActor
     func applyPokedexConfiguration<ViewModel: PokedexViewModelProtocol>(

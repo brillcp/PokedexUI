@@ -43,6 +43,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     }
 }
 
+// MARK: - Private
 private extension SearchView {
     @ViewBuilder
     var emptyState: some View {

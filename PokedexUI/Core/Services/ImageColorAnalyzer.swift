@@ -60,6 +60,7 @@ extension ImageColorAnalyzer: ImageColorAnalyzing {
     }
 }
 
+// MARK: - Private
 private extension ImageColorAnalyzer {
     struct RGB: Hashable {
         let r: UInt8

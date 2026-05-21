@@ -64,6 +64,7 @@ struct BattleLogFormatter {
     }
 }
 
+// MARK: - Private
 private extension BattleLogFormatter {
     func plain(_ text: String) -> AttributedString {
         AttributedString(text)

@@ -63,6 +63,7 @@ struct BattleAIPromptBuilder {
 
 }
 
+// MARK: - Private
 private extension BattleAIPromptBuilder {
     func compactMoveDescription(
         _ move: MoveDetail,
@@ -138,6 +139,7 @@ private extension BattleAIPromptBuilder {
     }
 }
 
+// MARK: - Private
 private extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil

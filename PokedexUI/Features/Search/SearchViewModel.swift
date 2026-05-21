@@ -105,6 +105,7 @@ extension SearchViewModel: SearchViewModelProtocol {
     }
 }
 
+// MARK: - Private
 private extension SearchViewModel {
     @MainActor
     func rebuildIndex(corpus: [Pokemon]) async {
