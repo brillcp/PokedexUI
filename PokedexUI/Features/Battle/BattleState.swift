@@ -115,6 +115,7 @@ struct BattleCombatant: Sendable {
     }
 
     var isFainted: Bool { currentHP <= 0 }
+    var isBoosted: Bool { statStages.values.contains { $0 > 0 } }
 
     var effectiveSpeed: Int {
         status == .paralysis ? speed / 2 : speed

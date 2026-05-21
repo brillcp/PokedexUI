@@ -85,6 +85,15 @@ extension MoveDetail {
 
     var displayName: String { name.replacingOccurrences(of: "-", with: " ").capitalized }
 
+    /// Category tag used for loadout prompts and slot composition.
+    var loadoutCategory: String {
+        if (power ?? 0) > 0 { return "DMG" }
+        if statChangeDeltas.contains(where: { $0 > 0 }) { return "BOOST" }
+        if ailment != "none" || statChangeDeltas.contains(where: { $0 < 0 }) { return "DISRUPT" }
+        if healing > 0 || name == "rest" { return "HEAL" }
+        return "OTHER"
+    }
+
     private static let selfDebuffMoves: Set<String> = [
         "leaf-storm", "overheat", "draco-meteor", "fleur-cannon", "psycho-boost",
         "close-combat", "superpower", "v-create", "hammer-arm", "ice-hammer",

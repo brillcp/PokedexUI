@@ -29,7 +29,7 @@ struct BattleAIPromptBuilder {
             : "\nLast move: \(recentMoves.last!). Vary if possible.\n"
         let hint = tacticalHint(attacker: attacker, defender: defender, moves: moves)
         let prompt = """
-        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(attacker.status.label)\(boostLabel(attacker))) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(defender.status.label)).
+        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(attacker.status.label)\(attacker.isBoosted ? ", boosted" : "")) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(defender.status.label)).
         \(historyLine)
         \(movesBlock)
 
@@ -79,9 +79,8 @@ struct BattleAIPromptBuilder {
             indexMap[displayIdx] = originalIdx
             let move = moves[originalIdx]
             let eff = effectiveness[safe: originalIdx] ?? 1.0
-            let tag = loadoutCategoryTag(move)
             var row = compactMoveDescription(move, index: displayIdx, fighter: fighter, effectiveness: eff)
-            row += " \(tag)"
+            row += " \(move.loadoutCategory)"
             return row
         }.joined(separator: "\n")
 
@@ -133,18 +132,6 @@ private extension BattleAIPromptBuilder {
         }
     }
 
-    func boostLabel(_ combatant: BattleCombatant) -> String {
-        combatant.statStages.values.contains(where: { $0 > 0 }) ? ", boosted" : ""
-    }
-
-    func loadoutCategoryTag(_ move: MoveDetail) -> String {
-        if (move.power ?? 0) > 0 { return "DMG" }
-        if move.statChangeDeltas.contains(where: { $0 > 0 }) { return "BOOST" }
-        if move.ailment != "none" || move.statChangeDeltas.contains(where: { $0 < 0 }) { return "DISRUPT" }
-        if move.healing > 0 || move.name == "rest" { return "HEAL" }
-        return "OTHER"
-    }
-
     func playerMoveTag(_ move: MoveDetail, effectiveness: Double, against fighter: BattleCombatant) -> String {
         var tags: [String] = []
         if let p = move.power, p > 0 {
@@ -171,7 +158,6 @@ private extension BattleAIPromptBuilder {
     ) -> String {
         let hpFrac = Double(attacker.currentHP) / Double(max(1, attacker.maxHP))
         let defHpFrac = Double(defender.currentHP) / Double(max(1, defender.maxHP))
-        let isBoosted = attacker.statStages.values.contains(where: { $0 > 0 })
         let defStatused = defender.status != .none
         let hasBoost = moves.contains { ($0.power ?? 0) == 0 && $0.statChangeDeltas.contains(where: { $0 > 0 }) }
         let hasDisrupt = moves.contains {
@@ -180,9 +166,9 @@ private extension BattleAIPromptBuilder {
 
         if hpFrac <= 0.30 { return "Low HP. Go for damage." }
         if defHpFrac <= 0.30 { return "Opponent is low. Finish it." }
-        if !isBoosted, hpFrac >= 0.70, hasBoost { return "Set up with a boost move." }
-        if isBoosted, !defStatused, hasDisrupt { return "You are boosted. Disrupt the opponent." }
-        if isBoosted { return "You are boosted. Hit hard." }
+        if !attacker.isBoosted, hpFrac >= 0.70, hasBoost { return "Set up with a boost move." }
+        if attacker.isBoosted, !defStatused, hasDisrupt { return "You are boosted. Disrupt the opponent." }
+        if attacker.isBoosted { return "You are boosted. Hit hard." }
         return "Pick your strongest move."
     }
 }
