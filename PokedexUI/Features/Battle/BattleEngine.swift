@@ -174,15 +174,12 @@ private extension BattleEngine {
         }()
         let triggersStatChange = move.hasSelfDebuff || Double.random(in: 0..<1) < secondaryGate
         if triggersStatChange {
+            let allSelfTarget = move.hasSelfDebuff
+                || (move.statChangeDeltas.contains { $0 > 0 } && move.statChangeDeltas.contains { $0 < 0 })
             for (index, statName) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
                 let delta = move.statChangeDeltas[index]
                 guard delta != 0 else { continue }
-                let target: BattleSide
-                if move.hasSelfDebuff {
-                    target = side
-                } else {
-                    target = delta < 0 ? side.opposite : side
-                }
+                let target: BattleSide = allSelfTarget ? side : (delta < 0 ? side.opposite : side)
                 mutate(target) { $0.applyStage(statName, delta: delta) }
                 events.append(.statChanged(target, stat: statName, delta: delta))
             }
