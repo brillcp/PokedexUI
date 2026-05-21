@@ -1,3 +1,4 @@
+import BattleKit
 import Foundation
 
 /// Parses raw LLM responses into battle decisions with deterministic fallbacks.
@@ -41,24 +42,24 @@ enum BattleAIResponseParser {
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double],
+        typeChart: TypeChart,
         recentMoves: [String]
     ) -> MoveDetail? {
-        moves.enumerated().max { lhs, rhs in
+        moves.max { lhs, rhs in
             moveScore(
-                move: lhs.element,
+                move: lhs,
                 attacker: attacker,
                 defender: defender,
-                effectiveness: effectiveness[safe: lhs.offset] ?? 1,
+                typeChart: typeChart,
                 recentMoves: recentMoves
             ) < moveScore(
-                move: rhs.element,
+                move: rhs,
                 attacker: attacker,
                 defender: defender,
-                effectiveness: effectiveness[safe: rhs.offset] ?? 1,
+                typeChart: typeChart,
                 recentMoves: recentMoves
             )
-        }?.element
+        }
     }
 
     /// Override boost/status picks when game state makes them wasteful.
@@ -67,17 +68,17 @@ enum BattleAIResponseParser {
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double]
+        typeChart: TypeChart
     ) -> MoveDetail {
         // Don't re-boost when already set up
         if (chosen.power ?? 0) == 0,
            chosen.statChangeDeltas.contains(where: { $0 > 0 }),
            attacker.statStages.values.contains(where: { $0 >= 2 }) {
-            return fallbackDamageMove(from: moves, effectiveness: effectiveness) ?? chosen
+            return fallbackDamageMove(from: moves, defender: defender, typeChart: typeChart) ?? chosen
         }
         // Don't re-status a target that already has one
         if chosen.ailment != "none", defender.status != .none {
-            return fallbackDamageMove(from: moves, effectiveness: effectiveness) ?? chosen
+            return fallbackDamageMove(from: moves, defender: defender, typeChart: typeChart) ?? chosen
         }
         return chosen
     }
@@ -95,19 +96,20 @@ enum BattleAIResponseParser {
         fighter: BattleCombatant,
         opponent: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double],
+        typeChart: TypeChart,
         limit: Int = 24
-    ) -> [(move: MoveDetail, eff: Double)] {
-        let candidates = moves.enumerated().map { idx, move in
-            (move: move, eff: effectiveness[safe: idx] ?? 1, score: loadoutScore(move: move, fighter: fighter, opponent: opponent, effectiveness: effectiveness[safe: idx] ?? 1))
+    ) -> [MoveDetail] {
+        let candidates = moves.map { move -> (move: MoveDetail, eff: Double, score: Double) in
+            let eff = typeChart.multiplier(attacking: move.typeName, defenders: opponent.typeNames)
+            return (move, eff, loadoutScore(move: move, fighter: fighter, opponent: opponent, typeChart: typeChart))
         }
-        var picked: [(move: MoveDetail, eff: Double)] = []
+        var picked: [MoveDetail] = []
         var usedNames: Set<String> = []
 
         func take(_ items: [(move: MoveDetail, eff: Double, score: Double)], cap: Int) {
             for item in items.sorted(by: { $0.score > $1.score }) {
                 guard picked.count < limit, !usedNames.contains(item.move.name) else { return }
-                picked.append((item.move, item.eff))
+                picked.append(item.move)
                 usedNames.insert(item.move.name)
                 if picked.count >= cap { return }
             }
@@ -127,7 +129,7 @@ enum BattleAIResponseParser {
             .filter { !usedNames.contains($0.move.name) }
             .sorted { $0.score > $1.score }
         for item in remaining where picked.count < limit {
-            picked.append((item.move, item.eff))
+            picked.append(item.move)
             usedNames.insert(item.move.name)
         }
 
@@ -140,23 +142,23 @@ enum BattleAIResponseParser {
         for fighter: BattleCombatant,
         against opponent: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double]
+        typeChart: TypeChart
     ) -> [MoveDetail] {
         var picked: [MoveDetail] = []
         var usedNames: Set<String> = []
 
-        let candidates = moves.enumerated().map { idx, move in
-            (move: move, eff: effectiveness[safe: idx] ?? 1)
+        let candidates = moves.map { move -> (move: MoveDetail, eff: Double) in
+            (move, typeChart.multiplier(attacking: move.typeName, defenders: opponent.typeNames))
         }
 
-        func score(_ m: MoveDetail, _ e: Double) -> Double {
-            loadoutScore(move: m, fighter: fighter, opponent: opponent, effectiveness: e)
+        func score(_ m: MoveDetail) -> Double {
+            loadoutScore(move: m, fighter: fighter, opponent: opponent, typeChart: typeChart)
         }
 
         func best(where predicate: (MoveDetail, Double) -> Bool) -> MoveDetail? {
             candidates
                 .filter { !usedNames.contains($0.move.name) && predicate($0.move, $0.eff) }
-                .max { score($0.move, $0.eff) < score($1.move, $1.eff) }?
+                .max { score($0.move) < score($1.move) }?
                 .move
         }
 
@@ -190,23 +192,20 @@ enum BattleAIResponseParser {
         fighter: BattleCombatant,
         opponent: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double],
+        typeChart: TypeChart,
         count: Int
     ) -> [MoveDetail] {
         guard seed.count < count else { return Array(seed.prefix(count)) }
         var picked = seed
         var usedNames = Set(seed.map(\.name))
-        let candidates = moves.enumerated().map { idx, move in
-            (move: move, eff: effectiveness[safe: idx] ?? 1)
-        }
         while picked.count < count {
-            guard let best = candidates
-                .filter({ !usedNames.contains($0.move.name) })
-                .max(by: { loadoutScore(move: $0.move, fighter: fighter, opponent: opponent, effectiveness: $0.eff)
-                    < loadoutScore(move: $1.move, fighter: fighter, opponent: opponent, effectiveness: $1.eff) })
+            guard let best = moves
+                .filter({ !usedNames.contains($0.name) })
+                .max(by: { loadoutScore(move: $0, fighter: fighter, opponent: opponent, typeChart: typeChart)
+                    < loadoutScore(move: $1, fighter: fighter, opponent: opponent, typeChart: typeChart) })
             else { break }
-            picked.append(best.move)
-            usedNames.insert(best.move.name)
+            picked.append(best)
+            usedNames.insert(best.name)
         }
         return picked
     }
@@ -228,15 +227,15 @@ enum BattleAIResponseParser {
         guard damageMoves.count > 2 else { return result }
 
         let sorted = damageMoves.sorted {
-            estimatedDamage(move: $0.element, attacker: fighter, defender: opponent, typeChart: typeChart)
-            < estimatedDamage(move: $1.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+            DamageCalculator.estimateDamage(move: $0.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+            < DamageCalculator.estimateDamage(move: $1.element, attacker: fighter, defender: opponent, typeChart: typeChart)
         }
 
         func bestFromPool(category: String) -> MoveDetail? {
             pool.filter { !usedNames.contains($0.name) && $0.loadoutCategory == category }
                 .max {
-                    loadoutScore(move: $0, fighter: fighter, opponent: opponent, effectiveness: typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames))
-                    < loadoutScore(move: $1, fighter: fighter, opponent: opponent, effectiveness: typeChart.multiplier(attacking: $1.typeName, defenders: opponent.typeNames))
+                    loadoutScore(move: $0, fighter: fighter, opponent: opponent, typeChart: typeChart)
+                    < loadoutScore(move: $1, fighter: fighter, opponent: opponent, typeChart: typeChart)
                 }
         }
 
@@ -266,24 +265,25 @@ enum BattleAIResponseParser {
         let damageMoves = loadout.enumerated().filter { ($0.element.power ?? 0) > 0 }
         guard damageMoves.count >= 2 else { return loadout }
         let weakest = damageMoves.min { lhs, rhs in
-            estimatedDamage(move: lhs.element, attacker: fighter, defender: opponent, typeChart: typeChart)
-            < estimatedDamage(move: rhs.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+            DamageCalculator.estimateDamage(move: lhs.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+            < DamageCalculator.estimateDamage(move: rhs.element, attacker: fighter, defender: opponent, typeChart: typeChart)
         }
         guard let weakest else { return loadout }
         let usedNames = Set(loadout.map(\.name))
-        let bestDmg = max(1.0, damageMoves.compactMap {
-            estimatedDamage(move: $0.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+        let bestDmg = max(1, damageMoves.compactMap {
+            DamageCalculator.estimateDamage(move: $0.element, attacker: fighter, defender: opponent, typeChart: typeChart)
         }.max() ?? 1)
+        let threshold = Int(Double(bestDmg) * 0.55)
         let candidates = pool
             .filter { ($0.power ?? 0) > 0 && !usedNames.contains($0.name) }
             .filter { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) > 0 }
             .filter {
-                let dmg = estimatedDamage(move: $0, attacker: fighter, defender: opponent, typeChart: typeChart)
-                return dmg > 0 && dmg < bestDmg * 0.55
+                let dmg = DamageCalculator.estimateDamage(move: $0, attacker: fighter, defender: opponent, typeChart: typeChart)
+                return dmg > 0 && dmg < threshold
             }
             .sorted {
-                estimatedDamage(move: $0, attacker: fighter, defender: opponent, typeChart: typeChart)
-                < estimatedDamage(move: $1, attacker: fighter, defender: opponent, typeChart: typeChart)
+                DamageCalculator.estimateDamage(move: $0, attacker: fighter, defender: opponent, typeChart: typeChart)
+                < DamageCalculator.estimateDamage(move: $1, attacker: fighter, defender: opponent, typeChart: typeChart)
             }
         let bottomHalf = candidates.prefix(max(1, candidates.count / 2))
         guard let replacement = bottomHalf.randomElement() else { return loadout }
@@ -331,15 +331,13 @@ enum BattleAIResponseParser {
         if delta < 0, delta >= -50 { score += 12 }
 
         if let typeChart {
-            let candidatePressure = bestSTABMultiplier(
+            let candidatePressure = typeChart.bestSTABMultiplier(
                 attackerTypes: candidate.typeNames,
-                defenderTypes: player.typeNames,
-                typeChart: typeChart
+                defenderTypes: player.typeNames
             )
-            let playerPressure = bestSTABMultiplier(
+            let playerPressure = typeChart.bestSTABMultiplier(
                 attackerTypes: player.typeNames,
-                defenderTypes: candidate.typeNames,
-                typeChart: typeChart
+                defenderTypes: candidate.typeNames
             )
 
             score += pressureScore(candidatePressure)
@@ -369,16 +367,6 @@ enum BattleAIResponseParser {
         return score
     }
 
-    private static func bestSTABMultiplier(
-        attackerTypes: [String],
-        defenderTypes: [String],
-        typeChart: TypeChart
-    ) -> Double {
-        attackerTypes
-            .map { typeChart.multiplier(attacking: $0, defenders: defenderTypes) }
-            .max() ?? 1.0
-    }
-
     private static func pressureScore(_ multiplier: Double) -> Double {
         if multiplier >= 4 { return 8 }
         if multiplier >= 2 { return 30 }
@@ -394,39 +382,36 @@ enum BattleAIResponseParser {
         return -8
     }
 
-    private static func fallbackDamageMove(from moves: [MoveDetail], effectiveness: [Double]) -> MoveDetail? {
-        moves.enumerated()
-            .filter { ($0.element.power ?? 0) > 0 && (effectiveness[safe: $0.offset] ?? 1) > 0 }
-            .sorted {
-                Double($0.element.power ?? 0) * (effectiveness[safe: $0.offset] ?? 1)
-                > Double($1.element.power ?? 0) * (effectiveness[safe: $1.offset] ?? 1)
-            }
-            .first?.element
+    private static func fallbackDamageMove(
+        from moves: [MoveDetail],
+        defender: BattleCombatant,
+        typeChart: TypeChart
+    ) -> MoveDetail? {
+        let scored: [(move: MoveDetail, weight: Double)] = moves.compactMap { move in
+            guard let power = move.power, power > 0 else { return nil }
+            let eff = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
+            guard eff > 0 else { return nil }
+            return (move, Double(power) * eff)
+        }
+        return scored.max { $0.weight < $1.weight }?.move
     }
 
     private static func loadoutScore(
         move: MoveDetail,
         fighter: BattleCombatant,
         opponent: BattleCombatant,
-        effectiveness: Double
+        typeChart: TypeChart
     ) -> Double {
-        if let power = move.power, power > 0, move.damageClassKind != .status {
+        if (move.power ?? 0) > 0, move.damageClassKind != .status {
+            let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: opponent.typeNames)
             guard effectiveness > 0 else { return -100 }
-            let attackStat: Int
-            let defenseStat: Int
-            switch move.damageClassKind {
-            case .physical:
-                attackStat = fighter.attack
-                defenseStat = max(1, opponent.defense)
-            case .special:
-                attackStat = fighter.specialAttack
-                defenseStat = max(1, opponent.specialDefense)
-            case .status:
-                return 0
-            }
-            let stab = fighter.typeNames.contains(move.typeName) ? 1.5 : 1.0
             let accuracy = Double(move.accuracy ?? 100) / 100
-            let estimated = estimatedDamage(power: power, attack: attackStat, defense: defenseStat, stab: stab, effectiveness: effectiveness)
+            let estimated = Double(DamageCalculator.estimateDamage(
+                move: move,
+                attacker: fighter,
+                defender: opponent,
+                typeChart: typeChart
+            ))
             var score = estimated * accuracy
             if estimated >= Double(opponent.currentHP) { score += 55 }
             if estimated >= Double(opponent.currentHP) * 0.65 { score += 18 }
@@ -459,14 +444,14 @@ enum BattleAIResponseParser {
         move: MoveDetail,
         attacker: BattleCombatant,
         defender: BattleCombatant,
-        effectiveness: Double,
+        typeChart: TypeChart,
         recentMoves: [String]
     ) -> Double {
         var score = loadoutScore(
             move: move,
             fighter: attacker,
             opponent: defender,
-            effectiveness: effectiveness
+            typeChart: typeChart
         )
 
         if recentMoves.last == move.name {
@@ -503,69 +488,6 @@ enum BattleAIResponseParser {
         }
 
         return score
-    }
-
-    private static func estimatedDamage(
-        power: Int,
-        attack: Int,
-        defense: Int,
-        stab: Double,
-        effectiveness: Double
-    ) -> Double {
-        let levelFactor = 22.0
-        let base = (((levelFactor * Double(power) * Double(attack) / Double(max(1, defense))) / 50.0) + 2.0)
-        return base * stab * effectiveness
-    }
-
-    /// Estimated damage a single move deals, used by the brain for KO overrides.
-    static func estimatedDamage(
-        move: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        typeChart: TypeChart
-    ) -> Double {
-        guard let power = move.power, power > 0, move.damageClassKind != .status else { return 0 }
-        let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
-        guard effectiveness > 0 else { return 0 }
-        let attackStat: Int
-        let defenseStat: Int
-        switch move.damageClassKind {
-        case .physical:
-            attackStat = attacker.attack
-            defenseStat = max(1, defender.defense)
-        case .special:
-            attackStat = attacker.specialAttack
-            defenseStat = max(1, defender.specialDefense)
-        case .status:
-            return 0
-        }
-        let stab = attacker.typeNames.contains(move.typeName) ? 1.5 : 1.0
-        let cappedEff = effectiveness > 1 ? min(effectiveness, 1.5) : effectiveness
-        return estimatedDamage(
-            power: power,
-            attack: attackStat,
-            defense: defenseStat,
-            stab: stab,
-            effectiveness: cappedEff
-        )
-    }
-
-    /// Move that lands a KO this turn, accounting for accuracy. Tiebreak: highest expected damage.
-    static func guaranteedKO(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
-        typeChart: TypeChart
-    ) -> MoveDetail? {
-        let target = Double(defender.currentHP)
-        let killers = moves.compactMap { move -> (MoveDetail, Double)? in
-            let dmg = estimatedDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
-            guard dmg >= target else { return nil }
-            let accuracy = Double(move.accuracy ?? 100) / 100
-            guard accuracy >= 0.85 else { return nil }
-            return (move, dmg * accuracy)
-        }
-        return killers.max { $0.1 < $1.1 }?.0
     }
 
     private static func statusScore(

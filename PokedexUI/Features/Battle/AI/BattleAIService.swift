@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import BattleKit
 
 /// On-device AI for battle decisions with deterministic fallbacks.
 protocol BattleAIServiceProtocol: Sendable {
@@ -29,18 +30,17 @@ extension BattleAIService: BattleAIServiceProtocol {
         turnNumber: Int
     ) async -> MoveDetail {
         guard let first = moves.first else { return MoveDetail(name: "tackle") }
-        let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: defender.typeNames) }
         let fallback = BattleAIResponseParser.heuristicMove(
             attacker: attacker,
             defender: defender,
             moves: moves,
-            effectiveness: effectiveness,
+            typeChart: typeChart,
             recentMoves: recentMoves
         ) ?? first
 
         let adjust: (MoveDetail) -> MoveDetail = { move in
             let adjusted = BattleAIResponseParser.phaseAdjustedMove(
-                move, attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness
+                move, attacker: attacker, defender: defender, moves: moves, typeChart: typeChart
             )
             if adjusted.name != move.name {
                 print("[ai] chooseMove: phase override \(move.name) -> \(adjusted.name)")
@@ -49,7 +49,7 @@ extension BattleAIService: BattleAIServiceProtocol {
         }
 
         guard isAvailable else { return adjust(fallback) }
-        let (prompt, indexMap) = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, effectiveness: effectiveness, recentMoves: recentMoves, turnNumber: turnNumber)
+        let (prompt, indexMap) = prompts.buildMovePrompt(attacker: attacker, defender: defender, moves: moves, typeChart: typeChart, recentMoves: recentMoves, turnNumber: turnNumber)
         print("[llm] chooseMove: \(attacker.name) vs \(defender.name), moves: \(moves.map(\.name)), recent: \(recentMoves)")
         do {
             let raw = try await generate(label: "chooseMove", prompt: prompt, temperature: 0.35, session: moveSession)
@@ -58,7 +58,7 @@ extension BattleAIService: BattleAIServiceProtocol {
                let originalIdx = indexMap[shuffledIdx],
                moves.indices.contains(originalIdx) {
                 let modelMove = moves[originalIdx]
-                let modelEff = effectiveness[originalIdx]
+                let modelEff = typeChart.multiplier(attacking: modelMove.typeName, defenders: defender.typeNames)
                 if modelEff == 0, fallback.name != modelMove.name {
                     print("[llm] chooseMove: repaired \(modelMove.name) -> \(fallback.name) (immune)")
                     return adjust(fallback)
@@ -105,12 +105,11 @@ extension BattleAIService: BattleAIServiceProtocol {
         typeChart: TypeChart
     ) async -> [MoveDetail] {
         guard moves.count > 4 else { return moves }
-        let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) }
         let fallback = BattleAIResponseParser.assembleOpponentLoadout(
             for: fighter,
             against: opponent,
             moves: moves,
-            effectiveness: effectiveness
+            typeChart: typeChart
         )
 
         let balance: ([MoveDetail]) -> [MoveDetail] = { picks in
@@ -127,19 +126,15 @@ extension BattleAIService: BattleAIServiceProtocol {
             print("[ai] chooseLoadout: deterministic \(fighter.name) vs \(opponent.name): \(result.map(\.name))")
             return result
         }
-        let shortlist = BattleAIResponseParser.loadoutShortlist(
-            fighter: fighter, opponent: opponent, moves: moves, effectiveness: effectiveness
+        let shortMoves = BattleAIResponseParser.loadoutShortlist(
+            fighter: fighter, opponent: opponent, moves: moves, typeChart: typeChart
         )
-        let shortMoves = shortlist.map(\.move)
-        let shortEff = shortlist.map(\.eff)
-        let playerEff = playerMoves.map { typeChart.multiplier(attacking: $0.typeName, defenders: fighter.typeNames) }
         let (prompt, indexMap) = prompts.buildLoadoutPrompt(
             fighter: fighter,
             opponent: opponent,
             moves: shortMoves,
-            effectiveness: shortEff,
             playerMoves: playerMoves,
-            playerEffectiveness: playerEff
+            typeChart: typeChart
         )
         print("[llm] chooseLoadout: \(fighter.name) vs \(opponent.name), pool \(moves.count)/\(shortMoves.count)")
         do {
@@ -149,7 +144,7 @@ extension BattleAIService: BattleAIServiceProtocol {
             if !parsed.isEmpty {
                 let filled = BattleAIResponseParser.fillLoadout(
                     seed: parsed, fighter: fighter, opponent: opponent,
-                    moves: shortMoves, effectiveness: shortEff, count: 4
+                    moves: shortMoves, typeChart: typeChart, count: 4
                 )
                 let result = balance(filled)
                 print("[llm] chooseLoadout: picked \(result.map(\.name)) (llm seeded \(parsed.count))")

@@ -1,8 +1,5 @@
 import BattleKit
 
-typealias TypeChart = BattleKit.TypeChart
-typealias TypeMatchup = BattleKit.TypeMatchup
-
 extension TypeChart {
     init(rows: [TypeDetail]) {
         var dict: [String: TypeMatchup] = [:]

@@ -1,4 +1,5 @@
 import Foundation
+import BattleKit
 
 /// Sendable snapshot of Pokemon data for the opponent-picker AI prompt.
 struct OpponentCandidateSnapshot: Sendable {

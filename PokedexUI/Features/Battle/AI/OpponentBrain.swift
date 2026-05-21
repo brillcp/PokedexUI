@@ -1,3 +1,4 @@
+import BattleKit
 import Foundation
 
 /// Wraps `BattleAIServiceProtocol` with a rolling move-history window.
@@ -49,47 +50,24 @@ private extension OpponentBrain {
         moves: [MoveDetail],
         typeChart: TypeChart
     ) -> MoveDetail {
-        let pickDamage = BattleAIResponseParser.estimatedDamage(
-            move: pick,
-            attacker: attacker,
-            defender: defender,
-            typeChart: typeChart
+        let pickDamage = DamageCalculator.estimateDamage(
+            move: pick, attacker: attacker, defender: defender, typeChart: typeChart
         )
-        let pickKOs = pickDamage >= Double(defender.currentHP)
+        let pickKOs = pickDamage >= defender.currentHP
         if !pickKOs,
-           let killer = BattleAIResponseParser.guaranteedKO(
-                attacker: attacker,
-                defender: defender,
-                moves: moves,
-                typeChart: typeChart
+           let killer = DamageCalculator.guaranteedKO(
+                attacker: attacker, defender: defender, moves: moves, typeChart: typeChart
            ),
            killer.name != pick.name {
             return killer
         }
 
         if pick.ailment != "none", (pick.power ?? 0) == 0, defender.status != .none {
-            let replacement = moves
-                .filter { $0.name != pick.name }
-                .max { lhs, rhs in
-                    BattleAIResponseParser.estimatedDamage(
-                        move: lhs,
-                        attacker: attacker,
-                        defender: defender,
-                        typeChart: typeChart
-                    ) < BattleAIResponseParser.estimatedDamage(
-                        move: rhs,
-                        attacker: attacker,
-                        defender: defender,
-                        typeChart: typeChart
-                    )
-                }
-            if let replacement, BattleAIResponseParser.estimatedDamage(
-                move: replacement,
-                attacker: attacker,
-                defender: defender,
-                typeChart: typeChart
-            ) > 0 {
-                return replacement
+            let alternatives = moves.filter { $0.name != pick.name }
+            if let best = DamageCalculator.strongestMove(
+                attacker: attacker, defender: defender, moves: alternatives, typeChart: typeChart
+            ) {
+                return best.move
             }
         }
 

@@ -1,4 +1,5 @@
 import Foundation
+import BattleKit
 
 /// Builds prompt strings for each `BattleAIService` call.
 struct BattleAIPromptBuilder {
@@ -7,22 +8,16 @@ struct BattleAIPromptBuilder {
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double],
+        typeChart: TypeChart,
         recentMoves: [String],
         turnNumber: Int
     ) -> (prompt: String, indexMap: [Int: Int]) {
-        let annotations = moveAnnotations(moves: moves, recentMoves: recentMoves, attacker: attacker, defender: defender)
         let shuffled = Array(moves.indices).shuffled()
         var indexMap: [Int: Int] = [:]
         let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
             indexMap[displayIdx] = originalIdx
             let move = moves[originalIdx]
-            let eff = effectiveness[safe: originalIdx] ?? 1.0
-            var row = richMoveDescription(move, index: displayIdx, attacker: attacker, defender: defender, effectiveness: eff)
-            if let annotation = annotations[originalIdx] {
-                row += " [AVOID]"
-            }
-            return row
+            return richMoveDescription(move, index: displayIdx, attacker: attacker, defender: defender, typeChart: typeChart)
         }.joined(separator: "\n")
         let situation = compactBattleContext(attacker: attacker, defender: defender, turnNumber: turnNumber)
         let hint = tacticalHint(attacker: attacker, defender: defender, moves: moves)
@@ -31,7 +26,7 @@ struct BattleAIPromptBuilder {
 
         \(movesBlock)
 
-        \(hint) Never pick AVOID. Return ONLY the index.
+        \(hint) Return ONLY the index.
         """
         return (prompt, indexMap)
     }
@@ -66,13 +61,11 @@ struct BattleAIPromptBuilder {
         fighter: BattleCombatant,
         opponent: BattleCombatant,
         moves: [MoveDetail],
-        effectiveness: [Double],
         playerMoves: [MoveDetail],
-        playerEffectiveness: [Double]
+        typeChart: TypeChart
     ) -> (prompt: String, indexMap: [Int: Int]) {
         let biggestThreat = playerBiggestThreat(
-            playerMoves: playerMoves, playerEffectiveness: playerEffectiveness,
-            fighter: fighter, opponent: opponent
+            playerMoves: playerMoves, fighter: fighter, opponent: opponent, typeChart: typeChart
         )
 
         let shuffled = Array(moves.indices).shuffled()
@@ -84,8 +77,7 @@ struct BattleAIPromptBuilder {
         for (displayIdx, originalIdx) in shuffled.enumerated() {
             indexMap[displayIdx] = originalIdx
             let move = moves[originalIdx]
-            let eff = effectiveness[safe: originalIdx] ?? 1.0
-            let row = richLoadoutMoveDescription(move, index: displayIdx, fighter: fighter, opponent: opponent, effectiveness: eff)
+            let row = richLoadoutMoveDescription(move, index: displayIdx, fighter: fighter, opponent: opponent, typeChart: typeChart)
             switch move.loadoutCategory {
             case "BOOST": boostRows.append(row)
             case "DISRUPT": disruptRows.append(row)
@@ -115,41 +107,6 @@ struct BattleAIPromptBuilder {
 // MARK: - Private
 private extension BattleAIPromptBuilder {
 
-    // MARK: Damage estimation
-
-    func estimateDamage(
-        move: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        effectiveness: Double
-    ) -> Int {
-        guard let power = move.power, power > 0, effectiveness > 0 else { return 0 }
-        let atkStat: Int
-        let defStat: Int
-        switch move.damageClassKind {
-        case .physical:
-            let atkStage = statStageMultiplier(attacker.stage(for: "attack"))
-            let defStage = statStageMultiplier(defender.stage(for: "defense"))
-            atkStat = Int(Double(attacker.attack) * atkStage)
-            defStat = Int(Double(defender.defense) * defStage)
-        case .special:
-            let atkStage = statStageMultiplier(attacker.stage(for: "special-attack"))
-            let defStage = statStageMultiplier(defender.stage(for: "special-defense"))
-            atkStat = Int(Double(attacker.specialAttack) * atkStage)
-            defStat = Int(Double(defender.specialDefense) * defStage)
-        case .status:
-            return 0
-        }
-        let stab = attacker.typeNames.contains(move.typeName) ? 1.5 : 1.0
-        let base = ((22.0 * Double(power) * Double(atkStat) / Double(max(1, defStat))) / 50.0 + 2.0)
-        return Int(base * stab * effectiveness)
-    }
-
-    func turnsToKO(_ damage: Int, hp: Int) -> Int {
-        guard damage > 0 else { return 99 }
-        return Int(ceil(Double(hp) / Double(damage)))
-    }
-
     // MARK: Move prompt helpers
 
     func richMoveDescription(
@@ -157,15 +114,16 @@ private extension BattleAIPromptBuilder {
         index: Int,
         attacker: BattleCombatant,
         defender: BattleCombatant,
-        effectiveness: Double
+        typeChart: TypeChart
     ) -> String {
         var parts: [String] = []
         parts.append("\(index): \(move.name) (\(move.typeName))")
 
         if let power = move.power, power > 0 {
-            let dmg = estimateDamage(move: move, attacker: attacker, defender: defender, effectiveness: effectiveness)
+            let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
+            let dmg = DamageCalculator.estimateDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
             let acc = move.accuracy ?? 100
-            let koTurns = turnsToKO(dmg, hp: defender.currentHP)
+            let koTurns = DamageCalculator.turnsToKO(dmg, hp: defender.currentHP)
             var dmgStr = "\(dmg) dmg"
             if koTurns == 1 { dmgStr += ", KOs this turn" }
             else if koTurns == 2 { dmgStr += ", 2-hit KO" }
@@ -198,29 +156,6 @@ private extension BattleAIPromptBuilder {
         return parts.joined(separator: " - ")
     }
 
-    func moveAnnotations(
-        moves: [MoveDetail],
-        recentMoves: [String],
-        attacker: BattleCombatant,
-        defender: BattleCombatant
-    ) -> [String?] {
-        var counts: [String: Int] = [:]
-        for name in recentMoves { counts[name, default: 0] += 1 }
-        return moves.map { move in
-            var warnings: [String] = []
-            let count = counts[move.name] ?? 0
-            if count >= 2 { warnings.append("used \(count)x recently") }
-            else if move.name == recentMoves.last { warnings.append("used last turn") }
-            if (move.power ?? 0) == 0,
-               move.statChangeDeltas.contains(where: { $0 > 0 }),
-               attacker.isBoosted { warnings.append("already boosted") }
-            if move.ailment != "none", defender.status != .none {
-                warnings.append("opponent already statused")
-            }
-            return warnings.isEmpty ? nil : warnings.joined(separator: ", ")
-        }
-    }
-
     func compactBattleContext(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -251,10 +186,8 @@ private extension BattleAIPromptBuilder {
         var line = "\(index). \(candidate.name) (\(types), BST \(candidate.baseStatTotal), \(bstNote))"
 
         if let chart = typeChart, !player.typeNames.isEmpty, !candidate.typeNames.isEmpty {
-            let cPressure = candidate.typeNames
-                .map { chart.multiplier(attacking: $0, defenders: player.typeNames) }.max() ?? 1
-            let pPressure = player.typeNames
-                .map { chart.multiplier(attacking: $0, defenders: candidate.typeNames) }.max() ?? 1
+            let cPressure = chart.bestSTABMultiplier(attackerTypes: candidate.typeNames, defenderTypes: player.typeNames)
+            let pPressure = chart.bestSTABMultiplier(attackerTypes: player.typeNames, defenderTypes: candidate.typeNames)
 
             var matchup: [String] = []
             if cPressure >= 2 { matchup.append("SE STAB vs you") }
@@ -280,14 +213,15 @@ private extension BattleAIPromptBuilder {
         index: Int,
         fighter: BattleCombatant,
         opponent: BattleCombatant,
-        effectiveness: Double
+        typeChart: TypeChart
     ) -> String {
         var parts: [String] = []
         parts.append("\(index): \(move.name) (\(move.typeName))")
 
         if let power = move.power, power > 0 {
-            let dmg = estimateDamage(move: move, attacker: fighter, defender: opponent, effectiveness: effectiveness)
-            let koTurns = turnsToKO(dmg, hp: opponent.maxHP)
+            let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: opponent.typeNames)
+            let dmg = DamageCalculator.estimateDamage(move: move, attacker: fighter, defender: opponent, typeChart: typeChart)
+            let koTurns = DamageCalculator.turnsToKO(dmg, hp: opponent.maxHP)
             var tags: [String] = []
             tags.append("\(dmg) dmg")
             if koTurns <= 2 { tags.append("\(koTurns)-hit KO") }
@@ -318,22 +252,15 @@ private extension BattleAIPromptBuilder {
 
     func playerBiggestThreat(
         playerMoves: [MoveDetail],
-        playerEffectiveness: [Double],
         fighter: BattleCombatant,
-        opponent: BattleCombatant
+        opponent: BattleCombatant,
+        typeChart: TypeChart
     ) -> String {
-        var bestDmg = 0
-        var bestName = ""
-        for (idx, move) in playerMoves.enumerated() {
-            let eff = playerEffectiveness[safe: idx] ?? 1
-            let dmg = estimateDamage(move: move, attacker: opponent, defender: fighter, effectiveness: eff)
-            if dmg > bestDmg { bestDmg = dmg; bestName = move.displayName }
-        }
-        if bestDmg > 0 {
-            let ko = turnsToKO(bestDmg, hp: fighter.maxHP)
-            return "Player's strongest: \(bestName) (\(bestDmg) dmg, \(ko)-hit KO vs you)."
-        }
-        return ""
+        guard let best = DamageCalculator.strongestMove(
+            attacker: opponent, defender: fighter, moves: playerMoves, typeChart: typeChart
+        ) else { return "" }
+        let ko = DamageCalculator.turnsToKO(best.damage, hp: fighter.maxHP)
+        return "Player's strongest: \(best.move.displayName) (\(best.damage) dmg, \(ko)-hit KO vs you)."
     }
 
     // MARK: Shared

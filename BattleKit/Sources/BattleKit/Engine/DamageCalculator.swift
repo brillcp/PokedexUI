@@ -51,6 +51,10 @@ public enum DamageCalculator {
     }
 
     /// Deterministic damage estimate (no randomness, no crit) for AI scoring.
+    ///
+    /// `typeChart` is the sole input for type effectiveness; callers cannot
+    /// pass arbitrary multipliers. Status-class moves and zero-power moves
+    /// return 0.
     public static func estimateDamage(
         move: some BattleMoveData,
         attacker: BattleCombatant,
@@ -59,6 +63,7 @@ public enum DamageCalculator {
         superEffectiveCap: Double = 1.5
     ) -> Int {
         guard let power = move.power, power > 0 else { return 0 }
+        guard move.damageClassKind != .status else { return 0 }
         let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
         guard effectiveness > 0 else { return 0 }
 
@@ -81,5 +86,43 @@ public enum DamageCalculator {
     public static func turnsToKO(_ damage: Int, hp: Int) -> Int {
         guard damage > 0 else { return 99 }
         return Int(ceil(Double(hp) / Double(damage)))
+    }
+
+    /// Move that lands a KO this turn, accounting for accuracy.
+    ///
+    /// Filters to moves whose estimated damage covers the defender's current
+    /// HP and whose accuracy is at least 85%. Tiebreaks on accuracy-weighted
+    /// expected damage. Returns `nil` when no move qualifies.
+    public static func guaranteedKO<Move: BattleMoveData>(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [Move],
+        typeChart: some TypeEffectivenessProviding,
+        accuracyFloor: Double = 0.85
+    ) -> Move? {
+        let target = defender.currentHP
+        let killers = moves.compactMap { move -> (Move, Double)? in
+            let dmg = estimateDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
+            guard dmg >= target else { return nil }
+            let accuracy = Double(move.accuracy ?? 100) / 100
+            guard accuracy >= accuracyFloor else { return nil }
+            return (move, Double(dmg) * accuracy)
+        }
+        return killers.max { $0.1 < $1.1 }?.0
+    }
+
+    /// Move that deals the most damage against `defender`. Returns `nil` if
+    /// no damaging move is viable (zero power, status, or fully resisted).
+    public static func strongestMove<Move: BattleMoveData>(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [Move],
+        typeChart: some TypeEffectivenessProviding
+    ) -> (move: Move, damage: Int)? {
+        let scored = moves.compactMap { move -> (Move, Int)? in
+            let dmg = estimateDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
+            return dmg > 0 ? (move, dmg) : nil
+        }
+        return scored.max { $0.1 < $1.1 }
     }
 }

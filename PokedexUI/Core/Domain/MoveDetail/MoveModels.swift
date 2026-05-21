@@ -76,63 +76,10 @@ private struct StatChangeDTO: Decodable {
 }
 
 extension MoveDetail {
-    enum DamageClass: String {
-        case physical, special, status
-    }
-
-    var damageClassKind: DamageClass {
-        DamageClass(rawValue: damageClass) ?? .status
-    }
-
     var displayName: String { name.replacingOccurrences(of: "-", with: " ").capitalized }
 
-    /// Category tag used for loadout prompts and slot composition.
-    var loadoutCategory: String {
-        if (power ?? 0) > 0 { return "DMG" }
-        if statChangeDeltas.contains(where: { $0 > 0 }) { return "BOOST" }
-        if ailment != "none" || statChangeDeltas.contains(where: { $0 < 0 }) { return "DISRUPT" }
-        if healing > 0 || name == "rest" { return "HEAL" }
-        return "OTHER"
-    }
-
-    private static let selfDebuffMoves: Set<String> = [
-        "leaf-storm", "overheat", "draco-meteor", "fleur-cannon", "psycho-boost",
-        "close-combat", "superpower", "v-create", "hammer-arm", "ice-hammer",
-        "headlong-rush", "clanging-scales", "shell-smash"
-    ]
-
-    var hasSelfDebuff: Bool { Self.selfDebuffMoves.contains(name) }
-
-    private static let rechargeMoves: Set<String> = [
-        "blast-burn", "frenzy-plant", "giga-impact", "hydro-cannon",
-        "hyper-beam", "meteor-assault", "prismatic-laser",
-        "roar-of-time", "rock-wrecker"
-    ]
-
-    private static let chargingMoves: Set<String> = [
-        "sky-attack", "solar-beam", "solar-blade", "skull-bash",
-        "razor-wind", "fly", "dig", "dive", "bounce", "phantom-force",
-        "shadow-force", "geomancy", "meteor-beam"
-    ]
-
-    private static let selfKOMoves: Set<String> = [
-        "explosion", "self-destruct", "memento", "healing-wish",
-        "lunar-dance", "final-gambit", "misty-explosion"
-    ]
-
-    var isRechargeMove: Bool { Self.rechargeMoves.contains(name) }
-    var isChargingMove: Bool { Self.chargingMoves.contains(name) }
-    var isSelfKOMove: Bool { Self.selfKOMoves.contains(name) }
-
-    var isBattleReady: Bool {
-        if isChargingMove { return false }
-        if isSelfKOMove { return false }
-        if (power ?? 0) > 0 { return true }
-        if healing > 0 || name == "rest" { return true }
-        if !statChangeNames.isEmpty { return true }
-        if ailment != "none" { return true }
-        return false
-    }
+    var hasSelfDebuff: Bool { MoveClassification.selfDebuffMoves.contains(name) }
+    var isRechargeMove: Bool { MoveClassification.rechargeMoves.contains(name) }
 }
 
 // MARK: - BattleMoveData
