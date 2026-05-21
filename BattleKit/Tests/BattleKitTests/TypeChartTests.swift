@@ -50,4 +50,21 @@ struct TypeChartTests {
         let mult = Self.chart.multiplier(attacking: "fairy", defenders: ["fire"])
         #expect(mult == 1.0)
     }
+
+    @Test func bestSTABMultiplierMaxesAttackers() {
+        // Fire/water attacker vs grass: fire 2x, water 0.5x → max 2.0
+        let result = Self.chart.bestSTABMultiplier(attackerTypes: ["fire", "water"], defenderTypes: ["grass"])
+        #expect(result == 2.0)
+    }
+
+    @Test func bestSTABMultiplierPicksImmunity() {
+        // Normal attacker vs ghost: 0x. Single type, max is still 0.
+        let result = Self.chart.bestSTABMultiplier(attackerTypes: ["normal"], defenderTypes: ["ghost"])
+        #expect(result == 0.0)
+    }
+
+    @Test func bestSTABMultiplierEmptyAttackersReturnsNeutral() {
+        let result = Self.chart.bestSTABMultiplier(attackerTypes: [], defenderTypes: ["grass"])
+        #expect(result == 1.0)
+    }
 }

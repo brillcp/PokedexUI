@@ -83,6 +83,91 @@ struct DamageCalculatorTests {
         #expect(DamageCalculator.turnsToKO(100, hp: 100) == 1)
         #expect(DamageCalculator.turnsToKO(0, hp: 100) == 99)
     }
+
+    @Test func guaranteedKOFindsKiller() {
+        var defender = BattleCombatant(pokemon: Self.pokemon(types: ["grass"]), moves: [])
+        defender.currentHP = 5
+        let attacker = BattleCombatant(pokemon: Self.pokemon(types: ["fire"]), moves: [])
+        let killer = Self.move(name: "flamethrower", power: 90, damageClass: "special", typeName: "fire")
+        let result = DamageCalculator.guaranteedKO(
+            attacker: attacker, defender: defender, moves: [killer], typeChart: Self.chart
+        )
+        #expect(result?.name == "flamethrower")
+    }
+
+    @Test func guaranteedKONilWhenAllTooWeak() {
+        let attacker = BattleCombatant(pokemon: Self.pokemon(), moves: [])
+        let defender = BattleCombatant(pokemon: Self.pokemon(), moves: [])
+        let weak = Self.move(name: "tackle", power: 10)
+        let result = DamageCalculator.guaranteedKO(
+            attacker: attacker, defender: defender, moves: [weak], typeChart: Self.chart
+        )
+        #expect(result == nil)
+    }
+
+    @Test func guaranteedKOSkipsBelowAccuracyFloor() {
+        var defender = BattleCombatant(pokemon: Self.pokemon(types: ["grass"]), moves: [])
+        defender.currentHP = 5
+        let attacker = BattleCombatant(pokemon: Self.pokemon(types: ["fire"]), moves: [])
+        let inaccurate = Self.move(
+            name: "fire-blast", power: 110, damageClass: "special", typeName: "fire", accuracy: 50
+        )
+        let result = DamageCalculator.guaranteedKO(
+            attacker: attacker, defender: defender, moves: [inaccurate], typeChart: Self.chart
+        )
+        #expect(result == nil)
+    }
+
+    @Test func guaranteedKOPicksHigherExpectedDamage() {
+        var defender = BattleCombatant(pokemon: Self.pokemon(types: ["grass"]), moves: [])
+        defender.currentHP = 5
+        let attacker = BattleCombatant(pokemon: Self.pokemon(types: ["fire"]), moves: [])
+        let weakerAccurate = Self.move(
+            name: "ember", power: 40, damageClass: "special", typeName: "fire", accuracy: 100
+        )
+        let strongerSlightlyLessAccurate = Self.move(
+            name: "flamethrower", power: 90, damageClass: "special", typeName: "fire", accuracy: 90
+        )
+        // Both KO 5 HP. flamethrower's accuracy-weighted dmg dwarfs ember's.
+        let result = DamageCalculator.guaranteedKO(
+            attacker: attacker, defender: defender,
+            moves: [weakerAccurate, strongerSlightlyLessAccurate],
+            typeChart: Self.chart
+        )
+        #expect(result?.name == "flamethrower")
+    }
+
+    @Test func strongestMoveReturnsHighestDamage() {
+        let attacker = BattleCombatant(pokemon: Self.pokemon(types: ["fire"]), moves: [])
+        let defender = BattleCombatant(pokemon: Self.pokemon(types: ["grass"]), moves: [])
+        let weak = Self.move(name: "ember", power: 40, damageClass: "special", typeName: "fire")
+        let strong = Self.move(name: "flamethrower", power: 90, damageClass: "special", typeName: "fire")
+        let result = DamageCalculator.strongestMove(
+            attacker: attacker, defender: defender, moves: [weak, strong], typeChart: Self.chart
+        )
+        #expect(result?.move.name == "flamethrower")
+        #expect((result?.damage ?? 0) > 0)
+    }
+
+    @Test func strongestMoveNilWhenAllImmune() {
+        let attacker = BattleCombatant(pokemon: Self.pokemon(types: ["normal"]), moves: [])
+        let defender = BattleCombatant(pokemon: Self.pokemon(types: ["ghost"]), moves: [])
+        let m = Self.move(name: "tackle", power: 50, typeName: "normal")
+        let result = DamageCalculator.strongestMove(
+            attacker: attacker, defender: defender, moves: [m], typeChart: Self.chart
+        )
+        #expect(result == nil)
+    }
+
+    @Test func strongestMoveNilWhenOnlyStatusMoves() {
+        let attacker = BattleCombatant(pokemon: Self.pokemon(), moves: [])
+        let defender = BattleCombatant(pokemon: Self.pokemon(), moves: [])
+        let m = Self.move(name: "growl", power: nil, damageClass: "status")
+        let result = DamageCalculator.strongestMove(
+            attacker: attacker, defender: defender, moves: [m], typeChart: Self.chart
+        )
+        #expect(result == nil)
+    }
 }
 
 struct TestPokemon: BattlePokemonData {
