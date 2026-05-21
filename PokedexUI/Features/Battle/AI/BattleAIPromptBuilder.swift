@@ -29,7 +29,7 @@ struct BattleAIPromptBuilder {
             : "\nLast move: \(recentMoves.last!). Vary if possible.\n"
         let hint = tacticalHint(attacker: attacker, defender: defender, moves: moves)
         let prompt = """
-        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(statusLabel(attacker.status))\(boostLabel(attacker))) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(statusLabel(defender.status))).
+        Pick a move for \(attacker.name) (\(attacker.typeNames.joined(separator: "/")), \(hpPct(attacker))% HP, \(attacker.status.label)\(boostLabel(attacker))) vs \(defender.name) (\(defender.typeNames.joined(separator: "/")), \(hpPct(defender))% HP, \(defender.status.label)).
         \(historyLine)
         \(movesBlock)
 
@@ -49,7 +49,7 @@ struct BattleAIPromptBuilder {
             let idx = displayIdx + 1
             indexMap[idx] = candidate.id
             let types = candidate.typeNames.joined(separator: "/")
-            return "\(idx). \(candidate.name) (\(types), BST \(candidate.baseStatTotal)\(flagSuffix(candidate)))"
+            return "\(idx). \(candidate.name) (\(types), BST \(candidate.baseStatTotal)\(candidate.flagSuffix))"
         }.joined(separator: "\n")
         let prompt = """
         Pick the most exciting opponent for \(player.name) (\(player.typeNames.joined(separator: "/"))).
@@ -57,6 +57,44 @@ struct BattleAIPromptBuilder {
         \(roster)
 
         Return ONLY the number.
+        """
+        return (prompt, indexMap)
+    }
+
+    func buildLoadoutPrompt(
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        moves: [MoveDetail],
+        effectiveness: [Double],
+        playerMoves: [MoveDetail],
+        playerEffectiveness: [Double]
+    ) -> (prompt: String, indexMap: [Int: Int]) {
+        let playerBlock = playerMoves.enumerated().map { idx, move in
+            playerMoveTag(move, effectiveness: playerEffectiveness[safe: idx] ?? 1, against: fighter)
+        }.joined(separator: "\n")
+
+        let shuffled = Array(moves.indices).shuffled()
+        var indexMap: [Int: Int] = [:]
+        let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
+            indexMap[displayIdx] = originalIdx
+            let move = moves[originalIdx]
+            let eff = effectiveness[safe: originalIdx] ?? 1.0
+            let tag = loadoutCategoryTag(move)
+            var row = compactMoveDescription(move, index: displayIdx, fighter: fighter, effectiveness: eff)
+            row += " \(tag)"
+            return row
+        }.joined(separator: "\n")
+
+        let prompt = """
+        You are \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))). Pick 4 moves to fight \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
+
+        Player's moves:
+        \(playerBlock)
+
+        Your available moves:
+        \(movesBlock)
+
+        Rules: pick exactly 2 DMG, 1 BOOST, 1 DISRUPT. Counter the player. Return ONLY 4 numbers.
         """
         return (prompt, indexMap)
     }
@@ -95,24 +133,34 @@ private extension BattleAIPromptBuilder {
         }
     }
 
-    func flagSuffix(_ snapshot: OpponentCandidateSnapshot) -> String {
-        if snapshot.isLegendary { return ", legendary" }
-        if snapshot.isMythical { return ", mythical" }
-        return ""
-    }
-
-    func statusLabel(_ status: BattleStatus) -> String {
-        switch status {
-        case .none: return "healthy"
-        case .paralysis: return "paralyzed"
-        case .burn: return "burned"
-        case .poison: return "poisoned"
-        case .sleep: return "asleep"
-        }
-    }
-
     func boostLabel(_ combatant: BattleCombatant) -> String {
         combatant.statStages.values.contains(where: { $0 > 0 }) ? ", boosted" : ""
+    }
+
+    func loadoutCategoryTag(_ move: MoveDetail) -> String {
+        if (move.power ?? 0) > 0 { return "DMG" }
+        if move.statChangeDeltas.contains(where: { $0 > 0 }) { return "BOOST" }
+        if move.ailment != "none" || move.statChangeDeltas.contains(where: { $0 < 0 }) { return "DISRUPT" }
+        if move.healing > 0 || move.name == "rest" { return "HEAL" }
+        return "OTHER"
+    }
+
+    func playerMoveTag(_ move: MoveDetail, effectiveness: Double, against fighter: BattleCombatant) -> String {
+        var tags: [String] = []
+        if let p = move.power, p > 0 {
+            if effectiveness >= 2 { tags.append("SE against you") }
+            else if effectiveness > 0, effectiveness < 1 { tags.append("resisted") }
+            else if effectiveness == 0 { tags.append("immune") }
+            else { tags.append("damage") }
+        }
+        if move.ailment != "none" { tags.append("disrupts you") }
+        if move.healing > 0 || move.name == "rest" { tags.append("heals") }
+        if move.statChangeDeltas.contains(where: { $0 > 0 }) { tags.append("powers up") }
+        if move.statChangeDeltas.contains(where: { $0 < 0 }), (move.power ?? 0) == 0 {
+            tags.append("debuffs you")
+        }
+        let tagStr = tags.isEmpty ? "" : " (\(tags.joined(separator: ", ")))"
+        return "- \(move.displayName)\(tagStr)"
     }
 
     /// Phase-based tactical hint that steers the model toward setup/disrupt/attack.

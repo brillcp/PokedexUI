@@ -10,6 +10,12 @@ struct OpponentCandidateSnapshot: Sendable {
     let generationName: String?
     let isLegendary: Bool
     let isMythical: Bool
+
+    var flagSuffix: String {
+        if isLegendary { return ", legendary" }
+        if isMythical { return ", mythical" }
+        return ""
+    }
 }
 
 extension OpponentCandidateSnapshot {

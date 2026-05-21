@@ -19,6 +19,9 @@ struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
             .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare(modelContext: modelContext) }
+            .onChange(of: viewModel.canStart) { _, ready in
+                if ready { startBattle() }
+            }
     }
 }
 
@@ -235,6 +238,9 @@ private extension BattleSetupView {
                     moveCard(move)
                 }
             }
+            .disabled(viewModel.isPickingLoadout)
+            .opacity(viewModel.isPickingLoadout ? Opacity.disabled : 1)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.isPickingLoadout)
         }
     }
 
@@ -253,24 +259,27 @@ private extension BattleSetupView {
             MoveCell(move: move, mode: .loadout(selected: selected), effectiveness: effectiveness)
         }
         .buttonStyle(.plain)
-        .opacity(atCap ? 0.5 : 1)
+        .opacity(atCap ? Opacity.disabled : 1)
         .disabled(atCap)
     }
 
     // MARK: - Battle button
 
-    @ViewBuilder
     var battleButton: some View {
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
-        let label = remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move": "moves")" : "Start"
-        PrimaryCapsuleButton(
+        let label = viewModel.canStart
+            ? "Start"
+            : remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move" : "moves")" : "Start"
+        return PrimaryCapsuleButton(
             icon: "bolt.fill",
             title: label,
-            isEnabled: viewModel.canStart,
-            action: startBattle
+            isEnabled: viewModel.canStart || viewModel.canRequestLoadout,
+            isLoading: viewModel.isPickingLoadout,
+            action: viewModel.canStart
+                ? startBattle
+                : { Task { await viewModel.requestOpponentLoadout() } }
         )
         .padding(.horizontal, 24)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.canStart)
     }
 }
 

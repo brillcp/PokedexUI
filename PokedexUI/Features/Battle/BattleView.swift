@@ -147,7 +147,7 @@ private extension BattleView {
             }
         }
         .disabled(disabled)
-        .opacity(disabled ? 0.5 : 1)
+        .opacity(disabled ? Opacity.disabled : 1)
         .animation(.easeInOut(duration: 0.2), value: disabled)
     }
 

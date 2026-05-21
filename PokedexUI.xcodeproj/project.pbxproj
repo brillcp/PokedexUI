@@ -70,6 +70,7 @@
 		D5BA13022E70000000000203 /* BattleAIPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13032E70000000000204 /* BattleAIPromptBuilder.swift */; };
 		D5BA13042E70000000000205 /* BattleAIMoveInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */; };
 		D5BA13042E70000000000212 /* BattleAIOpponentInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000213 /* BattleAIOpponentInstructions.md */; };
+		D5BA13042E70000000000214 /* BattleAILoadoutInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000215 /* BattleAILoadoutInstructions.md */; };
 		D5BA13062E70000000000220 /* OpponentCandidateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13072E70000000000221 /* OpponentCandidateSnapshot.swift */; };
 		D5BA13082E70000000000301 /* BattleSetupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13092E70000000000302 /* BattleSetupViewModel.swift */; };
 		D5BA130A2E70000000000303 /* BattleSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA130B2E70000000000304 /* BattleSetupView.swift */; };
@@ -165,6 +166,7 @@
 		D5BA13032E70000000000204 /* BattleAIPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIPromptBuilder.swift; sourceTree = "<group>"; };
 		D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAIMoveInstructions.md; sourceTree = "<group>"; };
 		D5BA13052E70000000000213 /* BattleAIOpponentInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAIOpponentInstructions.md; sourceTree = "<group>"; };
+		D5BA13052E70000000000215 /* BattleAILoadoutInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAILoadoutInstructions.md; sourceTree = "<group>"; };
 		D5BA13072E70000000000221 /* OpponentCandidateSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentCandidateSnapshot.swift; sourceTree = "<group>"; };
 		D5BA13092E70000000000302 /* BattleSetupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSetupViewModel.swift; sourceTree = "<group>"; };
 		D5BA130B2E70000000000304 /* BattleSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSetupView.swift; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 				D5BA13072E70000000000221 /* OpponentCandidateSnapshot.swift */,
 				D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */,
 				D5BA13052E70000000000213 /* BattleAIOpponentInstructions.md */,
+				D5BA13052E70000000000215 /* BattleAILoadoutInstructions.md */,
 				D56CE1A42FB86EF300A640CC /* BattleAIResponseParser.swift */,
 			);
 			path = AI;
@@ -652,6 +655,7 @@
 				D5BA13042E70000000000205 /* BattleAIMoveInstructions.md in Resources */,
 				D5864DCC2FBB4AAE00BEEA3F /* PokedexIcon.icon in Resources */,
 				D5BA13042E70000000000212 /* BattleAIOpponentInstructions.md in Resources */,
+				D5BA13042E70000000000214 /* BattleAILoadoutInstructions.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

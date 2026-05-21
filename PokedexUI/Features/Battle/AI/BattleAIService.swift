@@ -7,8 +7,8 @@ protocol BattleAIServiceProtocol: Sendable {
     func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String]) async -> MoveDetail
     /// Pick an opponent id from candidate snapshots.
     func chooseOpponent(player: OpponentCandidateSnapshot, candidates: [OpponentCandidateSnapshot], typeChart: TypeChart?) async -> Int?
-    /// Pick a 4-move loadout for a 1v1 battle.
-    func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
+    /// Pick a 4-move loadout for a 1v1 battle, informed by what the player chose.
+    func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], playerMoves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
 }
 
 /// Battle AI actor backed by on-device Foundation Models.
@@ -66,7 +66,7 @@ extension BattleAIService: BattleAIServiceProtocol {
                 return adjust(modelMove)
             }
         } catch {
-            logGenerationError(error, label: "chooseMove", prompt: prompt)
+            print("[llm error] \(error.localizedDescription): prompt chars \(prompt.count)")
         }
         return adjust(fallback)
     }
@@ -91,7 +91,7 @@ extension BattleAIService: BattleAIServiceProtocol {
                 return pokemonId
             }
         } catch {
-            logGenerationError(error, label: "chooseOpponent", prompt: prompt)
+            print("[llm error] \(error.localizedDescription): prompt chars \(prompt.count)")
         }
         return fallback
     }
@@ -100,18 +100,53 @@ extension BattleAIService: BattleAIServiceProtocol {
         for fighter: BattleCombatant,
         against opponent: BattleCombatant,
         moves: [MoveDetail],
+        playerMoves: [MoveDetail],
         typeChart: TypeChart
     ) async -> [MoveDetail] {
         guard moves.count > 4 else { return moves }
         let effectiveness = moves.map { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) }
-        let result = BattleAIResponseParser.assembleOpponentLoadout(
+        let fallback = BattleAIResponseParser.assembleOpponentLoadout(
             for: fighter,
             against: opponent,
             moves: moves,
             effectiveness: effectiveness
         )
-        print("[ai] chooseLoadout: \(fighter.name) vs \(opponent.name): \(result.map(\.name))")
-        return result
+        guard isAvailable else {
+            print("[ai] chooseLoadout: deterministic \(fighter.name) vs \(opponent.name): \(fallback.map(\.name))")
+            return fallback
+        }
+        let shortlist = BattleAIResponseParser.loadoutShortlist(
+            fighter: fighter, opponent: opponent, moves: moves, effectiveness: effectiveness
+        )
+        let shortMoves = shortlist.map(\.move)
+        let shortEff = shortlist.map(\.eff)
+        let playerEff = playerMoves.map { typeChart.multiplier(attacking: $0.typeName, defenders: fighter.typeNames) }
+        let (prompt, indexMap) = prompts.buildLoadoutPrompt(
+            fighter: fighter,
+            opponent: opponent,
+            moves: shortMoves,
+            effectiveness: shortEff,
+            playerMoves: playerMoves,
+            playerEffectiveness: playerEff
+        )
+        print("[llm] chooseLoadout: \(fighter.name) vs \(opponent.name), pool \(moves.count)/\(shortMoves.count)")
+        do {
+            let raw = try await generate(label: "chooseLoadout", prompt: prompt, temperature: 0.4, session: loadoutSession)
+            print("[llm] chooseLoadout: raw response: \(raw.trimmingCharacters(in: .whitespacesAndNewlines))")
+            let parsed = BattleAIResponseParser.parseLoadoutIndices(raw, indexMap: indexMap, moves: shortMoves, count: 4)
+            if !parsed.isEmpty {
+                let filled = BattleAIResponseParser.fillLoadout(
+                    seed: parsed, fighter: fighter, opponent: opponent,
+                    moves: shortMoves, effectiveness: shortEff, count: 4
+                )
+                print("[llm] chooseLoadout: picked \(filled.map(\.name)) (llm seeded \(parsed.count))")
+                return filled
+            }
+        } catch {
+            print("[llm error] \(error.localizedDescription): prompt chars \(prompt.count)")
+        }
+        print("[ai] chooseLoadout: fallback \(fallback.map(\.name))")
+        return fallback
     }
 }
 
@@ -128,6 +163,10 @@ private extension BattleAIService {
 
     func opponentSession() -> LanguageModelSession {
         LanguageModelSession(model: model, instructions: Self.opponentInstructions)
+    }
+
+    func loadoutSession() -> LanguageModelSession {
+        LanguageModelSession(model: model, instructions: Self.loadoutInstructions)
     }
 
     func generate(
@@ -151,9 +190,6 @@ private extension BattleAIService {
             } catch {
                 isGenerating = false
                 lastError = error
-                guard attempt < maxAttempts, isRetryableModelError(error) else { throw error }
-                print("[llm] \(label): retrying after model manager error (attempt \(attempt) of \(maxAttempts))")
-                try? await Task.sleep(nanoseconds: UInt64(attempt) * 350_000_000)
             }
         }
 
@@ -169,62 +205,12 @@ private extension BattleAIService {
 
     static let moveInstructions: String = loadInstructions("BattleAIMoveInstructions", fallback: "You are an expert Pokemon battler.")
     static let opponentInstructions: String = loadInstructions("BattleAIOpponentInstructions", fallback: "You are a Pokemon battle matchmaker.")
+    static let loadoutInstructions: String = loadInstructions("BattleAILoadoutInstructions", fallback: "You are an expert Pokemon battler picking a loadout.")
 
     static func loadInstructions(_ name: String, fallback: String) -> String {
         guard let url = Bundle.main.url(forResource: name, withExtension: "md"),
               let text = try? String(contentsOf: url, encoding: .utf8)
         else { return fallback }
         return text
-    }
-
-    func logGenerationError(_ error: Error, label: String, prompt: String) {
-        print("[llm error] \(label): prompt chars \(prompt.count)")
-        for line in describe(error as NSError) {
-            print("[llm error] \(label): \(line)")
-        }
-    }
-
-    func describe(_ error: NSError, depth: Int = 0) -> [String] {
-        let indent = String(repeating: "  ", count: depth)
-        var lines = [
-            "\(indent)\(error.domain) code \(error.code): \(error.localizedDescription)"
-        ]
-
-        if let reason = error.userInfo[NSLocalizedFailureReasonErrorKey] as? String {
-            lines.append("\(indent)reason: \(reason)")
-        }
-        if let recovery = error.userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String {
-            lines.append("\(indent)recovery: \(recovery)")
-        }
-        if let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError {
-            lines.append("\(indent)underlying:")
-            lines += describe(underlying, depth: depth + 1)
-        }
-        if let underlying = error.userInfo[NSMultipleUnderlyingErrorsKey] as? [NSError] {
-            for (index, nested) in underlying.enumerated() {
-                lines.append("\(indent)underlying[\(index)]:")
-                lines += describe(nested, depth: depth + 1)
-            }
-        }
-
-        return lines
-    }
-
-    func isRetryableModelError(_ error: Error) -> Bool {
-        containsModelManagerError(error as NSError, code: 1026)
-    }
-
-    func containsModelManagerError(_ error: NSError, code: Int) -> Bool {
-        if error.domain == "ModelManagerServices.ModelManagerError", error.code == code {
-            return true
-        }
-        if let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError,
-           containsModelManagerError(underlying, code: code) {
-            return true
-        }
-        if let underlying = error.userInfo[NSMultipleUnderlyingErrorsKey] as? [NSError] {
-            return underlying.contains { containsModelManagerError($0, code: code) }
-        }
-        return false
     }
 }

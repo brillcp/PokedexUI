@@ -5,19 +5,28 @@ struct PrimaryCapsuleButton: View {
     let icon: String
     let title: String
     var isEnabled: Bool = true
+    var isLoading: Bool = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.pixel17)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical)
-                .foregroundStyle(.white)
+            HStack(spacing: 8) {
+                if isLoading {
+                    PixelSpinner(color: .white)
+                } else {
+                    Image(systemName: icon)
+                }
+                Text(isLoading ? "Thinking": title)
+            }
+            .font(.pixel17)
+            .frame(height: 28)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical)
+            .foregroundStyle(.white)
         }
         .glassEffect(.clear.tint(.pokedexRed.opacity(0.8)).interactive())
-        .opacity(isEnabled ? 1 : 0.6)
-        .disabled(!isEnabled)
+        .opacity(isEnabled && !isLoading ? 1 : Opacity.disabled)
+        .disabled(!isEnabled || isLoading)
     }
 }
 
@@ -37,7 +46,7 @@ struct SecondaryCapsuleButton: View {
                 .foregroundStyle(color)
         }
         .glassEffect(.clear.interactive())
-        .opacity(isEnabled ? 1 : 0.6)
+        .opacity(isEnabled ? 1 : Opacity.disabled)
         .disabled(!isEnabled)
     }
 }

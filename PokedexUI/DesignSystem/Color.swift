@@ -30,6 +30,11 @@ extension Color {
     }
 }
 
+/// Standard opacity values used across the design system.
+enum Opacity {
+    static let disabled: Double = 0.4
+}
+
 /// Standard corner radii used across the design system.
 enum CornerRadius {
     static let chip: CGFloat = 2.0

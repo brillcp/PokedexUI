@@ -25,13 +25,19 @@ protocol BattleSetupViewModelProtocol {
     var maxSelections: Int { get }
     /// User-facing error surfaced by `prepare` failures.
     var errorMessage: String? { get }
+    /// True while AI is choosing its loadout after the player locks in.
+    var isPickingLoadout: Bool { get }
 
-    /// Hydrate both sides, fetch move pools, kick off AI loadout.
+    /// Hydrate both sides, fetch move pools.
     func prepare(modelContext: ModelContext) async
     /// Toggle a move selection, capped at `maxSelections`.
     func toggle(_ move: MoveDetail)
-    /// True when player has picked enough moves and AI loadout is ready.
+    /// True when player has picked enough moves to request AI loadout.
+    var canRequestLoadout: Bool { get }
+    /// True when both sides have their loadouts locked in.
     var canStart: Bool { get }
+    /// Ask AI to pick loadout based on what the player chose.
+    func requestOpponentLoadout() async
     /// Player's chosen moves in selection order.
     func playerMoves() -> [MoveDetail]
 }
@@ -41,6 +47,7 @@ protocol BattleSetupViewModelProtocol {
 @Observable
 final class BattleSetupViewModel {
     private var selectionOrder:  [String] = []
+    private var opponentPool:    [MoveDetail] = []
     private let movePrefetcher:  MovePrefetching
     private let aiService:       BattleAIServiceProtocol
     private let typeChartLoader: TypeChartLoader
@@ -55,6 +62,7 @@ final class BattleSetupViewModel {
     var opponentLoadout:  [MoveDetail]?
     var selectedMoveNames: Set<String> = []
     var errorMessage: String?
+    var isPickingLoadout: Bool = false
 
     init(
         player: Pokemon,
@@ -79,6 +87,10 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
             && opponentPokemon != nil
             && !playerMovePool.isEmpty
             && typeChartLoader.chart != nil
+    }
+
+    var canRequestLoadout: Bool {
+        selectedMoveNames.count == maxSelections && opponentLoadout == nil && !isPickingLoadout
     }
 
     var canStart: Bool {
@@ -109,46 +121,55 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
 
         await movePrefetcher.warmUp(modelContainer: modelContext.container)
 
-        let playerMoves  = fetchMoves(for: player,   modelContext: modelContext)
-        let opponentPool = fetchMoves(for: opponent, modelContext: modelContext)
+        let playerMoves   = fetchMoves(for: player,   modelContext: modelContext)
+        let opponentMoves = fetchMoves(for: opponent, modelContext: modelContext)
 
         guard playerMoves.count >= maxSelections else {
             errorMessage = "Couldn't load \(playerSummary.name)'s movepool. Check your connection and try again."
             return
         }
-        guard opponentPool.count >= maxSelections else {
+        guard opponentMoves.count >= maxSelections else {
             errorMessage = "Couldn't load \(opponentSummary.name)'s movepool. Check your connection and try again."
             return
         }
 
         await typeChartLoader.loadIfNeeded()
-        guard let chart = typeChartLoader.chart else {
+        guard typeChartLoader.chart != nil else {
             errorMessage = "Couldn't load the type chart. Check your connection and try again."
             return
         }
 
         self.playerMovePool = Self.rankedByImpact(playerMoves)
+        self.opponentPool   = opponentMoves
+    }
 
+    func requestOpponentLoadout() async {
+        guard let player = playerPokemon,
+              let opponent = opponentPokemon,
+              let chart = typeChartLoader.chart else { return }
+
+        isPickingLoadout = true
         let fighter = BattleCombatant(pokemon: opponent, moves: [])
-        let foe     = BattleCombatant(pokemon: player,   moves: [])
-        let selectionTarget = maxSelections
-        Task { [aiService, opponentPool, chart, fighter, foe] in
-            let picks = await aiService.chooseLoadout(
-                for: fighter,
-                against: foe,
-                moves: opponentPool,
-                typeChart: chart
-            )
-            await MainActor.run {
-                guard picks.count >= selectionTarget else {
-                    self.errorMessage = "Opponent couldn't pick a loadout."
-                    return
-                }
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    self.opponentLoadout = picks
-                }
-            }
+        let foe     = BattleCombatant(pokemon: player,  moves: [])
+        let chosen  = playerMoves()
+
+        let picks = await aiService.chooseLoadout(
+            for: fighter,
+            against: foe,
+            moves: opponentPool,
+            playerMoves: chosen,
+            typeChart: chart
+        )
+
+        guard picks.count >= maxSelections else {
+            errorMessage = "Opponent couldn't pick a loadout."
+            isPickingLoadout = false
+            return
         }
+        withAnimation(.easeInOut(duration: 0.25)) {
+            self.opponentLoadout = picks
+        }
+        isPickingLoadout = false
     }
 }
 

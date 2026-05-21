@@ -8,6 +8,35 @@ enum BattleAIResponseParser {
         return Int(match.output)
     }
 
+    static func parseLoadoutIndices(_ text: String, indexMap: [Int: Int], moves: [MoveDetail], count: Int) -> [MoveDetail] {
+        let byName = Dictionary(uniqueKeysWithValues: moves.map { ($0.name, $0) })
+        var picked: [MoveDetail] = []
+        var usedNames: Set<String> = []
+
+        func take(_ move: MoveDetail) {
+            guard !usedNames.contains(move.name) else { return }
+            picked.append(move)
+            usedNames.insert(move.name)
+        }
+
+        for name in byName.keys where text.contains(name) {
+            guard picked.count < count else { break }
+            take(byName[name]!)
+        }
+
+        if picked.count < count {
+            let ints = text.matches(of: /\d+/).compactMap { Int($0.output) }
+            for displayIdx in ints {
+                guard picked.count < count,
+                      let originalIdx = indexMap[displayIdx],
+                      moves.indices.contains(originalIdx) else { continue }
+                take(moves[originalIdx])
+            }
+        }
+
+        return picked
+    }
+
     static func heuristicMove(
         attacker: BattleCombatant,
         defender: BattleCombatant,
@@ -61,6 +90,50 @@ enum BattleAIResponseParser {
         bestOpponent(player: player, candidates: candidates, typeChart: typeChart)?.id
     }
 
+    /// Shrink a full move pool to a diverse shortlist for the LLM.
+    static func loadoutShortlist(
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        moves: [MoveDetail],
+        effectiveness: [Double],
+        limit: Int = 24
+    ) -> [(move: MoveDetail, eff: Double)] {
+        let candidates = moves.enumerated().map { idx, move in
+            (move: move, eff: effectiveness[safe: idx] ?? 1, score: loadoutScore(move: move, fighter: fighter, opponent: opponent, effectiveness: effectiveness[safe: idx] ?? 1))
+        }
+        var picked: [(move: MoveDetail, eff: Double)] = []
+        var usedNames: Set<String> = []
+
+        func take(_ items: [(move: MoveDetail, eff: Double, score: Double)], cap: Int) {
+            for item in items.sorted(by: { $0.score > $1.score }) {
+                guard picked.count < limit, !usedNames.contains(item.move.name) else { return }
+                picked.append((item.move, item.eff))
+                usedNames.insert(item.move.name)
+                if picked.count >= cap { return }
+            }
+        }
+
+        let seDamage = candidates.filter { ($0.move.power ?? 0) > 0 && $0.eff >= 2 }
+        let damage = candidates.filter { ($0.move.power ?? 0) > 0 }
+        let boosts = candidates.filter { ($0.move.power ?? 0) == 0 && $0.move.statChangeDeltas.contains { $0 > 0 } }
+        let disrupts = candidates.filter { ($0.move.power ?? 0) == 0 && ($0.move.ailment != "none" || $0.move.statChangeDeltas.contains { $0 < 0 }) }
+
+        take(seDamage, cap: picked.count + 6)
+        take(damage, cap: picked.count + 8)
+        take(boosts, cap: picked.count + 4)
+        take(disrupts, cap: picked.count + 4)
+
+        let remaining = candidates
+            .filter { !usedNames.contains($0.move.name) }
+            .sorted { $0.score > $1.score }
+        for item in remaining where picked.count < limit {
+            picked.append((item.move, item.eff))
+            usedNames.insert(item.move.name)
+        }
+
+        return picked
+    }
+
     /// Deterministic loadout: 1 SE damage + 1 lesser damage + 1 self-boost + 1 disruption.
     /// Falls back to best available when a slot category has no candidates.
     static func assembleOpponentLoadout(
@@ -108,6 +181,33 @@ enum BattleAIResponseParser {
             take(filler)
         }
 
+        return picked
+    }
+
+    /// Pad LLM-seeded picks to `count` using deterministic scoring.
+    static func fillLoadout(
+        seed: [MoveDetail],
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        moves: [MoveDetail],
+        effectiveness: [Double],
+        count: Int
+    ) -> [MoveDetail] {
+        guard seed.count < count else { return Array(seed.prefix(count)) }
+        var picked = seed
+        var usedNames = Set(seed.map(\.name))
+        let candidates = moves.enumerated().map { idx, move in
+            (move: move, eff: effectiveness[safe: idx] ?? 1)
+        }
+        while picked.count < count {
+            guard let best = candidates
+                .filter({ !usedNames.contains($0.move.name) })
+                .max(by: { loadoutScore(move: $0.move, fighter: fighter, opponent: opponent, effectiveness: $0.eff)
+                    < loadoutScore(move: $1.move, fighter: fighter, opponent: opponent, effectiveness: $1.eff) })
+            else { break }
+            picked.append(best.move)
+            usedNames.insert(best.move.name)
+        }
         return picked
     }
 

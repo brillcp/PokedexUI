@@ -25,6 +25,26 @@ enum BattleStatus: String, Sendable {
         case .sleep: return "SLP"
         }
     }
+
+    var label: String {
+        switch self {
+        case .none: return "healthy"
+        case .paralysis: return "paralyzed"
+        case .burn: return "burned"
+        case .poison: return "poisoned"
+        case .sleep: return "asleep"
+        }
+    }
+
+    init(ailment: String) {
+        switch ailment {
+        case "paralysis": self = .paralysis
+        case "burn": self = .burn
+        case "poison", "bad-poison": self = .poison
+        case "sleep": self = .sleep
+        default: self = .none
+        }
+    }
 }
 
 /// Battle engine phase state machine.

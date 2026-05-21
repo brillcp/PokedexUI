@@ -52,7 +52,7 @@ struct OpponentPickerView: View {
                 .animation(.easeInOut(duration: 0.2), value: isAIThinking)
             }
             .disabled(isAIThinking)
-            .opacity(isAIThinking ? 0.5 : 1)
+            .opacity(isAIThinking ? Opacity.disabled : 1)
             .scrollIndicators(.hidden)
             .foregroundStyle(.white)
             .safeAreaBar(edge: .bottom) { pickerButton }
@@ -89,9 +89,10 @@ struct OpponentPickerView: View {
 private extension OpponentPickerView {
     var pickerButton: some View {
         PrimaryCapsuleButton(
-            icon: isAIThinking ? "hourglass" : "sparkles.2",
-            title: isAIThinking ? "Thinking" : "Random",
+            icon: "sparkles.2",
+            title: "Random",
             isEnabled: !isAIThinking,
+            isLoading: isAIThinking,
             action: pickSmart
         )
         .padding(.horizontal, 24)

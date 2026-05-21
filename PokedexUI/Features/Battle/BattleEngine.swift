@@ -153,7 +153,7 @@ private extension BattleEngine {
             events.append(.recoil(side, amount: recoilDmg))
         }
 
-        let ailment = parseStatus(move.ailment)
+        let ailment = BattleStatus(ailment: move.ailment)
         if ailment != .none, move.ailmentChance > 0 || move.damageClassKind == .status {
             let chance = move.ailmentChance > 0 ? Double(move.ailmentChance) / 100.0 : 1.0
             let target: BattleSide = ailment == .sleep ? side.opposite : side.opposite
@@ -242,16 +242,6 @@ private extension BattleEngine {
             events.append(.statusTick(side, .poison, amount: damage))
         case .paralysis, .sleep, .none:
             break
-        }
-    }
-
-    func parseStatus(_ raw: String) -> BattleStatus {
-        switch raw {
-        case "paralysis": return .paralysis
-        case "burn": return .burn
-        case "poison", "bad-poison": return .poison
-        case "sleep": return .sleep
-        default: return .none
         }
     }
 
