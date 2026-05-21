@@ -29,7 +29,8 @@ extension OpponentCandidateSnapshot {
         limit: Int = 16
     ) -> [OpponentCandidateSnapshot] {
         let filtered = snapshots.filter { candidate in
-            guard abs(candidate.baseStatTotal - playerBST) <= 120 else { return false }
+            let delta = candidate.baseStatTotal - playerBST
+            guard delta >= -120 && delta <= 70 else { return false }
             guard let chart, !playerTypes.isEmpty else { return true }
             guard !candidate.typeNames.isEmpty else { return true }
             let candidatePressure = candidate.typeNames
@@ -85,13 +86,16 @@ extension OpponentCandidateSnapshot {
 // MARK: - Private
 private extension OpponentCandidateSnapshot {
     /// BST closeness + mutual type threat, used to rank filtered pool before truncation.
+    /// Slightly favors opponents with lower BST than the player.
     static func poolScore(
         _ candidate: OpponentCandidateSnapshot,
         playerBST: Int,
         playerTypes: [String],
         chart: TypeChart?
     ) -> Double {
-        var score = max(0, 120.0 - Double(abs(candidate.baseStatTotal - playerBST)))
+        let delta = candidate.baseStatTotal - playerBST
+        var score = max(0, 120.0 - Double(abs(delta)))
+        if delta < 0, delta >= -60 { score += 15 }
         guard let chart, !playerTypes.isEmpty, !candidate.typeNames.isEmpty else { return score }
         let cPressure = candidate.typeNames
             .map { chart.multiplier(attacking: $0, defenders: playerTypes) }.max() ?? 1

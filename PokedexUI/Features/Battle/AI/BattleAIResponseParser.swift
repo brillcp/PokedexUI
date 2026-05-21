@@ -211,6 +211,44 @@ enum BattleAIResponseParser {
         return picked
     }
 
+    /// Downgrade one damage move to a weak alternative for balance.
+    static func handicapLoadout(
+        _ loadout: [MoveDetail],
+        pool: [MoveDetail],
+        fighter: BattleCombatant,
+        opponent: BattleCombatant,
+        typeChart: TypeChart
+    ) -> [MoveDetail] {
+        let damageMoves = loadout.enumerated().filter { ($0.element.power ?? 0) > 0 }
+        guard damageMoves.count >= 2 else { return loadout }
+        let weakest = damageMoves.min { lhs, rhs in
+            estimatedDamage(move: lhs.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+            < estimatedDamage(move: rhs.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+        }
+        guard let weakest else { return loadout }
+        let usedNames = Set(loadout.map(\.name))
+        let bestDmg = max(1.0, damageMoves.compactMap {
+            estimatedDamage(move: $0.element, attacker: fighter, defender: opponent, typeChart: typeChart)
+        }.max() ?? 1)
+        let candidates = pool
+            .filter { ($0.power ?? 0) > 0 && !usedNames.contains($0.name) }
+            .filter { typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) > 0 }
+            .filter {
+                let dmg = estimatedDamage(move: $0, attacker: fighter, defender: opponent, typeChart: typeChart)
+                return dmg > 0 && dmg < bestDmg * 0.55
+            }
+            .sorted {
+                estimatedDamage(move: $0, attacker: fighter, defender: opponent, typeChart: typeChart)
+                < estimatedDamage(move: $1, attacker: fighter, defender: opponent, typeChart: typeChart)
+            }
+        let bottomHalf = candidates.prefix(max(1, candidates.count / 2))
+        guard let replacement = bottomHalf.randomElement() else { return loadout }
+        var result = loadout
+        result[weakest.offset] = replacement
+        print("[ai] handicap: swapped \(weakest.element.name) -> \(replacement.name)")
+        return result
+    }
+
     private static func bestOpponent(
         player: OpponentCandidateSnapshot,
         candidates: [OpponentCandidateSnapshot],
@@ -245,6 +283,8 @@ enum BattleAIResponseParser {
         } else {
             score += max(0, 20 - Double(absDelta - 70) * 0.15)
         }
+
+        if delta < 0, delta >= -50 { score += 12 }
 
         if let typeChart {
             let candidatePressure = bestSTABMultiplier(

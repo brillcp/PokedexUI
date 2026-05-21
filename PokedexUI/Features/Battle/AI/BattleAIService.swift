@@ -112,9 +112,17 @@ extension BattleAIService: BattleAIServiceProtocol {
             moves: moves,
             effectiveness: effectiveness
         )
+
+        let handicap: ([MoveDetail]) -> [MoveDetail] = { picks in
+            BattleAIResponseParser.handicapLoadout(
+                picks, pool: moves, fighter: fighter, opponent: opponent, typeChart: typeChart
+            )
+        }
+
         guard isAvailable else {
-            print("[ai] chooseLoadout: deterministic \(fighter.name) vs \(opponent.name): \(fallback.map(\.name))")
-            return fallback
+            let result = handicap(fallback)
+            print("[ai] chooseLoadout: deterministic \(fighter.name) vs \(opponent.name): \(result.map(\.name))")
+            return result
         }
         let shortlist = BattleAIResponseParser.loadoutShortlist(
             fighter: fighter, opponent: opponent, moves: moves, effectiveness: effectiveness
@@ -140,14 +148,16 @@ extension BattleAIService: BattleAIServiceProtocol {
                     seed: parsed, fighter: fighter, opponent: opponent,
                     moves: shortMoves, effectiveness: shortEff, count: 4
                 )
-                print("[llm] chooseLoadout: picked \(filled.map(\.name)) (llm seeded \(parsed.count))")
-                return filled
+                let result = handicap(filled)
+                print("[llm] chooseLoadout: picked \(result.map(\.name)) (llm seeded \(parsed.count))")
+                return result
             }
         } catch {
             print("[llm error] \(error.localizedDescription): prompt chars \(prompt.count)")
         }
-        print("[ai] chooseLoadout: fallback \(fallback.map(\.name))")
-        return fallback
+        let result = handicap(fallback)
+        print("[ai] chooseLoadout: fallback \(result.map(\.name))")
+        return result
     }
 }
 
