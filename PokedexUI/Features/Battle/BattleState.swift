@@ -93,7 +93,7 @@ struct BattleCombatant: Sendable {
     var statStages: [String: Int]
     let moves: [MoveDetail]
 
-    init(pokemon: PokemonViewModel, moves: [MoveDetail]) {
+    init(pokemon: PokemonViewModel, moves: [MoveDetail], hpBonus: Double = 1.0) {
         let stats = pokemon.statLookup
         let baseHP = stats["hp"] ?? 50
         self.id = pokemon.id
@@ -101,8 +101,7 @@ struct BattleCombatant: Sendable {
         self.frontSpriteURL = pokemon.frontSprite
         self.backSpriteURL = pokemon.backSprite
         self.typeNames = pokemon.typeNames
-        // Faithful L50 max-IV/EV HP scaling.
-        self.maxHP = baseHP * 2 + 110
+        self.maxHP = Int(Double(baseHP * 2 + 110) * hpBonus)
         self.currentHP = self.maxHP
         self.attack = stats["attack"] ?? 50
         self.defense = stats["defense"] ?? 50

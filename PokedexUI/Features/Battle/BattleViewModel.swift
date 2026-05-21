@@ -74,7 +74,7 @@ final class BattleViewModel {
             playerName:   player.name,
             opponentName: opponent.name
         )
-        let p = BattleCombatant(pokemon: player,   moves: playerMoves)
+        let p = BattleCombatant(pokemon: player,   moves: playerMoves, hpBonus: 1.2)
         let o = BattleCombatant(pokemon: opponent, moves: opponentMoves)
         let initialState = BattleState(player: p, opponent: o)
         self.state = initialState
