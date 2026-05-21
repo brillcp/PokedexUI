@@ -1,4 +1,5 @@
 import SwiftUI
+import BattleKit
 
 /// Gameboy-styled turn-based battle screen.
 struct BattleView<ViewModel: BattleViewModelProtocol>: View {

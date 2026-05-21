@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import BattleKit
 
 /// Pre-battle loadout preparation protocol.
 @MainActor

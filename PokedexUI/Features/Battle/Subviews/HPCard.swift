@@ -1,4 +1,5 @@
 import SwiftUI
+import BattleKit
 
 /// HP gauge card for one battle combatant.
 struct HPCard: View, Equatable {

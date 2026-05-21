@@ -117,7 +117,7 @@ private extension OpponentPickerView {
             }
 
             let pool = await Task.detached(priority: .userInitiated) {
-                OpponentCandidateSnapshot.balancedPool(
+                OpponentStrategy.balancedPool(
                     from: snapshots,
                     playerBST: playerSnapshot.baseStatTotal,
                     playerTypes: playerSnapshot.typeNames,

@@ -1,4 +1,5 @@
 import SwiftUI
+import BattleKit
 
 /// Formats `BattleEvent` values into styled `AttributedString` for the log feed.
 struct BattleLogFormatter {
