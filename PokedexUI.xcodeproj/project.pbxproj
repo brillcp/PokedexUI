@@ -67,6 +67,8 @@
 		D5BA12082E70000000000048 /* BattleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12072E70000000000047 /* BattleView.swift */; };
 		D5BA120A2E7000000000004A /* OpponentPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12092E70000000000049 /* OpponentPickerView.swift */; };
 		D5BA12172E70000000000057 /* BattleAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12162E70000000000056 /* BattleAnimator.swift */; };
+		D5A1C00000000000000000A1 /* BattleAIDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B1 /* BattleAIDriver.swift */; };
+		D5A1C00000000000000000A2 /* SpriteColorResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B2 /* SpriteColorResolver.swift */; };
 		D5BA12192E70000000000059 /* BattleLogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12182E70000000000058 /* BattleLogFormatter.swift */; };
 		D5BA13002E70000000000201 /* BattleAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13012E70000000000202 /* BattleAIService.swift */; };
 		D5BA13042E70000000000205 /* BattleAIMoveInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */; };
@@ -164,6 +166,8 @@
 		D5BA12072E70000000000047 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
 		D5BA12092E70000000000049 /* OpponentPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentPickerView.swift; sourceTree = "<group>"; };
 		D5BA12162E70000000000056 /* BattleAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAnimator.swift; sourceTree = "<group>"; };
+		D5A1C00000000000000000B1 /* BattleAIDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIDriver.swift; sourceTree = "<group>"; };
+		D5A1C00000000000000000B2 /* SpriteColorResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorResolver.swift; sourceTree = "<group>"; };
 		D5BA12182E70000000000058 /* BattleLogFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleLogFormatter.swift; sourceTree = "<group>"; };
 		D5BA13012E70000000000202 /* BattleAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIService.swift; sourceTree = "<group>"; };
 		D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAIMoveInstructions.md; sourceTree = "<group>"; };
@@ -531,6 +535,8 @@
 			isa = PBXGroup;
 			children = (
 				D5BA12052E70000000000045 /* BattleViewModel.swift */,
+				D5A1C00000000000000000B1 /* BattleAIDriver.swift */,
+				D5A1C00000000000000000B2 /* SpriteColorResolver.swift */,
 				D5BA12162E70000000000056 /* BattleAnimator.swift */,
 				D5BA12182E70000000000058 /* BattleLogFormatter.swift */,
 				D5BA12072E70000000000047 /* BattleView.swift */,
@@ -710,6 +716,8 @@
 				D5BA11362E70000000000026 /* EvolutionService.swift in Sources */,
 				D5BA12062E70000000000046 /* BattleViewModel.swift in Sources */,
 				D5BA12172E70000000000057 /* BattleAnimator.swift in Sources */,
+				D5A1C00000000000000000A1 /* BattleAIDriver.swift in Sources */,
+				D5A1C00000000000000000A2 /* SpriteColorResolver.swift in Sources */,
 				D5BA12192E70000000000059 /* BattleLogFormatter.swift in Sources */,
 				D5BA13002E70000000000201 /* BattleAIService.swift in Sources */,
 				D5A1B00000000000000000A1 /* LanguageModelClient.swift in Sources */,

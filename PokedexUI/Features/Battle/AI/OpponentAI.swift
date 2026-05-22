@@ -49,14 +49,18 @@ enum OpponentStrategy {
         }
         let pool = tiered.isEmpty ? candidates : tiered
         return pool.max { lhs, rhs in
-            score(player: player, candidate: lhs, typeChart: typeChart)
-                < score(player: player, candidate: rhs, typeChart: typeChart)
+            matchupScore(player: player, candidate: lhs, typeChart: typeChart)
+                < matchupScore(player: player, candidate: rhs, typeChart: typeChart)
         }?.id
     }
+}
+
+// MARK: - Private
+private extension OpponentStrategy {
 
     /// Composite matchup score: BST closeness, type pressure, legendary
     /// and mega caveats. Used by `heuristicPick` for final ranking.
-    static func score(
+    static func matchupScore(
         player: OpponentCandidateSnapshot,
         candidate: OpponentCandidateSnapshot,
         typeChart: TypeChart?
@@ -97,10 +101,6 @@ enum OpponentStrategy {
         }
         return score
     }
-}
-
-// MARK: - Private
-private extension OpponentStrategy {
 
     static func poolScore(
         _ candidate: OpponentCandidateSnapshot,

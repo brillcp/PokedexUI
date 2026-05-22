@@ -70,4 +70,21 @@ final class BattleAnimator {
             $0.damageTick += 1
         }
     }
+
+    /// Route a `BattleEvent` to the matching animation cue. Events that
+    /// don't drive a sprite/HUD change (status text, etc.) no-op here.
+    func play(_ event: BattleEvent) async {
+        switch event {
+        case .used(let side, _):
+            await playAttack(side: side)
+        case .damaged(let side, let amount, let effectiveness, _):
+            await playHit(side: side, amount: amount, effectiveness: effectiveness)
+        case .recoil(let side, let amount):
+            await playRecoil(side: side, amount: amount)
+        case .fainted(let side):
+            await playFaint(side: side)
+        default:
+            break
+        }
+    }
 }

@@ -4,25 +4,15 @@ import BattleKit
 /// Drives `BattleView` as a conductor over engine, animator, log, and audio.
 @MainActor
 protocol BattleViewModelProtocol: AnyObject {
-    /// Display-ready player view model.
     var playerPokemon: PokemonViewModel { get }
-    /// Display-ready opponent view model.
     var opponentPokemon: PokemonViewModel { get }
-    /// Sprite + HUD animation coordinator.
     var animator: BattleAnimator { get }
-    /// Current battle state once initialized.
     var state: BattleState? { get }
-    /// Turn resolver; `nil` until the type chart has loaded.
     var engine: BattleEngine? { get }
-    /// Rendered log lines surfaced in the feed.
     var log: [AttributedString] { get }
-    /// `true` while a round is being resolved.
     var isResolvingTurn: Bool { get }
-    /// Winning side once the battle ends.
     var winner: BattleSide? { get }
-    /// User-facing error surfaced by `prepare`.
     var errorMessage: String? { get }
-    /// Player's moves for display in the move grid.
     var displayMoves: [MoveDetail] { get }
 
     /// Warm up battle state, sprite colors, and entrance animation.
@@ -31,22 +21,20 @@ protocol BattleViewModelProtocol: AnyObject {
     func submit(_ move: MoveDetail) async
 }
 
-/// Concrete implementation of `BattleViewModelProtocol`.
+/// Concrete `BattleViewModelProtocol` implementation. Owns engine + log;
+/// AI bookkeeping lives in `BattleAIDriver` and sprite/animation routing
+/// lives on `BattleAnimator`.
 @MainActor
 @Observable
 final class BattleViewModel {
-    private let opponentMoves:      [MoveDetail]
-    private let playerMoves:        [MoveDetail]
-    private let formatter:          BattleLogFormatter
-    private let typeChartLoader:    TypeChartLoader
-    private let audioPlayer:        AudioPlaying
-    private let aiService:          BattleAIServiceProtocol
-    private let spriteLoader:       SpriteLoading
-    private let imageColorAnalyzer: ImageColorAnalyzing
-    private var typeChart:          TypeChart?
-    private var playerSeenMoves:    Set<String>  = []
-    private var aiHistory:          [String]     = []
-    private var aiTurnNumber:       Int = 0
+    private let opponentMoves:   [MoveDetail]
+    private let playerMoves:     [MoveDetail]
+    private let formatter:       BattleLogFormatter
+    private let typeChartLoader: TypeChartLoader
+    private let audioPlayer:     AudioPlaying
+    private let aiDriver:        BattleAIDriver
+    private let spriteColors:    SpriteColorResolver
+    private var typeChart:       TypeChart?
 
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
@@ -67,18 +55,20 @@ final class BattleViewModel {
         opponentMoves: [MoveDetail],
         container: AppContainer
     ) {
-        self.playerPokemon      = player
-        self.opponentPokemon    = opponent
-        self.displayMoves       = playerMoves
-        self.playerMoves        = playerMoves
-        self.opponentMoves      = opponentMoves
-        self.typeChartLoader    = container.typeChart
-        self.audioPlayer        = container.audioPlayer
-        self.aiService          = container.battleAI
-        self.spriteLoader       = container.spriteLoader
-        self.imageColorAnalyzer = container.imageColorAnalyzer
-        self.animator           = BattleAnimator()
-        self.formatter          = BattleLogFormatter(
+        self.playerPokemon   = player
+        self.opponentPokemon = opponent
+        self.displayMoves    = playerMoves
+        self.playerMoves     = playerMoves
+        self.opponentMoves   = opponentMoves
+        self.typeChartLoader = container.typeChart
+        self.audioPlayer     = container.audioPlayer
+        self.aiDriver        = BattleAIDriver(service: container.battleAI)
+        self.spriteColors    = SpriteColorResolver(
+            spriteLoader:       container.spriteLoader,
+            imageColorAnalyzer: container.imageColorAnalyzer
+        )
+        self.animator        = BattleAnimator()
+        self.formatter       = BattleLogFormatter(
             playerName:   player.name,
             opponentName: opponent.name
         )
@@ -93,8 +83,8 @@ final class BattleViewModel {
 }
 
 // MARK: - BattleViewModelProtocol
-
 extension BattleViewModel: BattleViewModelProtocol {
+
     func prepare() async {
         if engine == nil {
             await typeChartLoader.loadIfNeeded()
@@ -105,47 +95,35 @@ extension BattleViewModel: BattleViewModelProtocol {
             activateEngine(state: state, chart: chart)
         }
         async let entrance: Void = playEntrance()
-        async let colors: Void = loadSpriteColors()
+        async let colors: Void = spriteColors.resolve(
+            player: playerPokemon, opponent: opponentPokemon, animator: animator
+        )
         _ = await (entrance, colors)
     }
 
     func submit(_ move: MoveDetail) async {
-        guard var eng = engine,
-              let typeChart,
-              !isResolvingTurn,
-              winner == nil,
-              let snapshot = state
-        else { return }
+        guard var eng = engine, let typeChart, !isResolvingTurn, winner == nil, let snapshot = state else { return }
         animator.attackTick += 1
         isResolvingTurn = true
 
-        aiTurnNumber += 1
-        let opponentMove = await aiService.chooseMove(
-            attacker:          snapshot.opponent,
-            defender:          snapshot.player,
-            moves:             opponentMoves,
-            defenderMoves:     playerMoves,
-            defenderSeenMoves: Array(playerSeenMoves),
-            typeChart:         typeChart,
-            recentMoves:       aiHistory,
-            turnNumber:        aiTurnNumber
+        let opponentMove = await aiDriver.nextOpponentMove(
+            attacker:      snapshot.opponent,
+            defender:      snapshot.player,
+            opponentMoves: opponentMoves,
+            playerMoves:   playerMoves,
+            typeChart:     typeChart
         )
-        aiHistory.append(opponentMove.name)
-        if aiHistory.count > 4 { aiHistory.removeFirst() }
         let events = eng.resolveRound(playerMove: move, opponentMove: opponentMove)
         self.engine = eng
+
         for event in events {
-            let line = formatter.format(
-                event,
-                playerColor:   animator.playerCues.color,
-                opponentColor: animator.opponentCues.color
-            )
+            let line = formatter.format(event, playerColor: animator.playerCues.color, opponentColor: animator.opponentCues.color)
             log.append(line)
             #if DEBUG
             print("⚔️ \(String(line.characters))")
             #endif
             apply(event)
-            await play(event)
+            await animator.play(event)
             try? await Task.sleep(for: .milliseconds(650))
             if case .ended(let w) = event {
                 winner = w ?? .player
@@ -154,32 +132,17 @@ extension BattleViewModel: BattleViewModelProtocol {
             }
         }
         state = eng.state
-        if events.contains(where: {
-            if case .used(.player, _) = $0 { return true } else { return false }
-        }) {
-            playerSeenMoves.insert(move.name)
-        }
+        aiDriver.recordPlayerUsed(move.name, in: events)
         isResolvingTurn = false
     }
 }
 
 // MARK: - Private
 private extension BattleViewModel {
+
     func activateEngine(state: BattleState, chart: TypeChart) {
         self.typeChart = chart
         self.engine    = BattleEngine(state: state, typeChart: chart)
-    }
-
-    func loadSpriteColors() async {
-        async let playerImage   = spriteLoader.spriteImage(from: playerPokemon.frontSprite)
-        async let opponentImage = spriteLoader.spriteImage(from: opponentPokemon.frontSprite)
-        let (pImg, oImg) = await (playerImage, opponentImage)
-        if let pImg, let color = await imageColorAnalyzer.dominantColor(for: playerPokemon.id, image: pImg) {
-            animator.mutateCues(.player) { $0.color = color }
-        }
-        if let oImg, let color = await imageColorAnalyzer.dominantColor(for: opponentPokemon.id, image: oImg) {
-            animator.mutateCues(.opponent) { $0.color = color }
-        }
     }
 
     func playEntrance() async {
@@ -229,20 +192,4 @@ private extension BattleViewModel {
             body(&state.opponent)
         }
     }
-
-    func play(_ event: BattleEvent) async {
-        switch event {
-        case .used(let side, _):
-            await animator.playAttack(side: side)
-        case .damaged(let side, let amount, let effectiveness, _):
-            await animator.playHit(side: side, amount: amount, effectiveness: effectiveness)
-        case .recoil(let side, let amount):
-            await animator.playRecoil(side: side, amount: amount)
-        case .fainted(let side):
-            await animator.playFaint(side: side)
-        default:
-            break
-        }
-    }
-
 }
