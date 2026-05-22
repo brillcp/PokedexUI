@@ -12,7 +12,7 @@
 
 PokedexUI is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokémon battle mode driven by **Apple's on-device FoundationModels framework**. Browse the dex, dig into a pokemon, pick a fight.
 
-It's meant as a reference codebase. If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI integration), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every public type plus every protocol member carries a doc comment explaining why it exists.
+If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI integration), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every public type plus every protocol member carries a doc comment explaining why it exists.
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
