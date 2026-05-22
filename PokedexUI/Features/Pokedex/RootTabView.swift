@@ -25,7 +25,8 @@ struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
                 searchTab
             }
         }
-        .applyPokedexConfiguration(viewModel: viewModel)
+        .task { await viewModel.requestPokemon() }
+        .colorScheme(.dark)
     }
 }
 
@@ -110,22 +111,10 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
     }
 }
 
-// MARK: - Private
-private extension TabView {
-    @MainActor
-    func applyPokedexConfiguration<ViewModel: PokedexViewModelProtocol>(
-        viewModel: ViewModel
-    ) -> some View {
-        self
-            .task { await viewModel.requestPokemon() }
-            .colorScheme(.dark)
-    }
-}
-
 #Preview {
     @Previewable
     @Environment(\.modelContext) var modelContext
-    RootTabView(
-        viewModel: PokedexViewModel(modelContext: modelContext, container: .live)
-    )
+
+    var vm = PokedexViewModel(modelContext: modelContext, container: .live)
+    RootTabView(viewModel: vm)
 }
