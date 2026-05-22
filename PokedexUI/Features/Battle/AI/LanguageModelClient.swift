@@ -10,22 +10,24 @@ actor LanguageModelClient {
     private var isGenerating = false
     private let maxAttempts: Int
 
-    init(maxAttempts: Int = 3) {
-        self.maxAttempts = maxAttempts
-    }
-
     var isAvailable: Bool {
         if case .available = model.availability { return true }
         return false
     }
 
+    init(maxAttempts: Int = 3) {
+        self.maxAttempts = maxAttempts
+    }
+}
+
+extension LanguageModelClient {
     func generate(
         prompt: String,
         temperature: Double,
         instructions: Instructions
     ) async throws -> String {
         var lastError: Error?
-        for _ in 1...maxAttempts {
+        for _ in 1 ... maxAttempts {
             await waitForGenerationSlot()
             do {
                 defer { isGenerating = false }

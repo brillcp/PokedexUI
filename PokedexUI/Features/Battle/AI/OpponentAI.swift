@@ -1,12 +1,14 @@
 import BattleKit
 import Foundation
 
-/// Deterministic AI logic for opponent selection: matchup scoring, pool
-/// filtering, and the heuristic fallback used when the LLM is unavailable
-/// or returns an unusable response.
+// MARK: - OpponentStrategy
+
+/// Deterministic AI for opponent selection. Owns the pool filter, the
+/// matchup-scoring function, and the heuristic fallback used when the
+/// LLM is unavailable.
 enum OpponentStrategy {
 
-    /// Filter candidates within ±BST tolerance, reject hard counters,
+    /// Filter candidates within BST tolerance, reject hard counters,
     /// score-rank survivors, then shuffle a top slice. Falls back to the
     /// unfiltered pool if filtering leaves too few candidates.
     static func balancedPool(
@@ -35,18 +37,25 @@ enum OpponentStrategy {
         return Array(shortlist.shuffled().prefix(limit))
     }
 
-    /// Best opponent id by full matchup scoring; nil if the candidate pool is empty.
+    /// Best opponent id by full matchup scoring; nil if pool is empty.
     static func heuristicPick(
         player: OpponentCandidateSnapshot,
         candidates: [OpponentCandidateSnapshot],
         typeChart: TypeChart?
     ) -> Int? {
-        bestOpponent(player: player, candidates: candidates, typeChart: typeChart)?.id
+        let tiered = candidates.filter { candidate in
+            let delta = candidate.baseStatTotal - player.baseStatTotal
+            return delta >= -90 && delta <= 160
+        }
+        let pool = tiered.isEmpty ? candidates : tiered
+        return pool.max { lhs, rhs in
+            score(player: player, candidate: lhs, typeChart: typeChart)
+                < score(player: player, candidate: rhs, typeChart: typeChart)
+        }?.id
     }
 
-    /// Composite matchup score: BST closeness, type pressure, legendary/mega
-    /// caveats. Used by both `balancedPool` (filtering pre-LLM) and
-    /// `heuristicPick` (fallback selection). Single source of truth.
+    /// Composite matchup score: BST closeness, type pressure, legendary
+    /// and mega caveats. Used by `heuristicPick` for final ranking.
     static func score(
         player: OpponentCandidateSnapshot,
         candidate: OpponentCandidateSnapshot,
@@ -86,7 +95,6 @@ enum OpponentStrategy {
         if candidate.name.localizedCaseInsensitiveContains("mega") {
             score += player.baseStatTotal >= 540 ? 4 : -20
         }
-
         return score
     }
 }
@@ -94,25 +102,6 @@ enum OpponentStrategy {
 // MARK: - Private
 private extension OpponentStrategy {
 
-    static func bestOpponent(
-        player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot],
-        typeChart: TypeChart?
-    ) -> OpponentCandidateSnapshot? {
-        let tiered = candidates.filter { candidate in
-            let delta = candidate.baseStatTotal - player.baseStatTotal
-            return delta >= -90 && delta <= 160
-        }
-        let pool = tiered.isEmpty ? candidates : tiered
-        return pool.max { lhs, rhs in
-            score(player: player, candidate: lhs, typeChart: typeChart)
-                < score(player: player, candidate: rhs, typeChart: typeChart)
-        }
-    }
-
-    /// Lightweight filter-time score used while shortening the pool, before
-    /// full `score(player:candidate:typeChart:)` ranks survivors. Coarser
-    /// by design.
     static func poolScore(
         _ candidate: OpponentCandidateSnapshot,
         playerBST: Int,
@@ -143,5 +132,87 @@ private extension OpponentStrategy {
         if multiplier >= 2 { return 14 }
         if multiplier >= 1 { return 0 }
         return -8
+    }
+}
+
+// MARK: - OpponentPrompt
+
+/// Builds the prompt asking the LLM to pick a fair opponent from a
+/// pre-filtered candidate pool, and parses the model's index reply.
+enum OpponentPrompt {
+
+    struct Output {
+        let prompt: String
+        let indexMap: [Int: Int]
+    }
+
+    static func build(
+        player: OpponentCandidateSnapshot,
+        candidates: [OpponentCandidateSnapshot],
+        typeChart: TypeChart?
+    ) -> Output {
+        var indexMap: [Int: Int] = [:]
+        let playerBST = player.baseStatTotal
+        let roster = Array(candidates.indices).shuffled().enumerated().map { displayIdx, originalIdx in
+            let idx = displayIdx + 1
+            indexMap[idx] = candidates[originalIdx].id
+            return describe(candidates[originalIdx], index: idx, player: player, playerBST: playerBST, typeChart: typeChart)
+        }.joined(separator: "\n")
+
+        let prompt = """
+        Pick a fair opponent for \(player.name) (\(player.typeNames.joined(separator: "/")), BST \(playerBST)).
+
+        \(roster)
+
+        If "mutual threat", prefer it. If "stronger", avoid it. Return ONLY the number.
+        """
+        return Output(prompt: prompt, indexMap: indexMap)
+    }
+
+    static func parsePick(raw: String, indexMap: [Int: Int]) -> Int? {
+        guard let displayIdx = firstInt(in: raw) else { return nil }
+        return indexMap[displayIdx]
+    }
+}
+
+// MARK: - Private
+private extension OpponentPrompt {
+
+    static func describe(
+        _ candidate: OpponentCandidateSnapshot,
+        index: Int,
+        player: OpponentCandidateSnapshot,
+        playerBST: Int,
+        typeChart: TypeChart?
+    ) -> String {
+        let types = candidate.typeNames.joined(separator: "/")
+        let bstDelta = candidate.baseStatTotal - playerBST
+        let bstNote = bstDelta > 20 ? "stronger" : bstDelta < -20 ? "weaker" : "similar"
+        var line = "\(index). \(candidate.name) (\(types), BST \(candidate.baseStatTotal), \(bstNote))"
+
+        if let chart = typeChart, !player.typeNames.isEmpty, !candidate.typeNames.isEmpty {
+            line += matchupTag(chart: chart, candidate: candidate, player: player)
+        }
+        if candidate.isLegendary { line += " [legendary]" }
+        if candidate.isMythical { line += " [mythical]" }
+        return line
+    }
+
+    static func matchupTag(
+        chart: TypeChart,
+        candidate: OpponentCandidateSnapshot,
+        player: OpponentCandidateSnapshot
+    ) -> String {
+        let cPressure = chart.bestSTABMultiplier(attackerTypes: candidate.typeNames, defenderTypes: player.typeNames)
+        let pPressure = chart.bestSTABMultiplier(attackerTypes: player.typeNames, defenderTypes: candidate.typeNames)
+        var matchup: [String] = []
+        if cPressure >= 2 { matchup.append("SE STAB vs you") }
+        else if cPressure < 1, cPressure > 0 { matchup.append("resisted vs you") }
+        else if cPressure == 0 { matchup.append("immune to their STAB") }
+        if pPressure >= 2 { matchup.append("you hit SE") }
+        else if pPressure < 1, pPressure > 0 { matchup.append("you resisted") }
+        else if pPressure == 0 { matchup.append("they immune to you") }
+        if cPressure >= 1.5, pPressure >= 1.5 { matchup.append("mutual threat") }
+        return matchup.isEmpty ? "" : " [\(matchup.joined(separator: ", "))]"
     }
 }

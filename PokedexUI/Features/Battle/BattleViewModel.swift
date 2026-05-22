@@ -40,11 +40,13 @@ final class BattleViewModel {
     private let formatter:          BattleLogFormatter
     private let typeChartLoader:    TypeChartLoader
     private let audioPlayer:        AudioPlaying
-    private let brain:              OpponentBrain
+    private let aiService:          BattleAIServiceProtocol
     private let spriteLoader:       SpriteLoading
     private let imageColorAnalyzer: ImageColorAnalyzing
     private var typeChart:          TypeChart?
     private var playerSeenMoves:    Set<String>  = []
+    private var aiHistory:          [String]     = []
+    private var aiTurnNumber:       Int = 0
 
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
@@ -72,7 +74,7 @@ final class BattleViewModel {
         self.opponentMoves      = opponentMoves
         self.typeChartLoader    = container.typeChart
         self.audioPlayer        = container.audioPlayer
-        self.brain              = OpponentBrain(service: container.battleAI)
+        self.aiService          = container.battleAI
         self.spriteLoader       = container.spriteLoader
         self.imageColorAnalyzer = container.imageColorAnalyzer
         self.animator           = BattleAnimator()
@@ -117,14 +119,19 @@ extension BattleViewModel: BattleViewModelProtocol {
         animator.attackTick += 1
         isResolvingTurn = true
 
-        let opponentMove = await brain.nextMove(
+        aiTurnNumber += 1
+        let opponentMove = await aiService.chooseMove(
             attacker:          snapshot.opponent,
             defender:          snapshot.player,
             moves:             opponentMoves,
             defenderMoves:     playerMoves,
             defenderSeenMoves: Array(playerSeenMoves),
-            typeChart:         typeChart
+            typeChart:         typeChart,
+            recentMoves:       aiHistory,
+            turnNumber:        aiTurnNumber
         )
+        aiHistory.append(opponentMove.name)
+        if aiHistory.count > 4 { aiHistory.removeFirst() }
         let events = eng.resolveRound(playerMove: move, opponentMove: opponentMove)
         self.engine = eng
         for event in events {
