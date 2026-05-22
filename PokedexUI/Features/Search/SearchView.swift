@@ -99,7 +99,7 @@ private extension SearchView {
 
     var suggestedSection: some View {
         VStack(alignment: .leading, spacing: 8.0) {
-            sectionHeader(title: "Suggested", systemImage: "sparkles.2")
+            sectionHeader(title: "Suggested", systemImage: "sparkle")
                 .padding(.horizontal)
             suggestedGrid
         }

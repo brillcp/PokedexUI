@@ -89,7 +89,7 @@ struct OpponentPickerView: View {
 private extension OpponentPickerView {
     var pickerButton: some View {
         PrimaryCapsuleButton(
-            icon: "sparkles.2",
+            icon: "sparkle",
             title: "Random",
             isEnabled: !isAIThinking,
             isLoading: isAIThinking,
