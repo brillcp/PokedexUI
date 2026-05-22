@@ -24,12 +24,8 @@ private struct RootView: View {
     @Environment(\.container) private var container
 
     var body: some View {
-        PokedexView(
+        RootTabView(
             viewModel: PokedexViewModel(
-                modelContext: modelContext,
-                container: container
-            ),
-            itemListViewModel: ItemListViewModel(
                 modelContext: modelContext,
                 container: container
             )

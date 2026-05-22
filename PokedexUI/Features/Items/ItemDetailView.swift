@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Full description list for a single item.
 struct ItemDetailView<ViewModel: ItemDetailViewModelProtocol>: View {
-    let viewModel: ViewModel
+    @State var viewModel: ViewModel
 
     var body: some View {
         List(viewModel.items, id: \.id) { item in

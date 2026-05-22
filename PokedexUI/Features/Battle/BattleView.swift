@@ -43,12 +43,11 @@ private extension BattleView {
     }
 
     func battleLayout(state: BattleState) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             Spacer()
             arena(state: state)
-                .padding(.horizontal)
-            BattleLogFeed(log: viewModel.log)
-                .padding(.top)
+                .padding()
+            BattleLogFeed(log: viewModel.log, scrollToBottomTrigger: viewModel.scrollLogToBottomToken)
                 .padding(.horizontal)
             moveGrid(state: state)
         }
@@ -57,7 +56,7 @@ private extension BattleView {
     }
 
     func arena(state: BattleState) -> some View {
-        VStack(spacing: 48.0) {
+        VStack(spacing: 42.0) {
             HStack(alignment: .top) {
                 hpCard(state.opponent, side: .opponent)
                 Spacer(minLength: 28)

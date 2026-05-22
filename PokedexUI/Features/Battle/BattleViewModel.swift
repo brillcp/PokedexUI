@@ -4,16 +4,31 @@ import BattleKit
 /// Drives `BattleView` as a conductor over engine, animator, log, and audio.
 @MainActor
 protocol BattleViewModelProtocol: AnyObject {
+    /// Player-side Pokemon view model used for sprites, name, types, and cries.
     var playerPokemon: PokemonViewModel { get }
+    /// Opponent-side Pokemon view model used for sprites, name, types, and cries.
     var opponentPokemon: PokemonViewModel { get }
+    /// Animation cue coordinator the view binds to for sprite, HP, and shake state.
     var animator: BattleAnimator { get }
+    /// Current battle state mirror updated after each resolved event;
+    /// `nil` until `prepare()` activates the engine.
     var state: BattleState? { get }
+    /// Turn resolver; `nil` until the type chart has loaded.
     var engine: BattleEngine? { get }
+    /// Formatted log rows shown in `BattleLogFeed`, appended once per event.
     var log: [AttributedString] { get }
+    /// `true` while a round is being resolved so the move grid disables.
     var isResolvingTurn: Bool { get }
+    /// Winning side once the battle ends; `nil` while play continues.
     var winner: BattleSide? { get }
+    /// User-facing error surfaced by `prepare()` (e.g. type chart load failure).
     var errorMessage: String? { get }
+    /// Player's moves rendered in the move grid.
     var displayMoves: [MoveDetail] { get }
+    /// Counter bumped on every player move-tap. The log feed watches this
+    /// to snap to the bottom only when the user actively engages, leaving
+    /// passive event arrivals alone for mid-turn history browsing.
+    var scrollLogToBottomToken: Int { get }
 
     /// Warm up battle state, sprite colors, and entrance animation.
     func prepare() async
@@ -47,6 +62,7 @@ final class BattleViewModel {
     var isResolvingTurn  = false
     var winner: BattleSide?
     var errorMessage: String?
+    var scrollLogToBottomToken: Int = 0
 
     init(
         player: PokemonViewModel,
@@ -104,6 +120,7 @@ extension BattleViewModel: BattleViewModelProtocol {
     func submit(_ move: MoveDetail) async {
         guard var eng = engine, let typeChart, !isResolvingTurn, winner == nil, let snapshot = state else { return }
         animator.attackTick += 1
+        scrollLogToBottomToken += 1
         isResolvingTurn = true
 
         let opponentMove = await aiDriver.nextOpponentMove(

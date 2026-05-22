@@ -1,10 +1,14 @@
 import SwiftUI
 import SwiftData
 
-/// Root tab host for pokedex, items, favourites, and search.
-struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemListViewModel: ItemListViewModelProtocol>: View {
+/// Root tab host for pokedex, items, favourites, and search. Each tab
+/// builds its own view model inline; only the pokedex view model is
+/// hoisted here so its grid + sort state survives tab switches.
+struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
     @State var viewModel: PokedexViewModel
-    let itemListViewModel: ItemListViewModel
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.container) private var container
 
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
@@ -26,14 +30,14 @@ struct PokedexView<PokedexViewModel: PokedexViewModelProtocol, ItemListViewModel
 }
 
 // MARK: - Private
-private extension PokedexView {
+private extension RootTabView {
     var pokedexTab: some View {
         PokedexContent(viewModel: viewModel)
     }
 
     var itemsTab: some View {
         NavigationStack {
-            ItemListView(viewModel: itemListViewModel)
+            ItemListView(viewModel: ItemListViewModel(modelContext: modelContext, container: container))
                 .applyPokedexStyling(title: Tabs.items.title)
         }
     }
@@ -121,8 +125,7 @@ private extension TabView {
 #Preview {
     @Previewable
     @Environment(\.modelContext) var modelContext
-    PokedexView(
-        viewModel: PokedexViewModel(modelContext: modelContext, container: .live),
-        itemListViewModel: ItemListViewModel(modelContext: modelContext, container: .live)
+    RootTabView(
+        viewModel: PokedexViewModel(modelContext: modelContext, container: .live)
     )
 }
