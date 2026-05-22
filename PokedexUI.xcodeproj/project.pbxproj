@@ -51,6 +51,8 @@
 		D5A1B00000000000000000A5 /* LoadoutAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B5 /* LoadoutAI.swift */; };
 		D5A1B00000000000000000A6 /* BattleContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B6 /* BattleContext.swift */; };
 		D5A1B2C32E60000000000001 /* PokemonSpecies.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B2C42E60000000000002 /* PokemonSpecies.swift */; };
+		D5A1C00000000000000000A1 /* BattleAIDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B1 /* BattleAIDriver.swift */; };
+		D5A1C00000000000000000A2 /* SpriteColorResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B2 /* SpriteColorResolver.swift */; };
 		D5BA110C2E70000000000003 /* MoveRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110B2E70000000000002 /* MoveRequest.swift */; };
 		D5BA110E2E70000000000005 /* MoveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110D2E70000000000004 /* MoveModels.swift */; };
 		D5BA11102E70000000000007 /* MoveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110F2E70000000000006 /* MoveService.swift */; };
@@ -67,8 +69,6 @@
 		D5BA12082E70000000000048 /* BattleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12072E70000000000047 /* BattleView.swift */; };
 		D5BA120A2E7000000000004A /* OpponentPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12092E70000000000049 /* OpponentPickerView.swift */; };
 		D5BA12172E70000000000057 /* BattleAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12162E70000000000056 /* BattleAnimator.swift */; };
-		D5A1C00000000000000000A1 /* BattleAIDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B1 /* BattleAIDriver.swift */; };
-		D5A1C00000000000000000A2 /* SpriteColorResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B2 /* SpriteColorResolver.swift */; };
 		D5BA12192E70000000000059 /* BattleLogFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA12182E70000000000058 /* BattleLogFormatter.swift */; };
 		D5BA13002E70000000000201 /* BattleAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13012E70000000000202 /* BattleAIService.swift */; };
 		D5BA13042E70000000000205 /* BattleAIMoveInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */; };
@@ -150,6 +150,8 @@
 		D5A1B00000000000000000B5 /* LoadoutAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadoutAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B6 /* BattleContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleContext.swift; sourceTree = "<group>"; };
 		D5A1B2C42E60000000000002 /* PokemonSpecies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonSpecies.swift; sourceTree = "<group>"; };
+		D5A1C00000000000000000B1 /* BattleAIDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIDriver.swift; sourceTree = "<group>"; };
+		D5A1C00000000000000000B2 /* SpriteColorResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorResolver.swift; sourceTree = "<group>"; };
 		D5BA110B2E70000000000002 /* MoveRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRequest.swift; sourceTree = "<group>"; };
 		D5BA110D2E70000000000004 /* MoveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveModels.swift; sourceTree = "<group>"; };
 		D5BA110F2E70000000000006 /* MoveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveService.swift; sourceTree = "<group>"; };
@@ -166,8 +168,6 @@
 		D5BA12072E70000000000047 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
 		D5BA12092E70000000000049 /* OpponentPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentPickerView.swift; sourceTree = "<group>"; };
 		D5BA12162E70000000000056 /* BattleAnimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAnimator.swift; sourceTree = "<group>"; };
-		D5A1C00000000000000000B1 /* BattleAIDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIDriver.swift; sourceTree = "<group>"; };
-		D5A1C00000000000000000B2 /* SpriteColorResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorResolver.swift; sourceTree = "<group>"; };
 		D5BA12182E70000000000058 /* BattleLogFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleLogFormatter.swift; sourceTree = "<group>"; };
 		D5BA13012E70000000000202 /* BattleAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIService.swift; sourceTree = "<group>"; };
 		D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAIMoveInstructions.md; sourceTree = "<group>"; };
@@ -905,7 +905,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 520;
+				CURRENT_PROJECT_VERSION = 550;
 				DEVELOPMENT_ASSET_PATHS = "\"PokedexUI/Preview Content\"";
 				DEVELOPMENT_TEAM = V39999UVRP;
 				ENABLE_PREVIEWS = YES;
@@ -941,7 +941,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 520;
+				CURRENT_PROJECT_VERSION = 550;
 				DEVELOPMENT_ASSET_PATHS = "\"PokedexUI/Preview Content\"";
 				DEVELOPMENT_TEAM = V39999UVRP;
 				ENABLE_PREVIEWS = YES;
