@@ -86,7 +86,6 @@
 		D5BA14082E70000000000410 /* PixelSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14092E70000000000411 /* PixelSpinner.swift */; };
 		D5BA140A2E70000000000412 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA140B2E70000000000413 /* FlowLayout.swift */; };
 		D5BA140C2E70000000000414 /* SpriteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA140D2E70000000000415 /* SpriteImage.swift */; };
-
 		D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */; };
 		D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D503082E39305500AC4BC5 /* Tabs.swift */; };
 		D5D6250D2E2194230030867D /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D6250C2E2194230030867D /* ItemDetailView.swift */; };
@@ -999,7 +998,7 @@
 			repositoryURL = "https://github.com/brillcp/pokebattlekit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.1;
+				minimumVersion = 0.0.2;
 			};
 		};
 		D57366012E2114C100FE4ED0 /* XCRemoteSwiftPackageReference "Networking" */ = {
