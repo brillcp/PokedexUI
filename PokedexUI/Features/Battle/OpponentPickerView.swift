@@ -65,6 +65,9 @@ struct OpponentPickerView: View {
             .task {
                 await container.movePrefetcher.warmUp(modelContainer: modelContext.container)
             }
+            .task(id: allPokemon.count) {
+                await prebuildCandidatesIfNeeded()
+            }
             .navigationDestination(item: $setupOpponent) { opp in
                 BattleSetupView(
                     viewModel: BattleSetupViewModel(
@@ -105,16 +108,9 @@ private extension OpponentPickerView {
         let playerCandidate = OpponentCandidate(pokemon: player, fallbackTypes: playerTypes)
         let chart = container.typeChart.chart
         let aiService = container.battleAI
-        let pokemons = allPokemon
 
         Task {
-            let candidates: [OpponentCandidate]
-            if let cached = candidateCache {
-                candidates = cached
-            } else {
-                candidates = await buildCandidates(from: pokemons)
-                candidateCache = candidates
-            }
+            let candidates = await ensureCandidates()
 
             let pool = await Task.detached(priority: .userInitiated) {
                 OpponentStrategy.balancedPool(
@@ -140,12 +136,29 @@ private extension OpponentPickerView {
         }
     }
 
+    /// Builds the candidate cache on view appear so a "Random" tap can
+    /// jump straight to scoring without paying the SwiftData traversal
+    /// cost mid-animation.
+    func prebuildCandidatesIfNeeded() async {
+        guard candidateCache == nil, !allPokemon.isEmpty else { return }
+        candidateCache = await buildCandidates(from: allPokemon)
+    }
+
+    /// Returns the cached candidates, building them if the prebuild
+    /// hasn't completed yet (fallback for an eager Random tap).
+    func ensureCandidates() async -> [OpponentCandidate] {
+        if let cached = candidateCache { return cached }
+        let built = await buildCandidates(from: allPokemon)
+        candidateCache = built
+        return built
+    }
+
     func buildCandidates(from pokemons: [Pokemon]) async -> [OpponentCandidate] {
         var result: [OpponentCandidate] = []
         result.reserveCapacity(pokemons.count)
         for (index, pokemon) in pokemons.enumerated() {
             result.append(OpponentCandidate(pokemon: pokemon))
-            if index % 64 == 63 { await Task.yield() }
+            if index % 16 == 15 { await Task.yield() }
         }
         return result
     }
