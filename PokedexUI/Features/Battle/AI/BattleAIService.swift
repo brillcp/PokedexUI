@@ -18,10 +18,10 @@ protocol BattleAIServiceProtocol: Sendable {
         recentMoves: [String],
         turnNumber: Int
     ) async -> MoveDetail
-    /// Pick an opponent id from candidate snapshots.
+    /// Pick an opponent id from the curated candidate pool.
     func chooseOpponent(
-        player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot],
+        player: OpponentCandidate,
+        candidates: [OpponentCandidate],
         typeChart: TypeChart?
     ) async -> Int?
     /// Pick a 4-move loadout, informed by what the player chose.
@@ -80,8 +80,8 @@ extension BattleAIService: BattleAIServiceProtocol {
     }
 
     func chooseOpponent(
-        player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot],
+        player: OpponentCandidate,
+        candidates: [OpponentCandidate],
         typeChart: TypeChart?
     ) async -> Int? {
         let pool = candidates.filter { $0.id != player.id }

@@ -12,12 +12,12 @@ enum OpponentStrategy {
     /// score-rank survivors, then shuffle a top slice. Falls back to the
     /// unfiltered pool if filtering leaves too few candidates.
     static func balancedPool(
-        from snapshots: [OpponentCandidateSnapshot],
+        from snapshots: [OpponentCandidate],
         playerBST: Int,
         playerTypes: [String],
         chart: TypeChart?,
         limit: Int = 50
-    ) -> [OpponentCandidateSnapshot] {
+    ) -> [OpponentCandidate] {
         let filtered = snapshots.filter { candidate in
             let delta = candidate.baseStatTotal - playerBST
             guard delta >= -120 && delta <= 70 else { return false }
@@ -39,8 +39,8 @@ enum OpponentStrategy {
 
     /// Best opponent id by full matchup scoring; nil if pool is empty.
     static func heuristicPick(
-        player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot],
+        player: OpponentCandidate,
+        candidates: [OpponentCandidate],
         typeChart: TypeChart?
     ) -> Int? {
         let tiered = candidates.filter { candidate in
@@ -61,8 +61,8 @@ private extension OpponentStrategy {
     /// Composite matchup score: BST closeness, type pressure, legendary
     /// and mega caveats. Used by `heuristicPick` for final ranking.
     static func matchupScore(
-        player: OpponentCandidateSnapshot,
-        candidate: OpponentCandidateSnapshot,
+        player: OpponentCandidate,
+        candidate: OpponentCandidate,
         typeChart: TypeChart?
     ) -> Double {
         let delta = candidate.baseStatTotal - player.baseStatTotal
@@ -103,7 +103,7 @@ private extension OpponentStrategy {
     }
 
     static func poolScore(
-        _ candidate: OpponentCandidateSnapshot,
+        _ candidate: OpponentCandidate,
         playerBST: Int,
         playerTypes: [String],
         chart: TypeChart?
@@ -147,8 +147,8 @@ enum OpponentPrompt {
     }
 
     static func build(
-        player: OpponentCandidateSnapshot,
-        candidates: [OpponentCandidateSnapshot],
+        player: OpponentCandidate,
+        candidates: [OpponentCandidate],
         typeChart: TypeChart?
     ) -> Output {
         var indexMap: [Int: Int] = [:]
@@ -179,9 +179,9 @@ enum OpponentPrompt {
 private extension OpponentPrompt {
 
     static func describe(
-        _ candidate: OpponentCandidateSnapshot,
+        _ candidate: OpponentCandidate,
         index: Int,
-        player: OpponentCandidateSnapshot,
+        player: OpponentCandidate,
         playerBST: Int,
         typeChart: TypeChart?
     ) -> String {
@@ -200,8 +200,8 @@ private extension OpponentPrompt {
 
     static func matchupTag(
         chart: TypeChart,
-        candidate: OpponentCandidateSnapshot,
-        player: OpponentCandidateSnapshot
+        candidate: OpponentCandidate,
+        player: OpponentCandidate
     ) -> String {
         let cPressure = chart.bestSTABMultiplier(attackerTypes: candidate.typeNames, defenderTypes: player.typeNames)
         let pPressure = chart.bestSTABMultiplier(attackerTypes: player.typeNames, defenderTypes: candidate.typeNames)

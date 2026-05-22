@@ -13,7 +13,7 @@ struct OpponentPickerView: View {
     @Query private var allPokemon: [Pokemon]
     @State private var isAIThinking = false
     @State private var setupOpponent: Pokemon?
-    @State private var snapshotCache: [OpponentCandidateSnapshot]?
+    @State private var candidateCache: [OpponentCandidate]?
 
     init(
         player: Pokemon,
@@ -102,31 +102,31 @@ private extension OpponentPickerView {
         guard !allPokemon.isEmpty, !isAIThinking else { return }
         isAIThinking = true
 
-        let playerSnapshot = OpponentCandidateSnapshot.player(player, fallbackTypes: playerTypes)
+        let playerCandidate = OpponentCandidate(pokemon: player, fallbackTypes: playerTypes)
         let chart = container.typeChart.chart
         let aiService = container.battleAI
         let pokemons = allPokemon
 
         Task {
-            let snapshots: [OpponentCandidateSnapshot]
-            if let cached = snapshotCache {
-                snapshots = cached
+            let candidates: [OpponentCandidate]
+            if let cached = candidateCache {
+                candidates = cached
             } else {
-                snapshots = await buildCandidateSnapshots(from: pokemons)
-                snapshotCache = snapshots
+                candidates = await buildCandidates(from: pokemons)
+                candidateCache = candidates
             }
 
             let pool = await Task.detached(priority: .userInitiated) {
                 OpponentStrategy.balancedPool(
-                    from: snapshots,
-                    playerBST: playerSnapshot.baseStatTotal,
-                    playerTypes: playerSnapshot.typeNames,
+                    from: candidates,
+                    playerBST: playerCandidate.baseStatTotal,
+                    playerTypes: playerCandidate.typeNames,
                     chart: chart
                 )
             }.value
 
             let pickedId = await aiService.chooseOpponent(
-                player: playerSnapshot,
+                player: playerCandidate,
                 candidates: pool,
                 typeChart: chart
             )
@@ -140,11 +140,11 @@ private extension OpponentPickerView {
         }
     }
 
-    func buildCandidateSnapshots(from pokemons: [Pokemon]) async -> [OpponentCandidateSnapshot] {
-        var result: [OpponentCandidateSnapshot] = []
+    func buildCandidates(from pokemons: [Pokemon]) async -> [OpponentCandidate] {
+        var result: [OpponentCandidate] = []
         result.reserveCapacity(pokemons.count)
         for (index, pokemon) in pokemons.enumerated() {
-            result.append(.candidate(pokemon))
+            result.append(OpponentCandidate(pokemon: pokemon))
             if index % 64 == 63 { await Task.yield() }
         }
         return result

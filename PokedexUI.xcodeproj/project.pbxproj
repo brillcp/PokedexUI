@@ -74,7 +74,7 @@
 		D5BA13042E70000000000205 /* BattleAIMoveInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */; };
 		D5BA13042E70000000000212 /* BattleAIOpponentInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000213 /* BattleAIOpponentInstructions.md */; };
 		D5BA13042E70000000000214 /* BattleAILoadoutInstructions.md in Resources */ = {isa = PBXBuildFile; fileRef = D5BA13052E70000000000215 /* BattleAILoadoutInstructions.md */; };
-		D5BA13062E70000000000220 /* OpponentCandidateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13072E70000000000221 /* OpponentCandidateSnapshot.swift */; };
+		D5BA13062E70000000000220 /* OpponentCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13072E70000000000221 /* OpponentCandidate.swift */; };
 		D5BA13082E70000000000301 /* BattleSetupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA13092E70000000000302 /* BattleSetupViewModel.swift */; };
 		D5BA130A2E70000000000303 /* BattleSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA130B2E70000000000304 /* BattleSetupView.swift */; };
 		D5BA130E2E70000000000307 /* BattleLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA130F2E70000000000308 /* BattleLaunch.swift */; };
@@ -173,7 +173,7 @@
 		D5BA13052E70000000000206 /* BattleAIMoveInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAIMoveInstructions.md; sourceTree = "<group>"; };
 		D5BA13052E70000000000213 /* BattleAIOpponentInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAIOpponentInstructions.md; sourceTree = "<group>"; };
 		D5BA13052E70000000000215 /* BattleAILoadoutInstructions.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = BattleAILoadoutInstructions.md; sourceTree = "<group>"; };
-		D5BA13072E70000000000221 /* OpponentCandidateSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentCandidateSnapshot.swift; sourceTree = "<group>"; };
+		D5BA13072E70000000000221 /* OpponentCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentCandidate.swift; sourceTree = "<group>"; };
 		D5BA13092E70000000000302 /* BattleSetupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSetupViewModel.swift; sourceTree = "<group>"; };
 		D5BA130B2E70000000000304 /* BattleSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSetupView.swift; sourceTree = "<group>"; };
 		D5BA130F2E70000000000308 /* BattleLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleLaunch.swift; sourceTree = "<group>"; };
@@ -272,7 +272,7 @@
 				D5A1B00000000000000000B4 /* OpponentAI.swift */,
 				D5A1B00000000000000000B5 /* LoadoutAI.swift */,
 				D5A1B00000000000000000B6 /* BattleContext.swift */,
-				D5BA13072E70000000000221 /* OpponentCandidateSnapshot.swift */,
+				D5BA13072E70000000000221 /* OpponentCandidate.swift */,
 				D5C46D8B2FBF56E00085527B /* LLMInstructions */,
 			);
 			path = AI;
@@ -725,7 +725,7 @@
 				D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */,
 				D5A1B00000000000000000A5 /* LoadoutAI.swift in Sources */,
 				D5A1B00000000000000000A6 /* BattleContext.swift in Sources */,
-				D5BA13062E70000000000220 /* OpponentCandidateSnapshot.swift in Sources */,
+				D5BA13062E70000000000220 /* OpponentCandidate.swift in Sources */,
 				D5BA13082E70000000000301 /* BattleSetupViewModel.swift in Sources */,
 				D5BA130A2E70000000000303 /* BattleSetupView.swift in Sources */,
 				D5BA130E2E70000000000307 /* BattleLaunch.swift in Sources */,
