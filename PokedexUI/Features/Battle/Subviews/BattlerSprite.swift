@@ -4,7 +4,7 @@ import PokeBattleKit
 /// One combatant's animated sprite with lunge, shake, faint, and victory effects.
 struct BattlerSprite: View {
     let url: String?
-    let side: BattleSide
+    let side: Side
     let isAttacking: Bool
     let isFainted: Bool
     let hasEntered: Bool

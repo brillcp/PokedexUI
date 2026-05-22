@@ -112,20 +112,16 @@ struct PokemonFetcher: DataFetcher {
     private let storage: DataStorageReader
     private let modelContainer: ModelContainer
     private let pokemonService: PokemonServiceProtocol
-    private let typeChart: TypeChartLoader
     private let evolutionService: EvolutionServiceProtocol
 
     init(modelContext: ModelContext, container: AppContainer) {
         self.storage = DataStorageReader(modelContainer: modelContext.container)
         self.modelContainer = modelContext.container
         self.pokemonService = container.pokemonService
-        self.typeChart = container.typeChart
         self.evolutionService = container.evolutionService
     }
 
     func fetchBootstrap(onTick: (@Sendable () async -> Void)?) async throws -> Bootstrap {
-        async let typeLoad: Void = typeChart.warmUp(modelContainer: modelContainer, onTick: onTick)
-
         let pokemon = try await pokemonService.requestPokemonDetails(onTick: onTick)
         await pokemonService.hydrateSpecies(pokemon, onTick: onTick)
 
@@ -136,7 +132,6 @@ struct PokemonFetcher: DataFetcher {
             onTick: onTick
         )
 
-        await typeLoad
         return Bootstrap(pokemon: pokemon, chainPayloads: chains)
     }
 
@@ -152,11 +147,7 @@ struct PokemonFetcher: DataFetcher {
     }
 
     func fetchStoredData() async throws -> [Pokemon] {
-        let cached = try await storage.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
-        if !cached.isEmpty {
-            await typeChart.warmUp(modelContainer: modelContainer)
-        }
-        return cached
+        try await storage.fetch(sortBy: SortDescriptor<Pokemon>(\.id))
     }
 
     func fetchAPIData() async throws -> [Pokemon] {

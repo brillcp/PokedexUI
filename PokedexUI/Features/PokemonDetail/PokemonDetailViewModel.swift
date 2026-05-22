@@ -16,8 +16,6 @@ protocol PokemonDetailViewModelProtocol {
     var color: Color? { get }
     /// Resolved evolution chain stages; empty until `loadEvolutionChain` runs.
     var evolutionStages: [EvolutionChain.Stage] { get }
-    /// Shared type chart loader feeding the weakness grid.
-    var typeChart: TypeChartLoader { get }
 
     /// Load front sprite image and extract dominant color.
     func loadSpritesAndColor() async
@@ -38,7 +36,6 @@ final class PokemonDetailViewModel {
     private let imageColorAnalyzer: ImageColorAnalyzing
     private let audioPlayer: AudioPlaying
 
-    let typeChart: TypeChartLoader
     var pokemon: PokemonViewModel
     var isLoadingDetails: Bool = false
     var isBookmarked: Bool
@@ -49,7 +46,6 @@ final class PokemonDetailViewModel {
     init(summary: Pokemon, container: AppContainer) {
         self.isBookmarked = summary.isBookmarked
         self.pokemon = PokemonViewModel(pokemon: summary)
-        self.typeChart = container.typeChart
         self.evolutionService = container.evolutionService
         self.spriteLoader = container.spriteLoader
         self.imageColorAnalyzer = container.imageColorAnalyzer

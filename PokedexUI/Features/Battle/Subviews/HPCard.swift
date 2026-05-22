@@ -6,7 +6,7 @@ struct HPCard: View, Equatable {
     let name: String
     let currentHP: Int
     let maxHP: Int
-    let status: BattleStatus
+    let status: Status
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

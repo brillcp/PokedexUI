@@ -54,15 +54,6 @@
 		D5A1B2C32E60000000000001 /* PokemonSpecies.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B2C42E60000000000002 /* PokemonSpecies.swift */; };
 		D5A1C00000000000000000A1 /* BattleAIDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B1 /* BattleAIDriver.swift */; };
 		D5A1C00000000000000000A2 /* SpriteColorResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B2 /* SpriteColorResolver.swift */; };
-		D5BA110C2E70000000000003 /* MoveRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110B2E70000000000002 /* MoveRequest.swift */; };
-		D5BA110E2E70000000000005 /* MoveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110D2E70000000000004 /* MoveModels.swift */; };
-		D5BA11102E70000000000007 /* MoveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110F2E70000000000006 /* MoveService.swift */; };
-		D5BA11102E70000000000008 /* MovePrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA110F2E70000000000009 /* MovePrefetcher.swift */; };
-		D5BA11222E70000000000012 /* TypeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11212E70000000000011 /* TypeRequest.swift */; };
-		D5BA11242E70000000000014 /* TypeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11232E70000000000013 /* TypeModels.swift */; };
-		D5BA11262E70000000000016 /* TypeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11252E70000000000015 /* TypeService.swift */; };
-		D5BA11282E70000000000018 /* TypeChartLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11272E70000000000017 /* TypeChartLoader.swift */; };
-		D5BA11292E70000000000019 /* TypeChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA112A2E7000000000001A /* TypeChart.swift */; };
 		D5BA11322E70000000000022 /* EvolutionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11312E70000000000021 /* EvolutionRequest.swift */; };
 		D5BA11342E70000000000024 /* EvolutionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11332E70000000000023 /* EvolutionModels.swift */; };
 		D5BA11362E70000000000026 /* EvolutionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA11352E70000000000025 /* EvolutionService.swift */; };
@@ -152,15 +143,6 @@
 		D5A1B2C42E60000000000002 /* PokemonSpecies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonSpecies.swift; sourceTree = "<group>"; };
 		D5A1C00000000000000000B1 /* BattleAIDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIDriver.swift; sourceTree = "<group>"; };
 		D5A1C00000000000000000B2 /* SpriteColorResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorResolver.swift; sourceTree = "<group>"; };
-		D5BA110B2E70000000000002 /* MoveRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveRequest.swift; sourceTree = "<group>"; };
-		D5BA110D2E70000000000004 /* MoveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveModels.swift; sourceTree = "<group>"; };
-		D5BA110F2E70000000000006 /* MoveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveService.swift; sourceTree = "<group>"; };
-		D5BA110F2E70000000000009 /* MovePrefetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovePrefetcher.swift; sourceTree = "<group>"; };
-		D5BA11212E70000000000011 /* TypeRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeRequest.swift; sourceTree = "<group>"; };
-		D5BA11232E70000000000013 /* TypeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeModels.swift; sourceTree = "<group>"; };
-		D5BA11252E70000000000015 /* TypeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeService.swift; sourceTree = "<group>"; };
-		D5BA11272E70000000000017 /* TypeChartLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeChartLoader.swift; sourceTree = "<group>"; };
-		D5BA112A2E7000000000001A /* TypeChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeChart.swift; sourceTree = "<group>"; };
 		D5BA11312E70000000000021 /* EvolutionRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionRequest.swift; sourceTree = "<group>"; };
 		D5BA11332E70000000000023 /* EvolutionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionModels.swift; sourceTree = "<group>"; };
 		D5BA11352E70000000000025 /* EvolutionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionService.swift; sourceTree = "<group>"; };
@@ -352,8 +334,6 @@
 				D5E0000000000000000000A7 /* Pokemon */,
 				D5E0000000000000000000A8 /* Species */,
 				D5E0000000000000000000A9 /* Evolution */,
-				D5E0000000000000000000AA /* PokemonType */,
-				D5E0000000000000000000AB /* MoveDetail */,
 				D5E0000000000000000000AC /* Item */,
 			);
 			path = Domain;
@@ -383,23 +363,7 @@
 			path = Evolution;
 			sourceTree = "<group>";
 		};
-		D5E0000000000000000000AA /* PokemonType */ = {
-			isa = PBXGroup;
-			children = (
-				D5BA11232E70000000000013 /* TypeModels.swift */,
-			);
-			path = PokemonType;
-			sourceTree = "<group>";
-		};
-		D5E0000000000000000000AB /* MoveDetail */ = {
-			isa = PBXGroup;
-			children = (
-				D5BA110D2E70000000000004 /* MoveModels.swift */,
-			);
-			path = MoveDetail;
-			sourceTree = "<group>";
-		};
-		D5E0000000000000000000AC /* Item */ = {
+D5E0000000000000000000AC /* Item */ = {
 			isa = PBXGroup;
 			children = (
 				D57366052E2114E400FE4ED0 /* ItemModels.swift */,
@@ -412,8 +376,6 @@
 			children = (
 				D5E0000000000000000000AE /* Pokemon */,
 				D5E0000000000000000000AF /* Evolution */,
-				D5E0000000000000000000B0 /* PokemonType */,
-				D5E0000000000000000000B1 /* Move */,
 				D5E0000000000000000000B2 /* Item */,
 				9332C0E7273F3219003AF377 /* SpriteLoader.swift */,
 				D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */,
@@ -440,28 +402,7 @@
 			path = Evolution;
 			sourceTree = "<group>";
 		};
-		D5E0000000000000000000B0 /* PokemonType */ = {
-			isa = PBXGroup;
-			children = (
-				D5BA11212E70000000000011 /* TypeRequest.swift */,
-				D5BA11252E70000000000015 /* TypeService.swift */,
-				D5BA11272E70000000000017 /* TypeChartLoader.swift */,
-				D5BA112A2E7000000000001A /* TypeChart.swift */,
-			);
-			path = PokemonType;
-			sourceTree = "<group>";
-		};
-		D5E0000000000000000000B1 /* Move */ = {
-			isa = PBXGroup;
-			children = (
-				D5BA110B2E70000000000002 /* MoveRequest.swift */,
-				D5BA110F2E70000000000006 /* MoveService.swift */,
-				D5BA110F2E70000000000009 /* MovePrefetcher.swift */,
-			);
-			path = Move;
-			sourceTree = "<group>";
-		};
-		D5E0000000000000000000B2 /* Item */ = {
+D5E0000000000000000000B2 /* Item */ = {
 			isa = PBXGroup;
 			children = (
 				D57366062E2114E400FE4ED0 /* ItemRequest.swift */,
@@ -702,15 +643,6 @@
 				D57366072E2114E400FE4ED0 /* ItemRequest.swift in Sources */,
 				D57366162E21160900FE4ED0 /* PokemonRequest.swift in Sources */,
 				D5A1B2C32E60000000000001 /* PokemonSpecies.swift in Sources */,
-				D5BA110C2E70000000000003 /* MoveRequest.swift in Sources */,
-				D5BA110E2E70000000000005 /* MoveModels.swift in Sources */,
-				D5BA11102E70000000000007 /* MoveService.swift in Sources */,
-				D5BA11102E70000000000008 /* MovePrefetcher.swift in Sources */,
-				D5BA11222E70000000000012 /* TypeRequest.swift in Sources */,
-				D5BA11242E70000000000014 /* TypeModels.swift in Sources */,
-				D5BA11262E70000000000016 /* TypeService.swift in Sources */,
-				D5BA11282E70000000000018 /* TypeChartLoader.swift in Sources */,
-				D5BA11292E70000000000019 /* TypeChart.swift in Sources */,
 				D5BA11322E70000000000022 /* EvolutionRequest.swift in Sources */,
 				D5BA11342E70000000000024 /* EvolutionModels.swift in Sources */,
 				D5BA11362E70000000000026 /* EvolutionService.swift in Sources */,
@@ -998,7 +930,7 @@
 			repositoryURL = "https://github.com/brillcp/pokebattlekit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.2;
+				minimumVersion = 0.0.3;
 			};
 		};
 		D57366012E2114C100FE4ED0 /* XCRemoteSwiftPackageReference "Networking" */ = {

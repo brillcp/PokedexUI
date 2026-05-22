@@ -9,15 +9,15 @@ protocol BattleAIServiceProtocol: Sendable {
     /// full loadout; `defenderSeenMoves` is the subset already used in the
     /// current battle and is the only one shown to the LLM.
     func chooseMove(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
-        defenderMoves: [MoveDetail],
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
+        defenderMoves: [Move],
         defenderSeenMoves: [String],
         typeChart: TypeChart,
         recentMoves: [String],
         turnNumber: Int
-    ) async -> MoveDetail
+    ) async -> Move
     /// Pick an opponent id from the curated candidate pool.
     func chooseOpponent(
         player: OpponentCandidate,
@@ -26,12 +26,12 @@ protocol BattleAIServiceProtocol: Sendable {
     ) async -> Int?
     /// Pick a 4-move loadout, informed by what the player chose.
     func chooseLoadout(
-        for fighter: BattleCombatant,
-        against opponent: BattleCombatant,
-        moves: [MoveDetail],
-        playerMoves: [MoveDetail],
+        for fighter: Combatant,
+        against opponent: Combatant,
+        moves: [Move],
+        playerMoves: [Move],
         typeChart: TypeChart
-    ) async -> [MoveDetail]
+    ) async -> [Move]
 }
 
 /// Thin façade composing a `LanguageModelClient` with per-decision
@@ -46,16 +46,16 @@ actor BattleAIService {
 extension BattleAIService: BattleAIServiceProtocol {
 
     func chooseMove(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
-        defenderMoves: [MoveDetail],
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
+        defenderMoves: [Move],
         defenderSeenMoves: [String],
         typeChart: TypeChart,
         recentMoves: [String],
         turnNumber: Int
-    ) async -> MoveDetail {
-        guard let first = moves.first else { return MoveDetail(name: "tackle") }
+    ) async -> Move {
+        guard let first = moves.first else { return PokeBattleKit.move(named: "tackle")! }
         let fallback = MoveStrategy.heuristicPick(
             attacker: attacker, defender: defender, moves: moves, typeChart: typeChart, recentMoves: recentMoves
         ) ?? first
@@ -99,12 +99,12 @@ extension BattleAIService: BattleAIServiceProtocol {
     }
 
     func chooseLoadout(
-        for fighter: BattleCombatant,
-        against opponent: BattleCombatant,
-        moves: [MoveDetail],
-        playerMoves: [MoveDetail],
+        for fighter: Combatant,
+        against opponent: Combatant,
+        moves: [Move],
+        playerMoves: [Move],
         typeChart: TypeChart
-    ) async -> [MoveDetail] {
+    ) async -> [Move] {
         guard moves.count > 4 else { return moves }
         let fallback = LoadoutStrategy.heuristicPick(
             fighter: fighter, opponent: opponent, moves: moves, typeChart: typeChart

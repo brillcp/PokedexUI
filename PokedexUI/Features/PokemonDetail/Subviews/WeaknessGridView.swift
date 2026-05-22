@@ -1,9 +1,9 @@
 import SwiftUI
+import PokeBattleKit
 
 /// Bucketed type-effectiveness grid showing damage multipliers.
 struct WeaknessGridView: View {
     let pokemon: PokemonViewModel
-    let typeChart: TypeChartLoader
     let textColor: Color
 
     var body: some View {
@@ -31,7 +31,8 @@ struct WeaknessGridView: View {
 private extension WeaknessGridView {
     var buckets: [(label: String, types: [String])] {
         let defenders = pokemon.typeNames
-        guard let chart = typeChart.chart else { return [] }
+        guard PokeBattleKit.isInitialized else { return [] }
+        let chart = PokeBattleKit.typeChart
 
         var rows: [Double: [String]] = [:]
         for (attackerName, _) in chart.attackers {

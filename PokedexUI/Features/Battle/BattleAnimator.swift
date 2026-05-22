@@ -2,7 +2,7 @@ import SwiftUI
 import PokeBattleKit
 
 /// Per-side animation cue bundle.
-struct BattleSideCues: Equatable {
+struct SideCues: Equatable {
     var shakeTick: Int = 0
     var damageAmount: Int?
     var damageTick: Int = 0
@@ -13,18 +13,18 @@ struct BattleSideCues: Equatable {
 @MainActor
 @Observable
 final class BattleAnimator {
-    var attackingSide: BattleSide?
-    var faintedSide: BattleSide?
+    var attackingSide: Side?
+    var faintedSide: Side?
     var hasEntered: Bool = false
-    var playerCues:   BattleSideCues = BattleSideCues()
-    var opponentCues: BattleSideCues = BattleSideCues()
+    var playerCues:   SideCues = SideCues()
+    var opponentCues: SideCues = SideCues()
     var attackTick: Int = 0
 
-    func cues(for side: BattleSide) -> BattleSideCues {
+    func cues(for side: Side) -> SideCues {
         side == .player ? playerCues : opponentCues
     }
 
-    func mutateCues(_ side: BattleSide, _ body: (inout BattleSideCues) -> Void) {
+    func mutateCues(_ side: Side, _ body: (inout SideCues) -> Void) {
         switch side {
         case .player:   body(&playerCues)
         case .opponent: body(&opponentCues)
@@ -38,32 +38,32 @@ final class BattleAnimator {
         }
     }
 
-    func playAttack(side: BattleSide) async {
+    func playAttack(side: Side) async {
         withAnimation(.easeOut(duration: 0.10)) { attackingSide = side }
         try? await Task.sleep(for: .milliseconds(110))
         withAnimation(.spring(response: 0.18, dampingFraction: 0.4)) { attackingSide = nil }
     }
 
-    func playHit(side: BattleSide, amount: Int, effectiveness: Double) async {
+    func playHit(side: Side, amount: Int, effectiveness: Double) async {
         if effectiveness > 0, amount > 0 {
             mutateCues(side) { $0.shakeTick += 1 }
         }
         try? await Task.sleep(for: .milliseconds(250))
     }
 
-    func playRecoil(side: BattleSide, amount: Int) async {
+    func playRecoil(side: Side, amount: Int) async {
         if amount > 0 {
             mutateCues(side) { $0.shakeTick += 1 }
         }
         try? await Task.sleep(for: .milliseconds(250))
     }
 
-    func playFaint(side: BattleSide) async {
+    func playFaint(side: Side) async {
         withAnimation(.easeIn(duration: 0.5)) { faintedSide = side }
         try? await Task.sleep(for: .milliseconds(450))
     }
 
-    func postDamage(side: BattleSide, amount: Int) {
+    func postDamage(side: Side, amount: Int) {
         guard amount > 0 else { return }
         mutateCues(side) {
             $0.damageAmount = amount
@@ -71,9 +71,9 @@ final class BattleAnimator {
         }
     }
 
-    /// Route a `BattleEvent` to the matching animation cue. Events that
+    /// Route a `Event` to the matching animation cue. Events that
     /// don't drive a sprite/HUD change (status text, etc.) no-op here.
-    func play(_ event: BattleEvent) async {
+    func play(_ event: Event) async {
         switch event {
         case .used(let side, _):
             await playAttack(side: side)

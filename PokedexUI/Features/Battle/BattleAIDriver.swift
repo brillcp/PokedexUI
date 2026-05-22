@@ -20,12 +20,12 @@ final class BattleAIDriver {
     /// Ask the service for the AI's next move. Updates the rolling
     /// recent-moves window on its way out.
     func nextOpponentMove(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        opponentMoves: [MoveDetail],
-        playerMoves: [MoveDetail],
+        attacker: Combatant,
+        defender: Combatant,
+        opponentMoves: [Move],
+        playerMoves: [Move],
         typeChart: TypeChart
-    ) async -> MoveDetail {
+    ) async -> Move {
         turnNumber += 1
         let pick = await service.chooseMove(
             attacker:          attacker,
@@ -44,7 +44,7 @@ final class BattleAIDriver {
 
     /// Add `name` to the seen set if `events` show the player actually
     /// used a move this turn (i.e. wasn't fully paralyzed or asleep).
-    func recordPlayerUsed(_ name: String, in events: [BattleEvent]) {
+    func recordPlayerUsed(_ name: String, in events: [Event]) {
         let acted = events.contains { event in
             if case .used(.player, _) = event { return true }
             return false

@@ -1,10 +1,9 @@
 import SwiftUI
-import SwiftData
+import PokeBattleKit
 
 /// Loadout screen for picking 4 moves before battle.
 struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
     @Environment(\.container) private var container
-    @Environment(\.modelContext) private var modelContext
 
     @State private var viewModel: ViewModel
     private let onStart: (BattleLaunch) -> Void
@@ -18,7 +17,7 @@ struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
         content
             .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
             .foregroundStyle(.white)
-            .task { await viewModel.prepare(modelContext: modelContext) }
+            .task { await viewModel.prepare() }
             .onChange(of: viewModel.phase) { _, newPhase in
                 if newPhase == .readyToStart { startBattle() }
             }
@@ -197,7 +196,7 @@ private extension BattleSetupView {
     }
 
     func matchupLine(fromName: String, fromTypes: [String], toName: String, toTypes: [String]) -> some View {
-        let multipliers = fromTypes.map { container.typeChart.multiplier(attacking: $0, defenders: toTypes) }
+        let multipliers = fromTypes.map { PokeBattleKit.typeChart.multiplier(attacking: $0, defenders: toTypes) }
         let best = multipliers.max() ?? 1
         return HStack(spacing: 6) {
             Text(fromName)
@@ -245,13 +244,13 @@ private extension BattleSetupView {
         }
     }
 
-    func moveCard(_ move: MoveDetail) -> some View {
+    func moveCard(_ move: Move) -> some View {
         let selected = viewModel.selectedMoveNames.contains(move.name)
         let atCap = !selected && viewModel.selectedMoveNames.count >= viewModel.maxSelections
         let opponentTypes = viewModel.opponentPokemon?.typeNames ?? []
         let effectiveness: Double? = opponentTypes.isEmpty
             ? nil
-            : container.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
+            : PokeBattleKit.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
         return Button {
             withAnimation(.easeOut(duration: 0.15)) {
                 viewModel.toggle(move)
@@ -293,26 +292,11 @@ private extension BattleSetupView {
     let vm = BattleSetupViewModel(
         player: player,
         opponent: opponent,
-        movePrefetcher: MovePrefetcher(),
-        aiService: BattleAIService(),
-        typeChart: TypeChartLoader()
+        aiService: BattleAIService()
     )
-    // Pre-populate so the preview shows the loadout screen directly
-    // without waiting on the network.
     let pikachuVM = PokemonViewModel(pokemon: .pikachu)
     vm.playerPokemon   = pikachuVM
     vm.opponentPokemon = pikachuVM
-    let mockMoves = ["thunderbolt", "thunder-wave", "quick-attack", "iron-tail", "volt-tackle", "slam"]
-    vm.playerMovePool = mockMoves.map { name in
-        let m = MoveDetail(name: name)
-        m.power       = name == "thunder-wave" ? nil : 80
-        m.accuracy    = 100
-        m.pp          = 15
-        m.priority    = 0
-        m.typeName    = "electric"
-        m.damageClass = "special"
-        return m
-    }
     return NavigationStack {
         BattleSetupView(viewModel: vm, onStart: { _ in })
     }

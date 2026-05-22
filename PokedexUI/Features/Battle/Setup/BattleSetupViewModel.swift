@@ -3,55 +3,33 @@ import SwiftData
 import SwiftUI
 import PokeBattleKit
 
-/// Discrete states the setup screen moves through. Single source of
-/// truth for which UI branch and which button action are active.
+/// Discrete states the setup screen moves through.
 enum BattleSetupPhase: Equatable {
-    /// Data still loading (pokemon hydration, move pools, type chart).
     case loading
-    /// Player still picking moves (fewer than `maxSelections`).
     case picking
-    /// Player locked in; AI is choosing its loadout.
     case awaitingAI
-    /// Player locked in; ready to request the AI loadout.
     case readyToRequest
-    /// Both sides locked; ready to launch the battle.
     case readyToStart
 }
 
 /// Pre-battle loadout preparation protocol.
 @MainActor
 protocol BattleSetupViewModelProtocol {
-    /// Raw player pokemon passed in from the picker.
     var playerSummary:   Pokemon { get }
-    /// Raw opponent pokemon chosen by AI or user.
     var opponentSummary: Pokemon { get }
-    /// Hydrated player view model, populated by `prepare`.
     var playerPokemon:   PokemonViewModel? { get }
-    /// Hydrated opponent view model, populated by `prepare`.
     var opponentPokemon: PokemonViewModel? { get }
-    /// Player's selectable move pool, ranked by combat impact.
-    var playerMovePool:  [MoveDetail] { get }
-    /// AI-chosen opponent loadout; `nil` until the AI task resolves.
-    var opponentLoadout: [MoveDetail]? { get }
-    /// Names of moves the player has currently selected.
+    var playerMovePool:  [Move] { get }
+    var opponentLoadout: [Move]? { get }
     var selectedMoveNames: Set<String> { get }
-    /// Maximum number of moves the player may pick.
     var maxSelections: Int { get }
-    /// User-facing error surfaced by `prepare` failures.
     var errorMessage: String? { get }
-    /// Current screen phase. Derived from load state + selection count +
-    /// AI loadout presence; replaces the older `isReady` / `isPickingLoadout`
-    /// / `canRequestLoadout` / `canStart` booleans.
     var phase: BattleSetupPhase { get }
 
-    /// Hydrate both sides, fetch move pools.
-    func prepare(modelContext: ModelContext) async
-    /// Toggle a move selection, capped at `maxSelections`.
-    func toggle(_ move: MoveDetail)
-    /// Ask AI to pick loadout based on what the player chose.
+    func prepare() async
+    func toggle(_ move: Move)
     func requestOpponentLoadout() async
-    /// Player's chosen moves in selection order.
-    func playerMoves() -> [MoveDetail]
+    func playerMoves() -> [Move]
 }
 
 /// Concrete implementation of `BattleSetupViewModelProtocol`.
@@ -59,10 +37,8 @@ protocol BattleSetupViewModelProtocol {
 @Observable
 final class BattleSetupViewModel {
     private var selectionOrder:  [String] = []
-    private var opponentPool:    [MoveDetail] = []
-    private let movePrefetcher:  MovePrefetching
+    private var opponentPool:    [Move] = []
     private let aiService:       BattleAIServiceProtocol
-    private let typeChartLoader: TypeChartLoader
 
     let playerSummary:   Pokemon
     let opponentSummary: Pokemon
@@ -70,8 +46,8 @@ final class BattleSetupViewModel {
 
     var playerPokemon:    PokemonViewModel?
     var opponentPokemon:  PokemonViewModel?
-    var playerMovePool:   [MoveDetail] = []
-    var opponentLoadout:  [MoveDetail]?
+    var playerMovePool:   [Move] = []
+    var opponentLoadout:  [Move]?
     var selectedMoveNames: Set<String> = []
     var errorMessage: String?
     private(set) var isPickingLoadout: Bool = false
@@ -79,15 +55,11 @@ final class BattleSetupViewModel {
     init(
         player: Pokemon,
         opponent: Pokemon,
-        movePrefetcher: MovePrefetching,
-        aiService: BattleAIServiceProtocol,
-        typeChart: TypeChartLoader
+        aiService: BattleAIServiceProtocol
     ) {
-        self.playerSummary  = player
+        self.playerSummary   = player
         self.opponentSummary = opponent
-        self.movePrefetcher = movePrefetcher
-        self.aiService      = aiService
-        self.typeChartLoader = typeChart
+        self.aiService       = aiService
     }
 }
 
@@ -97,8 +69,7 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
     var phase: BattleSetupPhase {
         guard playerPokemon != nil,
               opponentPokemon != nil,
-              !playerMovePool.isEmpty,
-              typeChartLoader.chart != nil
+              !playerMovePool.isEmpty
         else { return .loading }
         guard selectedMoveNames.count == maxSelections else { return .picking }
         if isPickingLoadout { return .awaitingAI }
@@ -106,7 +77,7 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
         return .readyToRequest
     }
 
-    func toggle(_ move: MoveDetail) {
+    func toggle(_ move: Move) {
         if selectedMoveNames.contains(move.name) {
             selectedMoveNames.remove(move.name)
             selectionOrder.removeAll { $0 == move.name }
@@ -117,21 +88,19 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
         selectionOrder.append(move.name)
     }
 
-    func playerMoves() -> [MoveDetail] {
+    func playerMoves() -> [Move] {
         let byName = Dictionary(uniqueKeysWithValues: playerMovePool.map { ($0.name, $0) })
         return selectionOrder.compactMap { byName[$0] }
     }
 
-    func prepare(modelContext: ModelContext) async {
+    func prepare() async {
         let player   = PokemonViewModel(pokemon: playerSummary)
         let opponent = PokemonViewModel(pokemon: opponentSummary)
         self.playerPokemon   = player
         self.opponentPokemon = opponent
 
-        await movePrefetcher.warmUp(modelContainer: modelContext.container)
-
-        let playerMoves   = fetchMoves(for: player,   modelContext: modelContext)
-        let opponentMoves = fetchMoves(for: opponent, modelContext: modelContext)
+        let playerMoves   = movesForPokemon(player)
+        let opponentMoves = movesForPokemon(opponent)
 
         guard playerMoves.count >= maxSelections else {
             errorMessage = "Couldn't load \(playerSummary.name)'s movepool. Check your connection and try again."
@@ -142,24 +111,18 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
             return
         }
 
-        await typeChartLoader.loadIfNeeded()
-        guard typeChartLoader.chart != nil else {
-            errorMessage = "Couldn't load the type chart. Check your connection and try again."
-            return
-        }
-
         self.playerMovePool = Self.rankedByImpact(playerMoves)
         self.opponentPool   = opponentMoves
     }
 
     func requestOpponentLoadout() async {
         guard let player = playerPokemon,
-              let opponent = opponentPokemon,
-              let chart = typeChartLoader.chart else { return }
+              let opponent = opponentPokemon else { return }
 
         isPickingLoadout = true
-        let fighter = BattleCombatant(pokemon: opponent, moves: [])
-        let foe     = BattleCombatant(pokemon: player,  moves: [])
+        let chart   = PokeBattleKit.typeChart
+        let fighter = Combatant(pokemon: opponent, moves: [])
+        let foe     = Combatant(pokemon: player,  moves: [])
         let chosen  = playerMoves()
 
         let picks = await aiService.chooseLoadout(
@@ -184,7 +147,7 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
 
 // MARK: - Private
 private extension BattleSetupViewModel {
-    static func rankedByImpact(_ moves: [MoveDetail]) -> [MoveDetail] {
+    static func rankedByImpact(_ moves: [Move]) -> [Move] {
         moves.sorted { lhs, rhs in
             let lDamage = (lhs.power ?? 0) > 0
             let rDamage = (rhs.power ?? 0) > 0
@@ -196,14 +159,8 @@ private extension BattleSetupViewModel {
         }
     }
 
-    func fetchMoves(for pokemon: PokemonViewModel, modelContext: ModelContext) -> [MoveDetail] {
-        let names = pokemon.pokemon.moves.map(\.move.name)
-        guard !names.isEmpty else { return [] }
-        let capped = Set(names)
-        let descriptor = FetchDescriptor<MoveDetail>(
-            predicate: #Predicate { capped.contains($0.name) }
-        )
-        let all = (try? modelContext.fetch(descriptor)) ?? []
-        return all.filter(\.isBattleReady)
+    func movesForPokemon(_ pokemon: PokemonViewModel) -> [Move] {
+        let names = Set(pokemon.pokemon.moveNames)
+        return PokeBattleKit.allMoves.filter { names.contains($0.name) && $0.isBattleReady }
     }
 }

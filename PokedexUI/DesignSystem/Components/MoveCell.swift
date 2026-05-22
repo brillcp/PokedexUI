@@ -1,12 +1,13 @@
 import SwiftUI
+import PokeBattleKit
 
 /// Single move cell shared by the battle grid and the loadout picker.
 struct MoveCell: View, Equatable {
-    let move: MoveDetail
+    let move: Move
     let mode: Mode
     let effectiveness: Double?
 
-    init(move: MoveDetail, mode: Mode, effectiveness: Double? = nil) {
+    init(move: Move, mode: Mode, effectiveness: Double? = nil) {
         self.move = move
         self.mode = mode
         self.effectiveness = effectiveness

@@ -10,12 +10,12 @@ enum MoveStrategy {
 
     /// Highest-scoring move accounting for damage, recency, and low-HP bias.
     static func heuristicPick(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
         typeChart: TypeChart,
         recentMoves: [String]
-    ) -> MoveDetail? {
+    ) -> Move? {
         moves.max { lhs, rhs in
             inBattleScore(move: lhs, attacker: attacker, defender: defender, typeChart: typeChart, recentMoves: recentMoves)
             < inBattleScore(move: rhs, attacker: attacker, defender: defender, typeChart: typeChart, recentMoves: recentMoves)
@@ -26,13 +26,13 @@ enum MoveStrategy {
     /// / re-status override → guaranteed-KO upgrade → redundant-status
     /// downgrade. Each step is a no-op when its precondition isn't met.
     static func adjust(
-        pick: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
+        pick: Move,
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
         typeChart: TypeChart,
-        fallback: MoveDetail
-    ) -> MoveDetail {
+        fallback: Move
+    ) -> Move {
         var current = pick
         current = immuneRepair(pick: current, defender: defender, typeChart: typeChart, fallback: fallback)
         current = phaseAdjust(pick: current, attacker: attacker, defender: defender, moves: moves, typeChart: typeChart)
@@ -46,22 +46,22 @@ enum MoveStrategy {
 private extension MoveStrategy {
 
     static func immuneRepair(
-        pick: MoveDetail,
-        defender: BattleCombatant,
+        pick: Move,
+        defender: Combatant,
         typeChart: TypeChart,
-        fallback: MoveDetail
-    ) -> MoveDetail {
+        fallback: Move
+    ) -> Move {
         let eff = typeChart.multiplier(attacking: pick.typeName, defenders: defender.typeNames)
         return (eff == 0 && fallback.name != pick.name) ? fallback : pick
     }
 
     static func phaseAdjust(
-        pick: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
+        pick: Move,
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
         typeChart: TypeChart
-    ) -> MoveDetail {
+    ) -> Move {
         let alreadyBoosted = attacker.statStages.values.contains { $0 >= 2 }
         let wastedBoost = (pick.power ?? 0) == 0 && pick.statChangeDeltas.contains { $0 > 0 } && alreadyBoosted
         let wastedStatus = pick.ailment != "none" && defender.status != .none
@@ -70,12 +70,12 @@ private extension MoveStrategy {
     }
 
     static func koOverride(
-        pick: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
+        pick: Move,
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
         typeChart: TypeChart
-    ) -> MoveDetail {
+    ) -> Move {
         let pickDamage = DamageCalculator.estimateDamage(move: pick, attacker: attacker, defender: defender, typeChart: typeChart)
         guard pickDamage < defender.currentHP else { return pick }
         guard let killer = DamageCalculator.guaranteedKO(
@@ -85,12 +85,12 @@ private extension MoveStrategy {
     }
 
     static func statusRedundancyOverride(
-        pick: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
+        pick: Move,
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
         typeChart: TypeChart
-    ) -> MoveDetail {
+    ) -> Move {
         guard pick.ailment != "none", (pick.power ?? 0) == 0, defender.status != .none else { return pick }
         let alternatives = moves.filter { $0.name != pick.name }
         return DamageCalculator.strongestMove(
@@ -99,9 +99,9 @@ private extension MoveStrategy {
     }
 
     static func inBattleScore(
-        move: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
+        move: Move,
+        attacker: Combatant,
+        defender: Combatant,
         typeChart: TypeChart,
         recentMoves: [String]
     ) -> Double {
@@ -136,11 +136,11 @@ private extension MoveStrategy {
     }
 
     static func fallbackDamageMove(
-        from moves: [MoveDetail],
-        defender: BattleCombatant,
+        from moves: [Move],
+        defender: Combatant,
         typeChart: TypeChart
-    ) -> MoveDetail? {
-        moves.compactMap { move -> (MoveDetail, Double)? in
+    ) -> Move? {
+        moves.compactMap { move -> (Move, Double)? in
             guard let power = move.power, power > 0 else { return nil }
             let eff = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
             guard eff > 0 else { return nil }
@@ -159,9 +159,9 @@ private extension MoveStrategy {
 enum MoveScoring {
 
     static func score(
-        move: MoveDetail,
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        move: Move,
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
     ) -> Double {
         if MoveClassification.requiresPoisonedTarget.contains(move.name),
@@ -216,9 +216,9 @@ enum MoveScoring {
 private extension MoveScoring {
 
     static func damageScore(
-        move: MoveDetail,
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        move: Move,
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
     ) -> Double {
         let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: opponent.typeNames)
@@ -238,9 +238,9 @@ private extension MoveScoring {
     }
 
     static func supportScore(
-        move: MoveDetail,
-        fighter: BattleCombatant,
-        opponent: BattleCombatant
+        move: Move,
+        fighter: Combatant,
+        opponent: Combatant
     ) -> Double {
         var score = 0.0
         if move.ailment != "none" {
@@ -258,8 +258,8 @@ private extension MoveScoring {
     static func statusScore(
         ailment: String,
         chance: Int,
-        fighter: BattleCombatant,
-        opponent: BattleCombatant
+        fighter: Combatant,
+        opponent: Combatant
     ) -> Double {
         let factor = Double(max(chance, Weights.statusMinChance)) / 100
         switch ailment {
@@ -279,8 +279,8 @@ private extension MoveScoring {
     static func statChangeScore(
         stat: String,
         delta: Int,
-        fighter: BattleCombatant,
-        opponent: BattleCombatant
+        fighter: Combatant,
+        opponent: Combatant
     ) -> Double {
         guard delta != 0 else { return 0 }
         let magnitude = Double(abs(delta))
@@ -325,10 +325,10 @@ enum MovePrompt {
     }
 
     static func build(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail],
-        defenderSeenMoves: [MoveDetail],
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move],
+        defenderSeenMoves: [Move],
         typeChart: TypeChart,
         turnNumber: Int
     ) -> Output {
@@ -351,7 +351,7 @@ enum MovePrompt {
         return Output(prompt: sections.joined(separator: "\n\n"), indexMap: indexMap)
     }
 
-    static func parsePick(raw: String, indexMap: [Int: Int], moves: [MoveDetail]) -> MoveDetail? {
+    static func parsePick(raw: String, indexMap: [Int: Int], moves: [Move]) -> Move? {
         guard let shuffledIdx = firstInt(in: raw),
               let originalIdx = indexMap[shuffledIdx],
               moves.indices.contains(originalIdx)
@@ -364,9 +364,9 @@ enum MovePrompt {
 private extension MovePrompt {
 
     static func threatSection(
-        seenMoves: [MoveDetail],
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
+        seenMoves: [Move],
+        attacker: Combatant,
+        defender: Combatant,
         typeChart: TypeChart
     ) -> String {
         guard !seenMoves.isEmpty else { return "" }

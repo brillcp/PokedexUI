@@ -79,7 +79,7 @@ private extension BattleView {
         return state.player.backSpriteURL ?? state.player.frontSpriteURL
     }
 
-    func sprite(url: String?, side: BattleSide) -> some View {
+    func sprite(url: String?, side: Side) -> some View {
         let animator = viewModel.animator
         let cues = animator.cues(for: side)
         return BattlerSprite(
@@ -95,7 +95,7 @@ private extension BattleView {
         )
     }
 
-    func hpCard(_ c: BattleCombatant, side: BattleSide) -> some View {
+    func hpCard(_ c: Combatant, side: Side) -> some View {
         VStack(alignment: side == .opponent ? .leading : .trailing, spacing: 8) {
             if side == .opponent {
                 typeChips(c.typeNames)
@@ -136,7 +136,7 @@ private extension BattleView {
             ForEach(viewModel.displayMoves, id: \.name) { move in
                 let effectiveness: Double? = opponentTypes.isEmpty
                     ? nil
-                    : container.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
+                    : PokeBattleKit.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
                 Button {
                     Task { await viewModel.submit(move) }
                 } label: {
@@ -161,13 +161,8 @@ private extension BattleView {
                 viewModel: BattleViewModel(
                     player: PokemonViewModel(pokemon: .pikachu),
                     opponent: PokemonViewModel(pokemon: .pikachu),
-                    playerMoves: [
-                        .init(name: "move"),
-                        .init(name: "move2"),
-                        .init(name: "move3"),
-                        .init(name: "move4")
-                    ],
-                    opponentMoves: [],
+                    playerMoves: Array(PokeBattleKit.allMoves.prefix(4)),
+                    opponentMoves: Array(PokeBattleKit.allMoves.prefix(4)),
                     container: .live
                 )
             )

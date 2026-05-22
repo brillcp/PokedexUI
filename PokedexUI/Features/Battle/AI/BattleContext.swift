@@ -8,8 +8,8 @@ enum BattleContext {
 
     /// "Turn N. X 85% HP vs Y 50% HP. You: +2 atk. Opponent is paralyzed."
     static func compact(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
+        attacker: Combatant,
+        defender: Combatant,
         turnNumber: Int
     ) -> String {
         let atkHP = Int(Double(attacker.currentHP) / Double(max(1, attacker.maxHP)) * 100)
@@ -26,9 +26,9 @@ enum BattleContext {
     /// One-line tactical directive based on HP, boosts, and available
     /// move shapes.
     static func tacticalHint(
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
-        moves: [MoveDetail]
+        attacker: Combatant,
+        defender: Combatant,
+        moves: [Move]
     ) -> String {
         let hpFrac = Double(attacker.currentHP) / Double(max(1, attacker.maxHP))
         let defHpFrac = Double(defender.currentHP) / Double(max(1, defender.maxHP))
@@ -65,10 +65,10 @@ enum MoveRow {
     enum Style { case compact, verbose }
 
     static func describe(
-        _ move: MoveDetail,
+        _ move: Move,
         index: Int,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
+        attacker: Combatant,
+        defender: Combatant,
         typeChart: TypeChart,
         style: Style
     ) -> String {
@@ -84,9 +84,9 @@ enum MoveRow {
 private extension MoveRow {
 
     static func damageTags(
-        _ move: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
+        _ move: Move,
+        attacker: Combatant,
+        defender: Combatant,
         typeChart: TypeChart,
         style: Style
     ) -> [String] {
@@ -116,9 +116,9 @@ private extension MoveRow {
     }
 
     static func supportTags(
-        _ move: MoveDetail,
-        attacker: BattleCombatant,
-        defender: BattleCombatant,
+        _ move: Move,
+        attacker: Combatant,
+        defender: Combatant,
         style: Style
     ) -> [String] {
         var tags: [String] = []
@@ -151,8 +151,8 @@ private extension MoveRow {
     /// the LLM understands why a status move is or isn't recommended.
     static func statusWorthiness(
         ailment: String,
-        attacker: BattleCombatant,
-        defender: BattleCombatant
+        attacker: Combatant,
+        defender: Combatant
     ) -> String? {
         guard defender.status == .none else { return "wasted, target already statused" }
         switch ailment {

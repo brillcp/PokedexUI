@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PokeBattleKit
 
 /// Sheet for choosing a battle opponent from the full pokedex.
 struct OpponentPickerView: View {
@@ -62,9 +63,6 @@ struct OpponentPickerView: View {
                 }
             }
             .applyPokedexStyling(title: "Pick opponent", color: .darkGrey)
-            .task {
-                await container.movePrefetcher.warmUp(modelContainer: modelContext.container)
-            }
             .task(id: allPokemon.count) {
                 await prebuildCandidatesIfNeeded()
             }
@@ -73,9 +71,7 @@ struct OpponentPickerView: View {
                     viewModel: BattleSetupViewModel(
                         player: player,
                         opponent: opp,
-                        movePrefetcher: container.movePrefetcher,
-                        aiService: container.battleAI,
-                        typeChart: container.typeChart
+                        aiService: container.battleAI
                     ),
                     onStart: { launch in
                         dismiss()
@@ -106,7 +102,7 @@ private extension OpponentPickerView {
         isAIThinking = true
 
         let playerCandidate = OpponentCandidate(pokemon: player, fallbackTypes: playerTypes)
-        let chart = container.typeChart.chart
+        let chart: TypeChart? = PokeBattleKit.isInitialized ? PokeBattleKit.typeChart : nil
         let aiService = container.battleAI
 
         Task {

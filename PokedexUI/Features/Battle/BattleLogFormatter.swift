@@ -1,17 +1,17 @@
 import SwiftUI
 import PokeBattleKit
 
-/// Formats `BattleEvent` values into styled `AttributedString` for the log feed.
+/// Formats `Event` values into styled `AttributedString` for the log feed.
 struct BattleLogFormatter {
     let playerName:   String
     let opponentName: String
 
     func format(
-        _ event: BattleEvent,
+        _ event: Event,
         playerColor: Color?,
         opponentColor: Color?
     ) -> AttributedString {
-        let nameAttr = { (side: BattleSide) -> AttributedString in
+        let nameAttr = { (side: Side) -> AttributedString in
             let name = side == .player ? self.playerName : self.opponentName
             let tint = self.legibleColor((side == .player ? playerColor : opponentColor) ?? .white)
             var str = AttributedString(name)
@@ -89,7 +89,7 @@ private extension BattleLogFormatter {
         return luminance < 0.32 ? .white : color
     }
 
-    func statusColor(_ status: BattleStatus) -> Color {
+    func statusColor(_ status: Status) -> Color {
         switch status {
         case .none:      return .white
         case .paralysis: return .yellow

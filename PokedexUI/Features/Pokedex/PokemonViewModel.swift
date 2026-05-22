@@ -33,10 +33,10 @@ struct PokemonViewModel {
         self.types = pokemon.types.map { $0.type }.joinedCapitalizedNames
         self.abilities = pokemon.abilities.map { $0.ability }.joinedCapitalizedNames
 
-        let moveNames = pokemon.moves.map { $0.move.name.capitalized }
-        let displayed = Array(moveNames.prefix(10))
+        let capitalized = pokemon.moveNames.map { $0.capitalized }
+        let displayed = Array(capitalized.prefix(10))
         let joined = displayed.joined(separator: ", ")
-        self.moves = moveNames.count > displayed.count ? "\(joined)…" : joined
+        self.moves = capitalized.count > displayed.count ? "\(joined)…" : joined
     }
 }
 
@@ -58,7 +58,7 @@ extension PokemonViewModel {
     var isMythical: Bool { pokemon.isMythical }
 }
 
-extension PokemonViewModel: BattlePokemonData {}
+extension PokemonViewModel: PokemonData {}
 
 extension PokemonViewModel: Hashable {
     static func == (lhs: PokemonViewModel, rhs: PokemonViewModel) -> Bool {

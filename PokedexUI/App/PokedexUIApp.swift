@@ -1,9 +1,12 @@
 import SwiftUI
 import SwiftData
+import PokeBattleKit
 
 /// App entry point.
 @main
 struct PokedexUIApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -11,8 +14,6 @@ struct PokedexUIApp: App {
         .modelContainer(for: [
             Pokemon.self,
             ItemData.self,
-            TypeDetail.self,
-            MoveDetail.self,
             EvolutionChainEntity.self
         ])
     }
@@ -30,5 +31,17 @@ private struct RootView: View {
                 container: container
             )
         )
+    }
+}
+
+// MARK: - AppDelegate
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        Task { try? await PokeBattleKit.initialize() }
+        return true
     }
 }

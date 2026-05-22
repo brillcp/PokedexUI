@@ -13,14 +13,14 @@ import Foundation
 enum LoadoutStrategy {
 
     static func shortlist(
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
-        moves: [MoveDetail],
+        fighter: Combatant,
+        opponent: Combatant,
+        moves: [Move],
         typeChart: TypeChart,
         limit: Int = 50
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         let ranked = rankedByScore(moves, fighter: fighter, opponent: opponent, typeChart: typeChart)
-        let buckets: [[MoveDetail]] = [
+        let buckets: [[Move]] = [
             ranked.filter { $0.isDamage && typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) >= 2 },
             ranked.filter(\.isDamage),
             ranked.filter(\.isBoost),
@@ -31,14 +31,14 @@ enum LoadoutStrategy {
     }
 
     static func heuristicPick(
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
-        moves: [MoveDetail],
+        fighter: Combatant,
+        opponent: Combatant,
+        moves: [Move],
         typeChart: TypeChart
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         let ranked = rankedByScore(moves, fighter: fighter, opponent: opponent, typeChart: typeChart)
         let se = ranked.filter { $0.isDamage && typeChart.multiplier(attacking: $0.typeName, defenders: opponent.typeNames) >= 2 }
-        let buckets: [[MoveDetail]] = [
+        let buckets: [[Move]] = [
             Array(se.prefix(1)),
             ranked.filter(\.isDamage),
             ranked.filter(\.isBoost),
@@ -49,25 +49,25 @@ enum LoadoutStrategy {
     }
 
     static func fill(
-        seed: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
-        moves: [MoveDetail],
+        seed: [Move],
+        fighter: Combatant,
+        opponent: Combatant,
+        moves: [Move],
         typeChart: TypeChart,
         count: Int
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         guard seed.count < count else { return Array(seed.prefix(count)) }
         let ranked = rankedByScore(moves, fighter: fighter, opponent: opponent, typeChart: typeChart)
         return collapse([seed, ranked], limit: count)
     }
 
     static func adjust(
-        picks: [MoveDetail],
-        pool: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        picks: [Move],
+        pool: [Move],
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         let composed = enforceComposition(picks, pool: pool, fighter: fighter, opponent: opponent, typeChart: typeChart)
         return handicap(composed, pool: pool, fighter: fighter, opponent: opponent, typeChart: typeChart)
     }
@@ -77,11 +77,11 @@ enum LoadoutStrategy {
 private extension LoadoutStrategy {
 
     static func rankedByScore(
-        _ moves: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        _ moves: [Move],
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         moves.sorted { lhs, rhs in
             MoveScoring.score(move: lhs, fighter: fighter, opponent: opponent, typeChart: typeChart)
             > MoveScoring.score(move: rhs, fighter: fighter, opponent: opponent, typeChart: typeChart)
@@ -90,9 +90,9 @@ private extension LoadoutStrategy {
 
     /// Walks each bucket in order, taking unseen moves until `limit`.
     /// Shared dedupe core for shortlist / heuristicPick / fill.
-    static func collapse(_ buckets: [[MoveDetail]], limit: Int) -> [MoveDetail] {
+    static func collapse(_ buckets: [[Move]], limit: Int) -> [Move] {
         var seen: Set<String> = []
-        var out: [MoveDetail] = []
+        var out: [Move] = []
         for bucket in buckets {
             for move in bucket where seen.insert(move.name).inserted {
                 out.append(move)
@@ -103,12 +103,12 @@ private extension LoadoutStrategy {
     }
 
     static func enforceComposition(
-        _ loadout: [MoveDetail],
-        pool: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        _ loadout: [Move],
+        pool: [Move],
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         let damageMoves = loadout.enumerated().filter { $0.element.isDamage }
         guard damageMoves.count > 2 else { return loadout }
 
@@ -140,12 +140,12 @@ private extension LoadoutStrategy {
 
     static func bestFromPool(
         category: String,
-        pool: [MoveDetail],
+        pool: [Move],
         exclude: Set<String>,
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
-    ) -> MoveDetail? {
+    ) -> Move? {
         pool.filter { !exclude.contains($0.name) && $0.loadoutCategory == category }
             .max {
                 MoveScoring.score(move: $0, fighter: fighter, opponent: opponent, typeChart: typeChart)
@@ -154,16 +154,16 @@ private extension LoadoutStrategy {
     }
 
     static func handicap(
-        _ loadout: [MoveDetail],
-        pool: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        _ loadout: [Move],
+        pool: [Move],
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
-    ) -> [MoveDetail] {
+    ) -> [Move] {
         let damageMoves = loadout.enumerated().filter { $0.element.isDamage }
         guard damageMoves.count >= 2 else { return loadout }
 
-        func dmg(_ move: MoveDetail) -> Int {
+        func dmg(_ move: Move) -> Int {
             DamageCalculator.estimateDamage(move: move, attacker: fighter, defender: opponent, typeChart: typeChart)
         }
 
@@ -201,10 +201,10 @@ enum LoadoutPrompt {
     }
 
     static func build(
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
-        moves: [MoveDetail],
-        playerMoves: [MoveDetail],
+        fighter: Combatant,
+        opponent: Combatant,
+        moves: [Move],
+        playerMoves: [Move],
         typeChart: TypeChart
     ) -> Output {
         var indexMap: [Int: Int] = [:]
@@ -246,9 +246,9 @@ enum LoadoutPrompt {
 
     /// Tries move-name substring match first, then falls back to integer
     /// indices via `indexMap`. Stops at 4 unique moves.
-    static func parsePicks(raw: String, indexMap: [Int: Int], moves: [MoveDetail]) -> [MoveDetail] {
+    static func parsePicks(raw: String, indexMap: [Int: Int], moves: [Move]) -> [Move] {
         let byName = Dictionary(uniqueKeysWithValues: moves.map { ($0.name, $0) })
-        var picked: [MoveDetail] = []
+        var picked: [Move] = []
         var used: Set<String> = []
 
         for name in byName.keys where raw.contains(name) && picked.count < 4 {
@@ -270,9 +270,9 @@ enum LoadoutPrompt {
 private extension LoadoutPrompt {
 
     static func threatSummary(
-        playerMoves: [MoveDetail],
-        fighter: BattleCombatant,
-        opponent: BattleCombatant,
+        playerMoves: [Move],
+        fighter: Combatant,
+        opponent: Combatant,
         typeChart: TypeChart
     ) -> String {
         guard let best = DamageCalculator.strongestMove(
@@ -283,9 +283,9 @@ private extension LoadoutPrompt {
     }
 }
 
-// MARK: - MoveDetail loadout classification
+// MARK: - Move loadout classification
 
-extension MoveDetail {
+extension Move {
     var isDamage: Bool  { (power ?? 0) > 0 }
     var isBoost: Bool   { (power ?? 0) == 0 && statChangeDeltas.contains { $0 > 0 } }
     var isDisrupt: Bool { (power ?? 0) == 0 && (ailment != "none" || statChangeDeltas.contains { $0 < 0 }) }

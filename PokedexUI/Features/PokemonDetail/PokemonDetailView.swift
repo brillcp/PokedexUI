@@ -100,7 +100,6 @@ private extension PokemonDetailView {
             }
             WeaknessGridView(
                 pokemon: pokemon,
-                typeChart: viewModel.typeChart,
                 textColor: textColor
             )
 

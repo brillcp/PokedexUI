@@ -11,7 +11,7 @@ final class Pokemon: Decodable {
     var cries: Cries
     var sprite: Sprite
     var abilities: [Ability]
-    var moves: [Move]
+    var moveNames: [String]
     var types: [Type]
     var stats: [Stat]
     var habitat: String?
@@ -38,7 +38,7 @@ final class Pokemon: Decodable {
         cries: Cries,
         sprite: Sprite,
         abilities: [Ability],
-        moves: [Move],
+        moveNames: [String],
         types: [Type],
         stats: [Stat],
         habitat: String? = nil,
@@ -59,7 +59,7 @@ final class Pokemon: Decodable {
         self.cries = cries
         self.sprite = sprite
         self.abilities = abilities
-        self.moves = moves
+        self.moveNames = moveNames
         self.types = types
         self.stats = stats
         self.habitat = habitat
@@ -83,7 +83,7 @@ final class Pokemon: Decodable {
         cries = try container.decode(Cries.self, forKey: .cries)
         sprite = try container.decode(Sprite.self, forKey: .sprite)
         abilities = try container.decode([Ability].self, forKey: .abilities)
-        moves = try container.decode([Move].self, forKey: .moves)
+        moveNames = try container.decode([MoveRef].self, forKey: .moves).map(\.move.name)
         types = try container.decode([Type].self, forKey: .types)
         stats = try container.decode([Stat].self, forKey: .stats)
     }
@@ -110,13 +110,7 @@ extension Pokemon {
                 Ability(ability: APIItem(name: "static", url: "")),
                 Ability(ability: APIItem(name: "lightning-rod", url: ""))
             ],
-            moves: [
-                Move(move: APIItem(name: "mega-punch", url: "")),
-                Move(move: APIItem(name: "pay-day", url: "")),
-                Move(move: APIItem(name: "thunder-punch", url: "")),
-                Move(move: APIItem(name: "slam", url: "")),
-                Move(move: APIItem(name: "thunderbolt", url: ""))
-            ],
+            moveNames: ["mega-punch", "pay-day", "thunder-punch", "slam", "thunderbolt"],
             types: [
                 Type(type: APIItem(name: "electric", url: ""))
             ],
@@ -184,28 +178,9 @@ final class Sprite: Decodable {
     }
 }
 
-/// Move slot in a pokemon's full movepool. Stores only the name reference;
-/// the per-move `MoveDetail` (power, accuracy, type) is resolved separately
-/// via `MoveService` / `MovePrefetcher`.
-@Model
-final class Move: Decodable {
-    var move: APIItem
-
-    @Relationship(inverse: \Pokemon.moves)
-    var pokemon: Pokemon?
-
-    private enum CodingKeys: String, CodingKey {
-        case move
-    }
-
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        move = try container.decode(APIItem.self, forKey: .move)
-    }
-
-    init(move: APIItem) {
-        self.move = move
-    }
+/// Throwaway DTO for decoding PokeAPI's `"moves": [{"move": {...}}]` array.
+private struct MoveRef: Decodable {
+    let move: APIItem
 }
 
 /// Audio cry URLs. PokeAPI exposes both a legacy and a latest variant;
