@@ -5,10 +5,10 @@ import SwiftData
 /// builds its own view model inline; only the pokedex view model is
 /// hoisted here so its grid + sort state survives tab switches.
 struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
-    @State var viewModel: PokedexViewModel
-
     @Environment(\.modelContext) private var modelContext
     @Environment(\.container) private var container
+
+    @State var viewModel: PokedexViewModel
 
     var body: some View {
         TabView(selection: $viewModel.selectedTab) {
