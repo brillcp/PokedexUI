@@ -25,10 +25,6 @@ protocol BattleViewModelProtocol: AnyObject {
     var errorMessage: String? { get }
     /// Player's moves rendered in the move grid.
     var displayMoves: [MoveDetail] { get }
-    /// Counter bumped on every player move-tap. The log feed watches this
-    /// to snap to the bottom only when the user actively engages, leaving
-    /// passive event arrivals alone for mid-turn history browsing.
-    var scrollLogToBottomToken: Int { get }
 
     /// Warm up battle state, sprite colors, and entrance animation.
     func prepare() async
@@ -62,7 +58,6 @@ final class BattleViewModel {
     var isResolvingTurn  = false
     var winner: BattleSide?
     var errorMessage: String?
-    var scrollLogToBottomToken: Int = 0
 
     init(
         player: PokemonViewModel,
@@ -120,7 +115,6 @@ extension BattleViewModel: BattleViewModelProtocol {
     func submit(_ move: MoveDetail) async {
         guard var eng = engine, let typeChart, !isResolvingTurn, winner == nil, let snapshot = state else { return }
         animator.attackTick += 1
-        scrollLogToBottomToken += 1
         isResolvingTurn = true
 
         let opponentMove = await aiDriver.nextOpponentMove(

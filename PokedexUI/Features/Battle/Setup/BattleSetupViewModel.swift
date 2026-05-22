@@ -3,6 +3,21 @@ import SwiftData
 import SwiftUI
 import BattleKit
 
+/// Discrete states the setup screen moves through. Single source of
+/// truth for which UI branch and which button action are active.
+enum BattleSetupPhase: Equatable {
+    /// Data still loading (pokemon hydration, move pools, type chart).
+    case loading
+    /// Player still picking moves (fewer than `maxSelections`).
+    case picking
+    /// Player locked in; AI is choosing its loadout.
+    case awaitingAI
+    /// Player locked in; ready to request the AI loadout.
+    case readyToRequest
+    /// Both sides locked; ready to launch the battle.
+    case readyToStart
+}
+
 /// Pre-battle loadout preparation protocol.
 @MainActor
 protocol BattleSetupViewModelProtocol {
@@ -20,23 +35,19 @@ protocol BattleSetupViewModelProtocol {
     var opponentLoadout: [MoveDetail]? { get }
     /// Names of moves the player has currently selected.
     var selectedMoveNames: Set<String> { get }
-    /// True once both sides, the player move pool, and the type chart are loaded.
-    var isReady: Bool { get }
     /// Maximum number of moves the player may pick.
     var maxSelections: Int { get }
     /// User-facing error surfaced by `prepare` failures.
     var errorMessage: String? { get }
-    /// True while AI is choosing its loadout after the player locks in.
-    var isPickingLoadout: Bool { get }
+    /// Current screen phase. Derived from load state + selection count +
+    /// AI loadout presence; replaces the older `isReady` / `isPickingLoadout`
+    /// / `canRequestLoadout` / `canStart` booleans.
+    var phase: BattleSetupPhase { get }
 
     /// Hydrate both sides, fetch move pools.
     func prepare(modelContext: ModelContext) async
     /// Toggle a move selection, capped at `maxSelections`.
     func toggle(_ move: MoveDetail)
-    /// True when player has picked enough moves to request AI loadout.
-    var canRequestLoadout: Bool { get }
-    /// True when both sides have their loadouts locked in.
-    var canStart: Bool { get }
     /// Ask AI to pick loadout based on what the player chose.
     func requestOpponentLoadout() async
     /// Player's chosen moves in selection order.
@@ -63,7 +74,7 @@ final class BattleSetupViewModel {
     var opponentLoadout:  [MoveDetail]?
     var selectedMoveNames: Set<String> = []
     var errorMessage: String?
-    var isPickingLoadout: Bool = false
+    private(set) var isPickingLoadout: Bool = false
 
     init(
         player: Pokemon,
@@ -83,19 +94,16 @@ final class BattleSetupViewModel {
 // MARK: - BattleSetupViewModelProtocol
 
 extension BattleSetupViewModel: BattleSetupViewModelProtocol {
-    var isReady: Bool {
-        playerPokemon != nil
-            && opponentPokemon != nil
-            && !playerMovePool.isEmpty
-            && typeChartLoader.chart != nil
-    }
-
-    var canRequestLoadout: Bool {
-        selectedMoveNames.count == maxSelections && opponentLoadout == nil && !isPickingLoadout
-    }
-
-    var canStart: Bool {
-        selectedMoveNames.count == maxSelections && opponentLoadout != nil
+    var phase: BattleSetupPhase {
+        guard playerPokemon != nil,
+              opponentPokemon != nil,
+              !playerMovePool.isEmpty,
+              typeChartLoader.chart != nil
+        else { return .loading }
+        guard selectedMoveNames.count == maxSelections else { return .picking }
+        if isPickingLoadout { return .awaitingAI }
+        if opponentLoadout != nil { return .readyToStart }
+        return .readyToRequest
     }
 
     func toggle(_ move: MoveDetail) {

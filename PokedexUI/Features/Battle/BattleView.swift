@@ -47,7 +47,7 @@ private extension BattleView {
             Spacer()
             arena(state: state)
                 .padding()
-            BattleLogFeed(log: viewModel.log, scrollToBottomTrigger: viewModel.scrollLogToBottomToken)
+            BattleLogFeed(log: viewModel.log)
                 .padding(.horizontal)
             moveGrid(state: state)
         }

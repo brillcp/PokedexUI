@@ -19,8 +19,8 @@ struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
             .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare(modelContext: modelContext) }
-            .onChange(of: viewModel.canStart) { _, ready in
-                if ready { startBattle() }
+            .onChange(of: viewModel.phase) { _, newPhase in
+                if newPhase == .readyToStart { startBattle() }
             }
     }
 }
@@ -47,7 +47,7 @@ private extension BattleSetupView {
             if let error = viewModel.errorMessage {
                 errorState(error)
                     .transition(.opacity)
-            } else if !viewModel.isReady {
+            } else if viewModel.phase == .loading {
                 loadingState
                     .transition(.opacity)
             } else {
@@ -55,7 +55,7 @@ private extension BattleSetupView {
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isReady)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.phase)
         .animation(.easeInOut(duration: 0.2), value: viewModel.errorMessage)
     }
 
@@ -81,16 +81,17 @@ private extension BattleSetupView {
     // MARK: - Loadout
 
     var loadout: some View {
-        ScrollView(showsIndicators: false) {
+        let busy = viewModel.phase == .awaitingAI
+        return ScrollView(showsIndicators: false) {
             VStack {
                 matchupRow
                 typeMatchup
                 movePicker
             }
         }
-        .disabled(viewModel.isPickingLoadout)
-        .opacity(viewModel.isPickingLoadout ? Opacity.disabled : 1)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isPickingLoadout)
+        .disabled(busy)
+        .opacity(busy ? Opacity.disabled : 1)
+        .animation(.easeInOut(duration: 0.2), value: busy)
         .scrollIndicators(.hidden)
         .safeAreaBar(edge: .bottom) { battleButton }
     }
@@ -266,16 +267,19 @@ private extension BattleSetupView {
     // MARK: - Battle button
 
     var battleButton: some View {
+        let phase = viewModel.phase
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
-        let label = viewModel.canStart
-            ? "Start"
-            : remaining > 0 ? "Pick \(remaining) \(remaining == 1 ? "move" : "moves")" : "Start"
+        let label: String = switch phase {
+        case .readyToStart: "Start"
+        case .picking where remaining > 0: "Pick \(remaining) \(remaining == 1 ? "move" : "moves")"
+        default: "Start"
+        }
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
             title: label,
-            isEnabled: viewModel.canStart || viewModel.canRequestLoadout,
-            isLoading: viewModel.isPickingLoadout,
-            action: viewModel.canStart
+            isEnabled: phase == .readyToStart || phase == .readyToRequest,
+            isLoading: phase == .awaitingAI,
+            action: phase == .readyToStart
                 ? startBattle
                 : { Task { await viewModel.requestOpponentLoadout() } }
         )
