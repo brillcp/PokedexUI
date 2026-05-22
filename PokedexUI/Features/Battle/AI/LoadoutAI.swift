@@ -1,5 +1,4 @@
 import PokeBattleKit
-import Foundation
 
 // MARK: - LoadoutStrategy
 
@@ -189,10 +188,8 @@ private extension LoadoutStrategy {
 
 // MARK: - LoadoutPrompt
 
-/// Builds the pre-battle loadout prompt: candidates are grouped by
-/// `loadoutCategory` so the model is steered toward composition rather
-/// than four damage moves. Player's biggest threat is summarised at the
-/// top so the model knows what it's planning around.
+/// Builds the pre-battle loadout prompt and parses the model's
+/// index reply.
 enum LoadoutPrompt {
 
     struct Output {
@@ -208,38 +205,17 @@ enum LoadoutPrompt {
         typeChart: TypeChart
     ) -> Output {
         var indexMap: [Int: Int] = [:]
-        var dmgRows: [String] = []
-        var boostRows: [String] = []
-        var disruptRows: [String] = []
-
-        for (displayIdx, originalIdx) in Array(moves.indices).shuffled().enumerated() {
+        let movesBlock = Array(moves.indices).shuffled().enumerated().map { displayIdx, originalIdx in
             indexMap[displayIdx] = originalIdx
-            let move = moves[originalIdx]
-            let row = MoveRow.describe(
-                move, index: displayIdx,
-                attacker: fighter, defender: opponent, typeChart: typeChart,
-                style: .compact
-            )
-            switch move.loadoutCategory {
-            case "BOOST":   boostRows.append(row)
-            case "DISRUPT": disruptRows.append(row)
-            default:        dmgRows.append(row)
-            }
-        }
+            return describeMove(moves[originalIdx], index: displayIdx)
+        }.joined(separator: "\n")
 
         let prompt = """
-        Pick 4 moves for \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))) vs \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))). \(threatSummary(playerMoves: playerMoves, fighter: fighter, opponent: opponent, typeChart: typeChart))
+        Pick 4 moves for \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))) vs \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
 
-        DMG (pick 2):
-        \(dmgRows.joined(separator: "\n"))
+        \(movesBlock)
 
-        BOOST (pick 1):
-        \(boostRows.joined(separator: "\n"))
-
-        DISRUPT (pick 1):
-        \(disruptRows.joined(separator: "\n"))
-
-        Pick highest dmg for DMG. Never pick IMMUNE. Return ONLY 4 index numbers.
+        Return ONLY 4 index numbers.
         """
         return Output(prompt: prompt, indexMap: indexMap)
     }
@@ -266,22 +242,6 @@ enum LoadoutPrompt {
     }
 }
 
-// MARK: - Private
-private extension LoadoutPrompt {
-
-    static func threatSummary(
-        playerMoves: [Move],
-        fighter: Combatant,
-        opponent: Combatant,
-        typeChart: TypeChart
-    ) -> String {
-        guard let best = DamageCalculator.strongestMove(
-            attacker: opponent, defender: fighter, moves: playerMoves, typeChart: typeChart
-        ) else { return "" }
-        let ko = DamageCalculator.turnsToKO(best.damage, hp: fighter.maxHP)
-        return "Player's strongest: \(best.move.displayName) (\(best.damage) dmg, \(ko)-hit KO vs you)."
-    }
-}
 
 // MARK: - Move loadout classification
 

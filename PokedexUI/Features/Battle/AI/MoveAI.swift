@@ -1,5 +1,4 @@
 import PokeBattleKit
-import Foundation
 
 // MARK: - MoveStrategy
 
@@ -335,17 +334,14 @@ enum MovePrompt {
         var indexMap: [Int: Int] = [:]
         let movesBlock = Array(moves.indices).shuffled().enumerated().map { displayIdx, originalIdx in
             indexMap[displayIdx] = originalIdx
-            return MoveRow.describe(
-                moves[originalIdx],
-                index: displayIdx,
-                attacker: attacker, defender: defender, typeChart: typeChart,
-                style: .verbose
-            )
+            return describeMove(moves[originalIdx], index: displayIdx)
         }.joined(separator: "\n")
 
         var sections = [BattleContext.compact(attacker: attacker, defender: defender, turnNumber: turnNumber)]
-        let threat = threatSection(seenMoves: defenderSeenMoves, attacker: defender, defender: attacker, typeChart: typeChart)
-        if !threat.isEmpty { sections.append(threat) }
+        if !defenderSeenMoves.isEmpty {
+            let names = defenderSeenMoves.map(\.name).joined(separator: ", ")
+            sections.append("Defender used: \(names)")
+        }
         sections.append(movesBlock)
         sections.append("\(BattleContext.tacticalHint(attacker: attacker, defender: defender, moves: moves)) Return ONLY the index.")
         return Output(prompt: sections.joined(separator: "\n\n"), indexMap: indexMap)
@@ -360,41 +356,17 @@ enum MovePrompt {
     }
 }
 
-// MARK: - Private
-private extension MovePrompt {
 
-    static func threatSection(
-        seenMoves: [Move],
-        attacker: Combatant,
-        defender: Combatant,
-        typeChart: TypeChart
-    ) -> String {
-        guard !seenMoves.isEmpty else { return "" }
-        let rows = seenMoves.map { move -> String in
-            if move.isDamage {
-                let dmg = DamageCalculator.estimateDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
-                let eff = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
-                let suffix: String
-                if eff >= 2 { suffix = ", SE" }
-                else if eff > 0, eff < 1 { suffix = ", resisted" }
-                else if eff == 0 { suffix = ", immune" }
-                else { suffix = "" }
-                return "- \(move.name) (\(move.typeName)) \(dmg) dmg\(suffix)"
-            }
-            var tags: [String] = []
-            if move.ailment != "none" { tags.append(move.ailment) }
-            if move.statChangeDeltas.contains(where: { $0 > 0 }) { tags.append("boost") }
-            if move.statChangeDeltas.contains(where: { $0 < 0 }) { tags.append("debuff") }
-            return "- \(move.name) (\(move.typeName)) \(tags.joined(separator: ", "))"
-        }
-        return "Defender has used:\n" + rows.joined(separator: "\n")
-    }
+// MARK: - Helpers
+
+/// One-line move description for LLM prompts: `"0: thunderbolt (electric) 90/100"`.
+func describeMove(_ move: Move, index: Int) -> String {
+    let pwr = move.power.map(String.init) ?? "-"
+    let acc = move.accuracy.map(String.init) ?? "-"
+    return "\(index): \(move.name) (\(move.typeName)) \(pwr)/\(acc)"
 }
 
-// MARK: - Response parsing
-
-/// First integer found anywhere in `text`, ignoring punctuation. Shared
-/// by `MovePrompt` and `OpponentPrompt`.
+/// First integer found anywhere in `text`, ignoring punctuation.
 func firstInt(in text: String) -> Int? {
     guard let match = text.firstMatch(of: /\d+/) else { return nil }
     return Int(match.output)

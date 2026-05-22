@@ -1,5 +1,4 @@
 import PokeBattleKit
-import Foundation
 
 /// On-device AI for battle decisions with deterministic fallbacks. The
 /// concrete `BattleAIService` uses an LLM where available and falls back

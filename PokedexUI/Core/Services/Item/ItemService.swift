@@ -77,14 +77,4 @@ struct ItemFetcher: DataFetcher {
 
     func transformToViewModel(_ data: ItemData) -> ItemData { data }
     func transformForStorage(_ data: ItemData) -> ItemData { data }
-
-    func shouldInvalidate(_ stored: [ItemData]) -> Bool {
-        stored.contains(where: { $0.prettyTitle.isEmpty })
-    }
-
-    func clearStoredData() async throws {
-        await storage.clear(ItemData.self)
-        await storage.clear(ItemDetail.self)
-        await storage.clear(Effect.self)
-    }
 }

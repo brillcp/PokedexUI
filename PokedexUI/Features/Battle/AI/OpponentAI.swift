@@ -1,5 +1,4 @@
 import PokeBattleKit
-import Foundation
 
 // MARK: - OpponentStrategy
 

@@ -1,5 +1,4 @@
 import PokeBattleKit
-import Foundation
 
 /// Per-battle wrapper around `BattleAIServiceProtocol` that tracks the
 /// opponent's recent picks (for recency penalty) and which player moves
