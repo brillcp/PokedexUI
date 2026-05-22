@@ -1,12 +1,10 @@
 import BattleKit
 import Foundation
 
-/// LLM prompt + response parsing for picking the next move in battle.
-///
-/// `build(...)` shuffles move indices so the model can't rely on order,
-/// then assembles a context line, per-move description block, and a
-/// tactical directive. `parsePick(...)` resolves the LLM's reply (a
-/// single integer) back to the original move via the returned index map.
+/// Builds the per-turn move-pick prompt and parses the model's index
+/// reply. The prompt opens with a one-line battle context, optionally
+/// lists the defender's observed moves with damage-back-at-you tags,
+/// then enumerates the attacker's options in a randomised order.
 enum MovePrompt {
 
     struct Output {
@@ -18,30 +16,29 @@ enum MovePrompt {
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
+        defenderSeenMoves: [MoveDetail],
         typeChart: TypeChart,
         turnNumber: Int
     ) -> Output {
-        let shuffled = Array(moves.indices).shuffled()
         var indexMap: [Int: Int] = [:]
-        let movesBlock = shuffled.enumerated().map { displayIdx, originalIdx in
+        let movesBlock = Array(moves.indices).shuffled().enumerated().map { displayIdx, originalIdx in
             indexMap[displayIdx] = originalIdx
-            let move = moves[originalIdx]
-            return describe(move, index: displayIdx, attacker: attacker, defender: defender, typeChart: typeChart)
+            return MoveRow.describe(
+                moves[originalIdx],
+                index: displayIdx,
+                attacker: attacker, defender: defender, typeChart: typeChart,
+                style: .verbose
+            )
         }.joined(separator: "\n")
-        let situation = BattleContext.compact(attacker: attacker, defender: defender, turnNumber: turnNumber)
-        let hint = BattleContext.tacticalHint(attacker: attacker, defender: defender, moves: moves)
-        let prompt = """
-        \(situation)
 
-        \(movesBlock)
-
-        \(hint) Return ONLY the index.
-        """
-        return Output(prompt: prompt, indexMap: indexMap)
+        var sections = [BattleContext.compact(attacker: attacker, defender: defender, turnNumber: turnNumber)]
+        let threat = threatSection(seenMoves: defenderSeenMoves, attacker: defender, defender: attacker, typeChart: typeChart)
+        if !threat.isEmpty { sections.append(threat) }
+        sections.append(movesBlock)
+        sections.append("\(BattleContext.tacticalHint(attacker: attacker, defender: defender, moves: moves)) Return ONLY the index.")
+        return Output(prompt: sections.joined(separator: "\n\n"), indexMap: indexMap)
     }
 
-    /// Resolve the LLM's first-integer reply to the original move, or nil
-    /// if no valid index is present.
     static func parsePick(raw: String, indexMap: [Int: Int], moves: [MoveDetail]) -> MoveDetail? {
         guard let shuffledIdx = LLMResponseParser.firstInt(in: raw),
               let originalIdx = indexMap[shuffledIdx],
@@ -54,50 +51,33 @@ enum MovePrompt {
 // MARK: - Private
 private extension MovePrompt {
 
-    static func describe(
-        _ move: MoveDetail,
-        index: Int,
+    /// Defender's observed moves rendered with their damage threat back
+    /// at us. Caller swaps attacker/defender so the damage estimate is
+    /// the defender's hit against the attacker.
+    static func threatSection(
+        seenMoves: [MoveDetail],
         attacker: BattleCombatant,
         defender: BattleCombatant,
         typeChart: TypeChart
     ) -> String {
-        var parts: [String] = []
-        parts.append("\(index): \(move.name) (\(move.typeName))")
-
-        if let power = move.power, power > 0 {
-            let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
-            let dmg = DamageCalculator.estimateDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
-            let acc = move.accuracy ?? 100
-            let koTurns = DamageCalculator.turnsToKO(dmg, hp: defender.currentHP)
-            var dmgStr = "\(dmg) dmg"
-            if koTurns == 1 { dmgStr += ", KOs this turn" }
-            else if koTurns == 2 { dmgStr += ", 2-hit KO" }
-            else if koTurns == 3 { dmgStr += ", 3-hit KO" }
-            if acc < 100 { dmgStr += ", \(acc)% acc" }
-            if attacker.typeNames.contains(move.typeName) { dmgStr += ", STAB" }
-            if effectiveness >= 2 { dmgStr += ", super effective" }
-            else if effectiveness > 0, effectiveness < 1 { dmgStr += ", resisted" }
-            else if effectiveness == 0 { dmgStr += ", IMMUNE" }
-            if move.hasSelfDebuff { dmgStr += ", lowers your stats" }
-            if move.isRechargeMove { dmgStr += ", must recharge next turn" }
-            if move.priority > 0 { dmgStr += ", priority" }
-            parts.append(dmgStr)
-        } else {
-            var effects: [String] = []
-            if move.ailment != "none" {
-                let chance = move.ailmentChance > 0 ? " (\(move.ailmentChance)%)" : ""
-                effects.append("inflicts \(move.ailment)\(chance)")
+        guard !seenMoves.isEmpty else { return "" }
+        let rows = seenMoves.map { move -> String in
+            if (move.power ?? 0) > 0 {
+                let dmg = DamageCalculator.estimateDamage(move: move, attacker: attacker, defender: defender, typeChart: typeChart)
+                let eff = typeChart.multiplier(attacking: move.typeName, defenders: defender.typeNames)
+                let suffix: String
+                if eff >= 2 { suffix = ", SE" }
+                else if eff > 0, eff < 1 { suffix = ", resisted" }
+                else if eff == 0 { suffix = ", immune" }
+                else { suffix = "" }
+                return "- \(move.name) (\(move.typeName)) \(dmg) dmg\(suffix)"
             }
-            for (i, stat) in move.statChangeNames.enumerated() where i < move.statChangeDeltas.count {
-                let delta = move.statChangeDeltas[i]
-                let sign = delta > 0 ? "+" : ""
-                effects.append("\(sign)\(delta) \(BattleContext.shortStat(stat))")
-            }
-            if move.healing > 0 { effects.append("heals \(move.healing)%") }
-            if move.name == "rest" { effects.append("full heal, sleeps 2 turns") }
-            parts.append(effects.joined(separator: ", "))
+            var tags: [String] = []
+            if move.ailment != "none" { tags.append(move.ailment) }
+            if move.statChangeDeltas.contains(where: { $0 > 0 }) { tags.append("boost") }
+            if move.statChangeDeltas.contains(where: { $0 < 0 }) { tags.append("debuff") }
+            return "- \(move.name) (\(move.typeName)) \(tags.joined(separator: ", "))"
         }
-
-        return parts.joined(separator: " - ")
+        return "Defender has used:\n" + rows.joined(separator: "\n")
     }
 }

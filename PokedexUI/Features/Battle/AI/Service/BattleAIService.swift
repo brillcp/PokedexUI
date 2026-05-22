@@ -1,35 +1,56 @@
 import BattleKit
 import Foundation
 
-/// On-device AI for battle decisions with deterministic fallbacks.
+/// On-device AI for battle decisions with deterministic fallbacks. The
+/// concrete `BattleAIService` uses an LLM where available and falls back
+/// to heuristics otherwise.
 protocol BattleAIServiceProtocol: Sendable {
-    /// Pick the best move for this turn.
-    func chooseMove(attacker: BattleCombatant, defender: BattleCombatant, moves: [MoveDetail], typeChart: TypeChart, recentMoves: [String], turnNumber: Int) async -> MoveDetail
+    /// Pick the best move for this turn. `defenderMoves` is the defender's
+    /// full loadout; `defenderSeenMoves` is the subset already used in the
+    /// current battle and is the only one shown to the LLM.
+    func chooseMove(
+        attacker: BattleCombatant,
+        defender: BattleCombatant,
+        moves: [MoveDetail],
+        defenderMoves: [MoveDetail],
+        defenderSeenMoves: [String],
+        typeChart: TypeChart,
+        recentMoves: [String],
+        turnNumber: Int
+    ) async -> MoveDetail
     /// Pick an opponent id from candidate snapshots.
-    func chooseOpponent(player: OpponentCandidateSnapshot, candidates: [OpponentCandidateSnapshot], typeChart: TypeChart?) async -> Int?
-    /// Pick a 4-move loadout for a 1v1 battle, informed by what the player chose.
-    func chooseLoadout(for fighter: BattleCombatant, against opponent: BattleCombatant, moves: [MoveDetail], playerMoves: [MoveDetail], typeChart: TypeChart) async -> [MoveDetail]
+    func chooseOpponent(
+        player: OpponentCandidateSnapshot,
+        candidates: [OpponentCandidateSnapshot],
+        typeChart: TypeChart?
+    ) async -> Int?
+    /// Pick a 4-move loadout, informed by what the player chose.
+    func chooseLoadout(
+        for fighter: BattleCombatant,
+        against opponent: BattleCombatant,
+        moves: [MoveDetail],
+        playerMoves: [MoveDetail],
+        typeChart: TypeChart
+    ) async -> [MoveDetail]
 }
 
-/// Thin façade over ``LanguageModelClient`` plus per-decision strategy
-/// and prompt helpers. Each public method composes:
-///   `Strategy.heuristicPick` → fallback used when the LLM is unavailable
-///   or returns nothing usable.
-///   `Prompt.build` / `Prompt.parsePick` → LLM I/O.
-///   `Strategy.adjust` → post-pick correction pipeline run against either
-///   branch.
-/// `LanguageModelClient.decide(...)` ties the three together.
+/// Thin façade composing a `LanguageModelClient` with per-decision
+/// strategy + prompt helpers. Each public method follows the same shape:
+/// 1. Strategy produces a deterministic fallback.
+/// 2. Client builds + parses an LLM prompt, falling back if unavailable.
+/// 3. Strategy.adjust runs post-pick corrections against either branch.
 actor BattleAIService {
     private let client = LanguageModelClient()
 }
 
-// MARK: - BattleAIServiceProtocol
 extension BattleAIService: BattleAIServiceProtocol {
 
     func chooseMove(
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
+        defenderMoves: [MoveDetail],
+        defenderSeenMoves: [String],
         typeChart: TypeChart,
         recentMoves: [String],
         turnNumber: Int
@@ -38,8 +59,10 @@ extension BattleAIService: BattleAIServiceProtocol {
         let fallback = MoveStrategy.heuristicPick(
             attacker: attacker, defender: defender, moves: moves, typeChart: typeChart, recentMoves: recentMoves
         ) ?? first
+        let seen = defenderMoves.filter { defenderSeenMoves.contains($0.name) }
         let output = MovePrompt.build(
-            attacker: attacker, defender: defender, moves: moves, typeChart: typeChart, turnNumber: turnNumber
+            attacker: attacker, defender: defender, moves: moves,
+            defenderSeenMoves: seen, typeChart: typeChart, turnNumber: turnNumber
         )
         return await client.decide(
             fallback: fallback,
@@ -86,11 +109,11 @@ extension BattleAIService: BattleAIServiceProtocol {
         let fallback = LoadoutStrategy.heuristicPick(
             fighter: fighter, opponent: opponent, moves: moves, typeChart: typeChart
         )
-        let shortMoves = LoadoutStrategy.shortlist(
+        let shortlist = LoadoutStrategy.shortlist(
             fighter: fighter, opponent: opponent, moves: moves, typeChart: typeChart
         )
         let output = LoadoutPrompt.build(
-            fighter: fighter, opponent: opponent, moves: shortMoves, playerMoves: playerMoves, typeChart: typeChart
+            fighter: fighter, opponent: opponent, moves: shortlist, playerMoves: playerMoves, typeChart: typeChart
         )
         return await client.decide(
             fallback: fallback,
@@ -98,11 +121,11 @@ extension BattleAIService: BattleAIServiceProtocol {
             temperature: 0.4,
             instructions: .loadout,
             parse: { raw in
-                let parsed = LoadoutPrompt.parsePicks(raw: raw, indexMap: output.indexMap, moves: shortMoves)
+                let parsed = LoadoutPrompt.parsePicks(raw: raw, indexMap: output.indexMap, moves: shortlist)
                 guard !parsed.isEmpty else { return nil }
                 return LoadoutStrategy.fill(
                     seed: parsed, fighter: fighter, opponent: opponent,
-                    moves: shortMoves, typeChart: typeChart, count: 4
+                    moves: shortlist, typeChart: typeChart, count: 4
                 )
             },
             adjust: {

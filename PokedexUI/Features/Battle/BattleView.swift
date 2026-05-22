@@ -48,7 +48,7 @@ private extension BattleView {
             arena(state: state)
                 .padding(.horizontal)
             BattleLogFeed(log: viewModel.log)
-                .padding(.vertical)
+                .padding(.top)
                 .padding(.horizontal)
             moveGrid(state: state)
         }

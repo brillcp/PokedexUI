@@ -22,16 +22,20 @@ final class OpponentBrain {
         attacker: BattleCombatant,
         defender: BattleCombatant,
         moves: [MoveDetail],
+        defenderMoves: [MoveDetail],
+        defenderSeenMoves: [String],
         typeChart: TypeChart
     ) async -> MoveDetail {
         turnNumber += 1
         let pick = await service.chooseMove(
-            attacker:    attacker,
-            defender:    defender,
-            moves:       moves,
-            typeChart:   typeChart,
-            recentMoves: history,
-            turnNumber:  turnNumber
+            attacker:          attacker,
+            defender:          defender,
+            moves:             moves,
+            defenderMoves:     defenderMoves,
+            defenderSeenMoves: defenderSeenMoves,
+            typeChart:         typeChart,
+            recentMoves:       history,
+            turnNumber:        turnNumber
         )
         record(pick.name)
         return pick

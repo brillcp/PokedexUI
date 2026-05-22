@@ -45,17 +45,3 @@ final class TypeDetail: Decodable {
 }
 
 private struct NamedRef: Decodable { let name: String }
-
-// MARK: - Effectiveness lookup
-extension TypeDetail {
-    /// Returns the damage multiplier when this attacking type hits a defender with the given type names.
-    /// Multiplies per defender type and clamps at 0 if any defender type is fully immune.
-    func multiplier(against defenderTypeNames: [String]) -> Double {
-        defenderTypeNames.reduce(1.0) { product, defender in
-            if noDamageTo.contains(defender) { return 0 }
-            if doubleDamageTo.contains(defender) { return product * 2 }
-            if halfDamageTo.contains(defender) { return product * 0.5 }
-            return product
-        }
-    }
-}

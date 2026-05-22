@@ -14,7 +14,7 @@ enum OpponentStrategy {
         playerBST: Int,
         playerTypes: [String],
         chart: TypeChart?,
-        limit: Int = 16
+        limit: Int = 50
     ) -> [OpponentCandidateSnapshot] {
         let filtered = snapshots.filter { candidate in
             let delta = candidate.baseStatTotal - playerBST

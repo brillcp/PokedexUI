@@ -36,6 +36,7 @@ protocol BattleViewModelProtocol: AnyObject {
 @Observable
 final class BattleViewModel {
     private let opponentMoves:      [MoveDetail]
+    private let playerMoves:        [MoveDetail]
     private let formatter:          BattleLogFormatter
     private let typeChartLoader:    TypeChartLoader
     private let audioPlayer:        AudioPlaying
@@ -43,6 +44,7 @@ final class BattleViewModel {
     private let spriteLoader:       SpriteLoading
     private let imageColorAnalyzer: ImageColorAnalyzing
     private var typeChart:          TypeChart?
+    private var playerSeenMoves:    Set<String>  = []
 
     let playerPokemon:   PokemonViewModel
     let opponentPokemon: PokemonViewModel
@@ -66,6 +68,7 @@ final class BattleViewModel {
         self.playerPokemon      = player
         self.opponentPokemon    = opponent
         self.displayMoves       = playerMoves
+        self.playerMoves        = playerMoves
         self.opponentMoves      = opponentMoves
         self.typeChartLoader    = container.typeChart
         self.audioPlayer        = container.audioPlayer
@@ -115,10 +118,12 @@ extension BattleViewModel: BattleViewModelProtocol {
         isResolvingTurn = true
 
         let opponentMove = await brain.nextMove(
-            attacker:  snapshot.opponent,
-            defender:  snapshot.player,
-            moves:     opponentMoves,
-            typeChart: typeChart
+            attacker:          snapshot.opponent,
+            defender:          snapshot.player,
+            moves:             opponentMoves,
+            defenderMoves:     playerMoves,
+            defenderSeenMoves: Array(playerSeenMoves),
+            typeChart:         typeChart
         )
         let events = eng.resolveRound(playerMove: move, opponentMove: opponentMove)
         self.engine = eng
@@ -142,6 +147,11 @@ extension BattleViewModel: BattleViewModelProtocol {
             }
         }
         state = eng.state
+        if events.contains(where: {
+            if case .used(.player, _) = $0 { return true } else { return false }
+        }) {
+            playerSeenMoves.insert(move.name)
+        }
         isResolvingTurn = false
     }
 }
@@ -227,4 +237,5 @@ private extension BattleViewModel {
             break
         }
     }
+
 }

@@ -5,8 +5,9 @@ import Foundation
 /// Pure value type with no UI or actor dependencies. Mutate via
 /// `resolveRound` and read the updated `state` afterwards.
 public struct BattleEngine: Sendable {
-    public private(set) var state: BattleState
     private let typeChart: TypeChart
+
+    public private(set) var state: BattleState
 
     public init(state: BattleState, typeChart: TypeChart) {
         self.state = state
@@ -115,6 +116,12 @@ private extension BattleEngine {
         let accuracy = Double(move.accuracy ?? 100) / 100.0
         guard Double.random(in: 0..<1) < accuracy else {
             events.append(.missed(side))
+            return
+        }
+
+        if MoveClassification.requiresPoisonedTarget.contains(move.name),
+           combatant(side.opposite).status != .poison {
+            events.append(.damaged(side.opposite, amount: 0, effectiveness: 0, crit: false))
             return
         }
 

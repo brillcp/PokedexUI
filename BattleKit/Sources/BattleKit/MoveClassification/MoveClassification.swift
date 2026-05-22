@@ -24,4 +24,11 @@ public enum MoveClassification {
         "explosion", "self-destruct", "memento", "healing-wish",
         "lunar-dance", "final-gambit", "misty-explosion"
     ]
+
+    /// Moves that fail entirely when the target is not poisoned. Used by
+    /// the engine to no-op the effect and by AI scoring to refuse picking
+    /// the move outside its precondition.
+    public static let requiresPoisonedTarget: Set<String> = [
+        "venom-drench"
+    ]
 }

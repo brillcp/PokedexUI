@@ -271,19 +271,6 @@
 			path = EnvironmentValues;
 			sourceTree = "<group>";
 		};
-		D5BA13062E70000000000207 /* AI */ = {
-			isa = PBXGroup;
-			children = (
-				D5A1B00000000000000000C1 /* Service */,
-				D5C46D882FBF567F0085527B /* Strategies */,
-				D5C46D892FBF56910085527B /* Prompts */,
-				D5A1B00000000000000000C2 /* Shared */,
-				D5C46D8A2FBF56C40085527B /* Opponent */,
-				D5C46D8B2FBF56E00085527B /* LLMInstructions */,
-			);
-			path = AI;
-			sourceTree = "<group>";
-		};
 		D5A1B00000000000000000C1 /* Service */ = {
 			isa = PBXGroup;
 			children = (
@@ -299,6 +286,19 @@
 				D5A1B00000000000000000B6 /* BattleContext.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		D5BA13062E70000000000207 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				D5A1B00000000000000000C1 /* Service */,
+				D5C46D882FBF567F0085527B /* Strategies */,
+				D5C46D892FBF56910085527B /* Prompts */,
+				D5A1B00000000000000000C2 /* Shared */,
+				D5C46D8A2FBF56C40085527B /* Opponent */,
+				D5C46D8B2FBF56E00085527B /* LLMInstructions */,
+			);
+			path = AI;
 			sourceTree = "<group>";
 		};
 		D5BA130C2E70000000000305 /* Setup */ = {

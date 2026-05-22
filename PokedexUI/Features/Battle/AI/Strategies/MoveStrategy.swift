@@ -131,6 +131,11 @@ private extension MoveStrategy {
             score -= 8
         }
 
+        if move.isRechargeMove,
+           recentMoves.contains(where: { MoveClassification.rechargeMoves.contains($0) }) {
+            score *= 0.2
+        }
+
         if (move.power ?? 0) == 0 {
             for (index, stat) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
                 let delta = move.statChangeDeltas[index]

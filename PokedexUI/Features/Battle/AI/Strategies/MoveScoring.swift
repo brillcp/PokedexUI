@@ -2,10 +2,9 @@ import BattleKit
 import Foundation
 
 /// Move-evaluation primitive used by both move-pick and loadout-pick AI
-/// strategies. Mixes BattleKit damage estimates with heuristic weights for
-/// status effects, stat changes, and move quirks (self-debuff, recharge,
-/// priority). Returns a unitless score where higher = better for the
-/// fighter.
+/// strategies. Mixes BattleKit's damage estimate with heuristic weights
+/// for status effects, stat changes, and move quirks (self-debuff,
+/// recharge, priority). Higher score = better for the fighter.
 enum MoveScoring {
 
     static func score(
@@ -14,10 +13,51 @@ enum MoveScoring {
         opponent: BattleCombatant,
         typeChart: TypeChart
     ) -> Double {
-        if (move.power ?? 0) > 0, move.damageClassKind != .status {
+        if MoveClassification.requiresPoisonedTarget.contains(move.name),
+           opponent.status != .poison {
+            return Weights.disallowed
+        }
+        if move.isDamage, move.damageClassKind != .status {
             return damageScore(move: move, fighter: fighter, opponent: opponent, typeChart: typeChart)
         }
         return supportScore(move: move, fighter: fighter, opponent: opponent)
+    }
+
+    /// Tunable weights for heuristic scoring. All numbers live here so the
+    /// scoring function reads as descriptions, not magic constants.
+    enum Weights {
+        static let disallowed: Double      = -100
+        static let koBonus: Double         = 55     // estimated dmg >= target HP
+        static let nearKOBonus: Double     = 18     // estimated dmg >= 65% target HP
+        static let resistedMult: Double    = 0.4    // multiply on resisted (eff < 1)
+        static let selfDebuffPenalty: Double = 18
+        static let priorityBonus: Double   = 8
+        static let rechargeMult: Double    = 0.45
+
+        static let healingVsBulky: Double  = 16
+        static let healingDefault: Double  = 8
+
+        static let statusMinChance: Int    = 60
+        static let paralysisFaster: Double = 28
+        static let paralysisSlower: Double = 12
+        static let burnPhysical: Double    = 24
+        static let burnSpecial: Double     = 10
+        static let poisonBulky: Double     = 18
+        static let poisonFrail: Double     = 8
+        static let sleep: Double           = 22
+        static let statusOther: Double     = 4
+
+        static let statBoostMatching: Double  = 10   // attack/spa boost matching offense
+        static let statBoostMismatch: Double  = 2
+        static let statBoostSpeedSlow: Double = 16
+        static let statBoostSpeedFast: Double = 2
+        static let statBoostDefVsTank: Double = 7
+        static let statBoostDefVsFrail: Double = 4
+        static let statBoostDefault: Double   = 4
+
+        static let statDebuffMatching: Double  = 8
+        static let statDebuffMismatch: Double  = 3
+        static let statDebuffDefault: Double   = 4
     }
 }
 
@@ -31,18 +71,18 @@ private extension MoveScoring {
         typeChart: TypeChart
     ) -> Double {
         let effectiveness = typeChart.multiplier(attacking: move.typeName, defenders: opponent.typeNames)
-        guard effectiveness > 0 else { return -100 }
+        guard effectiveness > 0 else { return Weights.disallowed }
         let accuracy = Double(move.accuracy ?? 100) / 100
         let estimated = Double(DamageCalculator.estimateDamage(
             move: move, attacker: fighter, defender: opponent, typeChart: typeChart
         ))
         var score = estimated * accuracy
-        if estimated >= Double(opponent.currentHP) { score += 55 }
-        if estimated >= Double(opponent.currentHP) * 0.65 { score += 18 }
-        if effectiveness < 1 && effectiveness > 0 { score *= 0.4 }
-        if move.hasSelfDebuff { score -= 18 }
-        if move.priority > 0 { score += 8 }
-        if move.isRechargeMove { score *= 0.45 }
+        if estimated >= Double(opponent.currentHP) { score += Weights.koBonus }
+        if estimated >= Double(opponent.currentHP) * 0.65 { score += Weights.nearKOBonus }
+        if effectiveness < 1, effectiveness > 0 { score *= Weights.resistedMult }
+        if move.hasSelfDebuff { score -= Weights.selfDebuffPenalty }
+        if move.priority > 0 { score += Weights.priorityBonus }
+        if move.isRechargeMove { score *= Weights.rechargeMult }
         return score
     }
 
@@ -53,40 +93,35 @@ private extension MoveScoring {
     ) -> Double {
         var score = 0.0
         if move.ailment != "none" {
-            score += statusScore(move.ailment, chance: move.ailmentChance, fighter: fighter, opponent: opponent)
+            score += statusScore(ailment: move.ailment, chance: move.ailmentChance, fighter: fighter, opponent: opponent)
         }
         if move.healing > 0 || move.name == "rest" {
-            score += opponent.maxHP > fighter.maxHP ? 16 : 8
+            score += opponent.maxHP > fighter.maxHP ? Weights.healingVsBulky : Weights.healingDefault
         }
         for (index, stat) in move.statChangeNames.enumerated() where index < move.statChangeDeltas.count {
-            score += statChangeScore(
-                stat: stat,
-                delta: move.statChangeDeltas[index],
-                fighter: fighter,
-                opponent: opponent
-            )
+            score += statChangeScore(stat: stat, delta: move.statChangeDeltas[index], fighter: fighter, opponent: opponent)
         }
         return score
     }
 
     static func statusScore(
-        _ ailment: String,
+        ailment: String,
         chance: Int,
         fighter: BattleCombatant,
         opponent: BattleCombatant
     ) -> Double {
-        let chanceFactor = Double(max(chance, 60)) / 100
+        let factor = Double(max(chance, Weights.statusMinChance)) / 100
         switch ailment {
         case "paralysis":
-            return opponent.effectiveSpeed > fighter.effectiveSpeed ? 28 * chanceFactor : 12 * chanceFactor
+            return (opponent.effectiveSpeed > fighter.effectiveSpeed ? Weights.paralysisFaster : Weights.paralysisSlower) * factor
         case "burn":
-            return opponent.attack >= opponent.specialAttack ? 24 * chanceFactor : 10 * chanceFactor
+            return (opponent.attack >= opponent.specialAttack ? Weights.burnPhysical : Weights.burnSpecial) * factor
         case "poison":
-            return opponent.maxHP >= fighter.maxHP ? 18 * chanceFactor : 8 * chanceFactor
+            return (opponent.maxHP >= fighter.maxHP ? Weights.poisonBulky : Weights.poisonFrail) * factor
         case "sleep":
-            return 22 * chanceFactor
+            return Weights.sleep * factor
         default:
-            return 4 * chanceFactor
+            return Weights.statusOther * factor
         }
     }
 
@@ -97,30 +132,30 @@ private extension MoveScoring {
         opponent: BattleCombatant
     ) -> Double {
         guard delta != 0 else { return 0 }
+        let magnitude = Double(abs(delta))
         if delta > 0 {
             switch stat {
             case "speed":
-                return fighter.effectiveSpeed > opponent.effectiveSpeed ? 2 : 16
+                return fighter.effectiveSpeed > opponent.effectiveSpeed ? Weights.statBoostSpeedFast : Weights.statBoostSpeedSlow
             case "attack":
-                return fighter.attack >= fighter.specialAttack ? Double(delta) * 10 : Double(delta) * 2
+                return fighter.attack >= fighter.specialAttack ? magnitude * Weights.statBoostMatching : magnitude * Weights.statBoostMismatch
             case "special-attack":
-                return fighter.specialAttack >= fighter.attack ? Double(delta) * 10 : Double(delta) * 2
+                return fighter.specialAttack >= fighter.attack ? magnitude * Weights.statBoostMatching : magnitude * Weights.statBoostMismatch
             case "defense", "special-defense":
-                return opponent.maxHP >= fighter.maxHP ? Double(delta) * 7 : Double(delta) * 4
+                return opponent.maxHP >= fighter.maxHP ? magnitude * Weights.statBoostDefVsTank : magnitude * Weights.statBoostDefVsFrail
             default:
-                return Double(delta) * 4
+                return magnitude * Weights.statBoostDefault
             }
-        } else {
-            switch stat {
-            case "defense":
-                return fighter.attack >= fighter.specialAttack ? Double(abs(delta)) * 8 : Double(abs(delta)) * 3
-            case "special-defense":
-                return fighter.specialAttack >= fighter.attack ? Double(abs(delta)) * 8 : Double(abs(delta)) * 3
-            case "speed":
-                return opponent.effectiveSpeed > fighter.effectiveSpeed ? Double(abs(delta)) * 8 : Double(abs(delta)) * 3
-            default:
-                return Double(abs(delta)) * 4
-            }
+        }
+        switch stat {
+        case "defense":
+            return fighter.attack >= fighter.specialAttack ? magnitude * Weights.statDebuffMatching : magnitude * Weights.statDebuffMismatch
+        case "special-defense":
+            return fighter.specialAttack >= fighter.attack ? magnitude * Weights.statDebuffMatching : magnitude * Weights.statDebuffMismatch
+        case "speed":
+            return opponent.effectiveSpeed > fighter.effectiveSpeed ? magnitude * Weights.statDebuffMatching : magnitude * Weights.statDebuffMismatch
+        default:
+            return magnitude * Weights.statDebuffDefault
         }
     }
 }
