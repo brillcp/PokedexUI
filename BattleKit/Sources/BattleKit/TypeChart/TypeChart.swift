@@ -25,7 +25,7 @@ public struct TypeMatchup: Sendable {
         self.noDamageTo = noDamageTo
     }
 
-    public func multiplier(against defenderTypeNames: [String]) -> Double {
+    func multiplier(against defenderTypeNames: [String]) -> Double {
         defenderTypeNames.reduce(1.0) { product, defender in
             if noDamageTo.contains(defender) { return 0 }
             if doubleDamageTo.contains(defender) { return product * 2 }

@@ -1,17 +1,14 @@
 import Foundation
 
-/// Snapshot of an in-flight battle.
+/// Snapshot of an in-flight battle. Mutated by `BattleEngine.resolveRound`
+/// once per turn.
 public struct BattleState: Sendable {
     public var player: BattleCombatant
     public var opponent: BattleCombatant
-    public var phase: BattlePhase = .selectingMove
+    var phase: BattlePhase = .selectingMove
 
     public init(player: BattleCombatant, opponent: BattleCombatant) {
         self.player = player
         self.opponent = opponent
-    }
-
-    public func combatant(for side: BattleSide) -> BattleCombatant {
-        side == .player ? player : opponent
     }
 }

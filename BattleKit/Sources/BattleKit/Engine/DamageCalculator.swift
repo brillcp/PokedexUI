@@ -3,7 +3,8 @@ import Foundation
 /// Bulbapedia-faithful damage formula and deterministic estimator for AI.
 public enum DamageCalculator {
 
-    /// Full damage computation with all modifiers.
+    /// Full damage computation with all modifiers. Used internally by
+    /// `BattleEngine` when resolving a hit.
     ///
     /// Formula per Bulbapedia:
     /// `((2*Level/5+2) * Power * A/D) / 50 + 2`
@@ -11,7 +12,7 @@ public enum DamageCalculator {
     ///
     /// Super-effective is capped at `superEffectiveCap` (default 1.5) to
     /// prevent runaway one-shots.
-    public static func computeDamage(
+    static func computeDamage(
         power: Int,
         move: some BattleMoveData,
         attacker: BattleCombatant,

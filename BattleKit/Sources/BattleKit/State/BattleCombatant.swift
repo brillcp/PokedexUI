@@ -16,7 +16,7 @@ public struct BattleCombatant: Sendable {
     public var currentHP: Int
     public var status: BattleStatus
     public var sleepTurns: Int = 0
-    public var mustRecharge: Bool = false
+    var mustRecharge: Bool = false
     public var statStages: [String: Int]
     public let moves: [BattleMoveSnapshot]
 

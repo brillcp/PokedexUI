@@ -28,7 +28,7 @@ public enum BattleStatus: String, Sendable {
         }
     }
 
-    public init(ailment: String) {
+    init(ailment: String) {
         switch ailment {
         case "paralysis": self = .paralysis
         case "burn": self = .burn
