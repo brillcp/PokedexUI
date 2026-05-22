@@ -1,5 +1,5 @@
 import SwiftUI
-import BattleKit
+import PokeBattleKit
 
 /// Drives `BattleView` as a conductor over engine, animator, log, and audio.
 @MainActor

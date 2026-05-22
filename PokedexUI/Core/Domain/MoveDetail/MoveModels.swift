@@ -1,4 +1,4 @@
-import BattleKit
+import PokeBattleKit
 import SwiftData
 
 /// Fully resolved per-move record persisted as a `@Model`.

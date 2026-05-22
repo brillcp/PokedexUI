@@ -1,5 +1,5 @@
 import SwiftUI
-import BattleKit
+import PokeBattleKit
 
 /// One combatant's animated sprite with lunge, shake, faint, and victory effects.
 struct BattlerSprite: View {

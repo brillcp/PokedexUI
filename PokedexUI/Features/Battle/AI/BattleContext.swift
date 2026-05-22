@@ -1,4 +1,4 @@
-import BattleKit
+import PokeBattleKit
 import Foundation
 
 /// Battle-state prose used in prompts: a one-liner summary of the current

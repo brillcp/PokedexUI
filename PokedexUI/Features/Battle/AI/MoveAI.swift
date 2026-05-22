@@ -1,4 +1,4 @@
-import BattleKit
+import PokeBattleKit
 import Foundation
 
 // MARK: - MoveStrategy
@@ -153,7 +153,7 @@ private extension MoveStrategy {
 // MARK: - MoveScoring
 
 /// Move-evaluation primitive used by both move-pick and loadout-pick AI
-/// strategies. Mixes BattleKit's damage estimate with heuristic weights
+/// strategies. Mixes PokeBattleKit's damage estimate with heuristic weights
 /// for status effects, stat changes, and move quirks (self-debuff,
 /// recharge, priority). Higher score = better for the fighter.
 enum MoveScoring {

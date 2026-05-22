@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
-import BattleKit
+import PokeBattleKit
 
 /// Discrete states the setup screen moves through. Single source of
 /// truth for which UI branch and which button action are active.

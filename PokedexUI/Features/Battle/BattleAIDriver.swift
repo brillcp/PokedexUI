@@ -1,4 +1,4 @@
-import BattleKit
+import PokeBattleKit
 import Foundation
 
 /// Per-battle wrapper around `BattleAIServiceProtocol` that tracks the

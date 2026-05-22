@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -27,6 +27,7 @@
 		D54F5AF22E1DA61400411759 /* PokedexViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54F5AF12E1DA61400411759 /* PokedexViewModel.swift */; };
 		D55D58092E204B80008F1B16 /* pixelmix.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D55D58082E204B80008F1B16 /* pixelmix.ttf */; };
 		D55D580C2E204BBC008F1B16 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55D580B2E204BBC008F1B16 /* Font.swift */; };
+		D56F0FA52FC0D90A0002A450 /* PokeBattleKit in Frameworks */ = {isa = PBXBuildFile; productRef = D56F0FA42FC0D90A0002A450 /* PokeBattleKit */; };
 		D57366002E2110E000FE4ED0 /* ItemListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57365FF2E2110E000FE4ED0 /* ItemListViewModel.swift */; };
 		D57366032E2114C100FE4ED0 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = D57366022E2114C100FE4ED0 /* Networking */; };
 		D57366072E2114E400FE4ED0 /* ItemRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57366062E2114E400FE4ED0 /* ItemRequest.swift */; };
@@ -85,7 +86,7 @@
 		D5BA14082E70000000000410 /* PixelSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA14092E70000000000411 /* PixelSpinner.swift */; };
 		D5BA140A2E70000000000412 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA140B2E70000000000413 /* FlowLayout.swift */; };
 		D5BA140C2E70000000000414 /* SpriteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BA140D2E70000000000415 /* SpriteImage.swift */; };
-		D5C46B1F2FBF34C30085527B /* BattleKit in Frameworks */ = {isa = PBXBuildFile; productRef = D5C46B1E2FBF34C30085527B /* BattleKit */; };
+
 		D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */; };
 		D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D503082E39305500AC4BC5 /* Tabs.swift */; };
 		D5D6250D2E2194230030867D /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D6250C2E2194230030867D /* ItemDetailView.swift */; };
@@ -208,7 +209,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D57366032E2114C100FE4ED0 /* Networking in Frameworks */,
-				D5C46B1F2FBF34C30085527B /* BattleKit in Frameworks */,
+				D56F0FA52FC0D90A0002A450 /* PokeBattleKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -650,7 +651,7 @@
 			mainGroup = 9396D22D273EBBED00AF0C94;
 			packageReferences = (
 				D57366012E2114C100FE4ED0 /* XCRemoteSwiftPackageReference "Networking" */,
-				D5C46B1D2FBF34C30085527B /* XCLocalSwiftPackageReference "BattleKit" */,
+				D56F0FA32FC0D90A0002A450 /* XCRemoteSwiftPackageReference "pokebattlekit" */,
 			);
 			productRefGroup = 9396D237273EBBED00AF0C94 /* Products */;
 			projectDirPath = "";
@@ -992,14 +993,15 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		D5C46B1D2FBF34C30085527B /* XCLocalSwiftPackageReference "BattleKit" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = BattleKit;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
+		D56F0FA32FC0D90A0002A450 /* XCRemoteSwiftPackageReference "pokebattlekit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/brillcp/pokebattlekit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.0.1;
+			};
+		};
 		D57366012E2114C100FE4ED0 /* XCRemoteSwiftPackageReference "Networking" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/brillcp/Networking";
@@ -1011,14 +1013,15 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D56F0FA42FC0D90A0002A450 /* PokeBattleKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D56F0FA32FC0D90A0002A450 /* XCRemoteSwiftPackageReference "pokebattlekit" */;
+			productName = PokeBattleKit;
+		};
 		D57366022E2114C100FE4ED0 /* Networking */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D57366012E2114C100FE4ED0 /* XCRemoteSwiftPackageReference "Networking" */;
 			productName = Networking;
-		};
-		D5C46B1E2FBF34C30085527B /* BattleKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = BattleKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

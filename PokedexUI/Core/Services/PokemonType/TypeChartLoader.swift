@@ -1,6 +1,6 @@
 import Foundation
 import SwiftData
-import BattleKit
+import PokeBattleKit
 
 /// Loads the 18 type damage relations once per app install. Snapshots
 /// SwiftData rows into a Sendable `TypeChart` for off-main consumers.

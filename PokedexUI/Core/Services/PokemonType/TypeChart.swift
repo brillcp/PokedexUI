@@ -1,4 +1,4 @@
-import BattleKit
+import PokeBattleKit
 
 extension TypeChart {
     init(rows: [TypeDetail]) {

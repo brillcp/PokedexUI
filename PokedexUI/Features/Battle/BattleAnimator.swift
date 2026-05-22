@@ -1,5 +1,5 @@
 import SwiftUI
-import BattleKit
+import PokeBattleKit
 
 /// Per-side animation cue bundle.
 struct BattleSideCues: Equatable {

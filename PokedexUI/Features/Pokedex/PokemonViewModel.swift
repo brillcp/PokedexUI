@@ -1,5 +1,5 @@
 import SwiftUI
-import BattleKit
+import PokeBattleKit
 
 /// Display-ready data for a single Pokemon, computed eagerly on init.
 struct PokemonViewModel {

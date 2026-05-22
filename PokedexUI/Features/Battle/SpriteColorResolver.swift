@@ -1,5 +1,5 @@
 import SwiftUI
-import BattleKit
+import PokeBattleKit
 
 /// One-shot helper that pulls sprite images for both combatants, extracts
 /// dominant colors, and writes them onto the animator's per-side cues so
