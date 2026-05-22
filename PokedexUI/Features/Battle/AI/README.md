@@ -36,7 +36,7 @@ AI/
   OpponentAI.swift                ← OpponentStrategy + OpponentPrompt
   LoadoutAI.swift                 ← LoadoutStrategy + LoadoutPrompt
   BattleContext.swift             ← shared MoveRow renderer + battle context
-  OpponentCandidateSnapshot.swift ← Sendable Pokemon DTO for opponent pick
+  OpponentCandidate.swift         ← Sendable Pokemon DTO for opponent pick
   LLMInstructions/                ← instruction .md files loaded at runtime
 ```
 
