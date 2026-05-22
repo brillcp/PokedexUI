@@ -90,6 +90,7 @@ private extension BattleSetupView {
         }
         .disabled(viewModel.isPickingLoadout)
         .opacity(viewModel.isPickingLoadout ? Opacity.disabled : 1)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isPickingLoadout)
         .scrollIndicators(.hidden)
         .safeAreaBar(edge: .bottom) { battleButton }
     }
@@ -240,7 +241,6 @@ private extension BattleSetupView {
                     moveCard(move)
                 }
             }
-            .animation(.easeInOut(duration: 0.2), value: viewModel.isPickingLoadout)
         }
     }
 

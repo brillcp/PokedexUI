@@ -49,10 +49,10 @@ struct OpponentPickerView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .animation(.easeInOut(duration: 0.2), value: isAIThinking)
             }
             .disabled(isAIThinking)
             .opacity(isAIThinking ? Opacity.disabled : 1)
+            .animation(.easeInOut(duration: 0.2), value: isAIThinking)
             .scrollIndicators(.hidden)
             .foregroundStyle(.white)
             .safeAreaBar(edge: .bottom) { pickerButton }
