@@ -175,4 +175,3 @@ struct PokemonSpriteCard: View, Equatable {
         .background(Color.cardBackground)
     }
 }
-
