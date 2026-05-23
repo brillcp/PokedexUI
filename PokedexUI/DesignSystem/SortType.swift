@@ -1,5 +1,3 @@
-import Foundation
-
 /// Sort options for the pokedex toolbar menu.
 enum SortType: Hashable {
     case number, name

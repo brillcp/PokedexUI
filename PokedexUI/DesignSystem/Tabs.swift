@@ -1,5 +1,3 @@
-import Foundation
-
 /// Top-level TabView selection for the root pokedex screen.
 enum Tabs: Int {
     case pokedex, items, favourites, search

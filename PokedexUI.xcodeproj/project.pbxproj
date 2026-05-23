@@ -49,7 +49,6 @@
 		D5A1B00000000000000000A1 /* LanguageModelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B1 /* LanguageModelClient.swift */; };
 		D5A1B00000000000000000A2 /* MoveAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B2 /* MoveAI.swift */; };
 		D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B4 /* OpponentAI.swift */; };
-		D5A1B00000000000000000A5 /* LoadoutAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B5 /* LoadoutAI.swift */; };
 		D5A1B00000000000000000A6 /* BattleContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B6 /* BattleContext.swift */; };
 		D5A1B00000000000000000A7 /* BattleAITools.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B7 /* BattleAITools.swift */; };
 		D5A1B2C32E60000000000001 /* PokemonSpecies.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B2C42E60000000000002 /* PokemonSpecies.swift */; };
@@ -139,7 +138,6 @@
 		D5A1B00000000000000000B1 /* LanguageModelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageModelClient.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B2 /* MoveAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B4 /* OpponentAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentAI.swift; sourceTree = "<group>"; };
-		D5A1B00000000000000000B5 /* LoadoutAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadoutAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B6 /* BattleContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleContext.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B7 /* BattleAITools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAITools.swift; sourceTree = "<group>"; };
 		D5A1B2C42E60000000000002 /* PokemonSpecies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonSpecies.swift; sourceTree = "<group>"; };
@@ -254,7 +252,6 @@
 				D5A1B00000000000000000B1 /* LanguageModelClient.swift */,
 				D5A1B00000000000000000B2 /* MoveAI.swift */,
 				D5A1B00000000000000000B4 /* OpponentAI.swift */,
-				D5A1B00000000000000000B5 /* LoadoutAI.swift */,
 				D5A1B00000000000000000B6 /* BattleContext.swift */,
 				D5A1B00000000000000000B7 /* BattleAITools.swift */,
 				D5BA13072E70000000000221 /* OpponentCandidate.swift */,
@@ -658,7 +655,6 @@
 				D5A1B00000000000000000A1 /* LanguageModelClient.swift in Sources */,
 				D5A1B00000000000000000A2 /* MoveAI.swift in Sources */,
 				D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */,
-				D5A1B00000000000000000A5 /* LoadoutAI.swift in Sources */,
 				D5A1B00000000000000000A6 /* BattleContext.swift in Sources */,
 				D5A1B00000000000000000A7 /* BattleAITools.swift in Sources */,
 				D5BA13062E70000000000220 /* OpponentCandidate.swift in Sources */,

@@ -1,4 +1,3 @@
-import Foundation
 import FoundationModels
 
 /// Owns the on-device Foundation Models session, generation retries, and
