@@ -1,6 +1,6 @@
 ![icon](https://github.com/user-attachments/assets/d7a242d8-5392-4718-9b0a-4a4392f66d82)
 
-![swift](https://img.shields.io/badge/Swift-6.0%2B-green)
+![swift](https://img.shields.io/badge/Swift-5.0-green)
 ![release](https://img.shields.io/github/v/release/brillcp/pokedexui)
 ![platforms](https://img.shields.io/badge/Platforms-iOS%2026%2B-blue)
 ![apple-intelligence](https://img.shields.io/badge/Apple%20Intelligence-FoundationModels-purple)
@@ -40,7 +40,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 
 - **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor: cue timing delegated to `BattleAnimator`, AI move history to `BattleAIDriver`, log rendering to `BattleLogFormatter`.
 - **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
-- **L**iskov Substitution: every service is reached through its protocol on `AppContainer` (the exception is `TypeChartLoader`, which stays concrete because it's `@Observable` and bound to SwiftUI views), so previews and tests can swap the concrete actor for any conforming type without touching call sites.
+- **L**iskov Substitution: every service is reached through its protocol on `AppContainer`, so previews and tests can swap the concrete actor for any conforming type without touching call sites.
 - **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`; `BattleSetupView` reads pool + selection state. No god-protocol shared across consumers.
 - **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`; no `static let shared` lookups in feature code.
 
@@ -75,15 +75,12 @@ Every long-lived worker is an actor unless it has to bind to SwiftUI directly:
 | `ImageColorAnalyzer`       | `actor`                    | Pixel-scan pipeline, off the main thread                     |
 | `AudioPlayer`              | `actor`                    | AVFoundation playback                                        |
 | `EvolutionService`         | `actor`                    | Process-wide chain-id memo                                   |
-| `MovePrefetcher`           | `actor`                    | One-shot background download                                 |
-| `DataStorageReader`        | `@ModelActor`              | Isolated SwiftData `ModelContext`                            |
+| `DataStorageReader`        | `@ModelActor`              | Isolated SwiftData `ModelContext`                             |
 | `APIService<Config>`       | `actor`                    | Generic network actor over `Requestable`                     |
-| `TypeChartLoader`          | `@MainActor @Observable`   | `WeaknessGridView` reads its `chart` synchronously in body   |
 | `BattleAnimator`           | `@MainActor @Observable`   | Owns cue mutation + `withAnimation` blocks for the arena     |
 | View models                | `@MainActor @Observable`   | SwiftUI binding                                              |
-| `BattleEngine`             | `@MainActor`               | `withAnimation` callbacks see consistent state               |
 
-The type chart is the only hybrid case: the loader stays on `MainActor` for SwiftUI binding, but it exposes a Sendable `TypeChart` value snapshot that the AI service and battle engine can read off-main with zero actor hops on the hot per-turn path.
+The type chart lives in PokeBattleKit as a `Sendable` value type (`TypeChart`), initialized once at app launch via `PokeBattleKit.initialize()`. Views and AI read it through `PokeBattleKit.typeChart` with zero actor hops. `BattleEngine` is also a plain `Sendable` struct in PokeBattleKit, used on the main actor inside `BattleViewModel` but not isolated itself.
 
 ## Dependency injection
 
@@ -96,11 +93,9 @@ final class AppContainer {
     let evolutionService:   EvolutionServiceProtocol
     let itemService:        ItemServiceProtocol
     let battleAI:           BattleAIServiceProtocol
-    let movePrefetcher:     MovePrefetching
     let spriteLoader:       SpriteLoading
     let imageColorAnalyzer: ImageColorAnalyzing
     let audioPlayer:        AudioPlaying
-    let typeChart:          TypeChartLoader
     static let live = AppContainer()
 }
 
@@ -189,14 +184,14 @@ This is the kind of feature `FoundationModels` was built for: small, structured,
 
 ---
 
-# Prefetchers 📥
+# Data loading 📥
 
-Three background workers fill the on-disk cache at app launch so the UI never waits on the network.
+Background workers fill the on-disk cache at app launch so the UI never waits on the network.
 
-| Prefetcher              | What it pulls                             | When             |
+| Worker                  | What it pulls                             | When             |
 | ----------------------- | ----------------------------------------- | ---------------- |
-| `TypeChartLoader`       | 18 type damage relations                  | App launch       |
-| `MovePrefetcher`        | ~937 moves (full PokeAPI move catalogue)  | App launch, background priority |
+| `PokeBattleKit`         | Type chart (18 type damage relations) + full move catalogue | App launch via `PokeBattleKit.initialize()` |
+| `PokemonService`        | Full pokedex hydration (detail + species)  | App launch       |
 | `EvolutionService`      | Evolution chains for hydrated pokemon     | App launch, background priority |
 
 Sprite colors are resolved lazily on first display through `ImageColorAnalyzer` (an actor) and cached in-process by pokemon id, so a detail view that opens the same pokemon twice runs the pixel scan once. The pokedex grid pulls the full `/pokemon?limit=1150` index in a single request, then fans out detail + species fetches concurrently with progress ticks. Subsequent app launches read everything from SwiftData with zero network calls.
@@ -214,8 +209,7 @@ Opponent picker sheet  ◄── Random / Smart pick (AI)
    ▼
 Loadout screen
    │ • Hydrate both pokemon (cache or network)
-   │ • Sample 40 moves per side
-   │ • AI picks opponent's 4 (background task)
+   │ • AI picks opponent's 4 from full movepool (background task)
    │ • Player hand-picks own 4 from sorted movepool
    │ (tap Battle)
    ▼
@@ -261,6 +255,6 @@ dependencies: [
 # Requirements ❗️
 
 - Xcode 26+
-- iOS 26+ (for the `FoundationModels` framework, `@Observable`, SwiftData lightweight migration)
-- Swift 5 language mode with Swift 6 concurrency warnings enabled (full Swift 6 migration in progress)
-- Apple Intelligence enabled on the device for the AI features (graceful fallback to random/heuristic on devices without it)
+- iOS 26+ (for the `FoundationModels` framework, `@Observable`, SwiftData)
+- Swift 5 language mode
+- Apple Intelligence enabled on the device for the AI features (graceful fallback to deterministic heuristics on devices without it)
