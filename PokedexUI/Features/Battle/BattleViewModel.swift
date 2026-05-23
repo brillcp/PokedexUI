@@ -8,7 +8,7 @@ protocol BattleViewModelProtocol: AnyObject {
     var opponentPokemon: PokemonViewModel { get }
     var animator: BattleAnimator { get }
     var state: BattleState? { get }
-    var engine: Engine? { get }
+    var engine: BattleEngine? { get }
     var log: [AttributedString] { get }
     var isResolvingTurn: Bool { get }
     var winner: Side? { get }
@@ -36,7 +36,7 @@ final class BattleViewModel {
     let animator:        BattleAnimator
     let displayMoves:    [Move]
 
-    var engine: Engine?
+    var engine: BattleEngine?
     var state:  BattleState?
     var log:    [AttributedString] = []
     var isResolvingTurn  = false
@@ -127,7 +127,7 @@ private extension BattleViewModel {
 
     func activateEngine(state: BattleState, chart: TypeChart) {
         self.typeChart = chart
-        self.engine    = Engine(state: state, typeChart: chart)
+        self.engine    = BattleEngine(state: state, typeChart: chart)
     }
 
     func playEntrance() async {

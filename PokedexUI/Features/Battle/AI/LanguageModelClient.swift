@@ -20,19 +20,29 @@ actor LanguageModelClient {
     }
 }
 
+// MARK: - Structured Generation
+
 extension LanguageModelClient {
-    func generate(
+
+    /// Generate a structured result using @Generable with optional tools.
+    func generate<T: Generable>(
         prompt: String,
+        generating type: T.Type,
+        tools: [any Tool],
         temperature: Double,
         instructions: Instructions
-    ) async throws -> String {
+    ) async throws -> T {
         var lastError: Error?
         for _ in 1 ... maxAttempts {
             await waitForGenerationSlot()
             do {
                 defer { isGenerating = false }
-                let session = LanguageModelSession(model: model, instructions: instructions.text)
-                return try await session.respond(to: prompt, options: .init(temperature: temperature)).content
+                let session = LanguageModelSession(model: model, tools: tools, instructions: instructions.text)
+                return try await session.respond(
+                    to: prompt,
+                    generating: type,
+                    options: .init(temperature: temperature)
+                ).content
             } catch {
                 isGenerating = false
                 lastError = error
@@ -41,23 +51,39 @@ extension LanguageModelClient {
         throw lastError ?? CancellationError()
     }
 
-    /// Run one battle decision: returns the adjusted fallback if the model
-    /// is unavailable or the generation/parse cycle fails; otherwise
-    /// returns the adjusted LLM pick. `adjust` runs against both branches
-    /// so post-pick corrections always apply.
-    func decide<Pick>(
+    /// Structured decision: tries @Generable generation with tools,
+    /// falls back to heuristic if the model is unavailable or fails.
+    func decide<Pick, Result: Generable>(
         fallback: Pick,
         prompt: @autoclosure () -> String,
+        generating type: Result.Type,
+        tools: [any Tool],
         temperature: Double,
         instructions: Instructions,
-        parse: (String) -> Pick?,
+        resolve: (Result) -> Pick?,
         adjust: (Pick) -> Pick
     ) async -> Pick {
-        guard isAvailable else { return adjust(fallback) }
+        guard isAvailable else {
+            aiLog("LLM unavailable, using heuristic fallback")
+            return adjust(fallback)
+        }
         do {
-            let raw = try await generate(prompt: prompt(), temperature: temperature, instructions: instructions)
-            if let pick = parse(raw) { return adjust(pick) }
-        } catch {}
+            let promptText = prompt()
+            aiLog("PROMPT:\n\(promptText)")
+            let result = try await generate(
+                prompt: promptText, generating: type, tools: tools,
+                temperature: temperature, instructions: instructions
+            )
+            aiLog("LLM RESULT: \(result)")
+            if let pick = resolve(result) {
+                let adjusted = adjust(pick)
+                aiLog("LLM pick accepted")
+                return adjusted
+            }
+            aiLog("LLM resolve failed, using fallback")
+        } catch {
+            aiLog("LLM error: \(error), using fallback")
+        }
         return adjust(fallback)
     }
 }
@@ -72,15 +98,15 @@ extension LanguageModelClient {
 
         static let move = Instructions(
             resource: "BattleAIMoveInstructions",
-            fallback: "You are an expert Pokemon battler."
+            fallback: "You are an expert Pokemon battler. Use the tools to check type effectiveness and estimate damage before picking a move."
         )
         static let opponent = Instructions(
             resource: "BattleAIOpponentInstructions",
-            fallback: "You are a Pokemon battle matchmaker."
+            fallback: "You are a Pokemon battle matchmaker. Pick a fair and interesting opponent."
         )
         static let loadout = Instructions(
             resource: "BattleAILoadoutInstructions",
-            fallback: "You are an expert Pokemon battler picking a loadout."
+            fallback: "You are an expert Pokemon battler picking a loadout. Use tools to evaluate type matchups. Pick 4 moves with good coverage."
         )
 
         private init(resource: String, fallback: String) {
