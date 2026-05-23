@@ -246,7 +246,7 @@ Pixel font, gameboy-style aesthetic, glass effects:
 ```swift
 dependencies: [
     .package(url: "https://github.com/brillcp/Networking.git", .upToNextMajor(from: "0.10.0")),
-    .package(url: "https://github.com/brillcp/PokeBattleKit.git", .upToNextMinor(from: "0.0.9"))
+    .package(url: "https://github.com/brillcp/PokeBattleKit.git", .upToNextMinor(from: "0.1.1"))
 ]
 ```
 
