@@ -38,7 +38,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
-- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor split across a main file plus `+Round` and `+Setup` extensions: cue timing delegated to `BattleAnimator`, AI history to `OpponentBrain`, log rendering to `BattleLogFormatter`, sprite/audio bootstrap to `+Setup`, turn resolution to `+Round`.
+- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor: cue timing delegated to `BattleAnimator`, AI move history to `BattleAIDriver`, log rendering to `BattleLogFormatter`.
 - **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
 - **L**iskov Substitution: every service is reached through its protocol on `AppContainer` (the exception is `TypeChartLoader`, which stays concrete because it's `@Observable` and bound to SwiftUI views), so previews and tests can swap the concrete actor for any conforming type without touching call sites.
 - **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`; `BattleSetupView` reads pool + selection state. No god-protocol shared across consumers.
