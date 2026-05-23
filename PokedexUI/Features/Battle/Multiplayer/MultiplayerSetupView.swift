@@ -7,7 +7,6 @@ import PokeBattleKit
 /// to `BattleView` once both peers have submitted their loadouts.
 struct MultiplayerSetupView: View {
     @Environment(\.container) private var container
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
     @State private var viewModel: MultiplayerSetupViewModel
@@ -40,14 +39,6 @@ struct MultiplayerSetupView: View {
                     Button("Decline", role: .cancel) { viewModel.declineInvitation() }
                 } message: { invite in
                     Text("\(invite.peerName) wants to battle.")
-                }
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Close") {
-                            viewModel.cancel()
-                            dismiss()
-                        }
-                    }
                 }
         }
     }
