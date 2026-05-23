@@ -51,6 +51,7 @@
 		D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B4 /* OpponentAI.swift */; };
 		D5A1B00000000000000000A5 /* LoadoutAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B5 /* LoadoutAI.swift */; };
 		D5A1B00000000000000000A6 /* BattleContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B6 /* BattleContext.swift */; };
+		D5A1B00000000000000000A7 /* BattleAITools.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B7 /* BattleAITools.swift */; };
 		D5A1B2C32E60000000000001 /* PokemonSpecies.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B2C42E60000000000002 /* PokemonSpecies.swift */; };
 		D5A1C00000000000000000A1 /* BattleAIDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B1 /* BattleAIDriver.swift */; };
 		D5A1C00000000000000000A2 /* SpriteColorResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1C00000000000000000B2 /* SpriteColorResolver.swift */; };
@@ -140,6 +141,7 @@
 		D5A1B00000000000000000B4 /* OpponentAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B5 /* LoadoutAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadoutAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B6 /* BattleContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleContext.swift; sourceTree = "<group>"; };
+		D5A1B00000000000000000B7 /* BattleAITools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAITools.swift; sourceTree = "<group>"; };
 		D5A1B2C42E60000000000002 /* PokemonSpecies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonSpecies.swift; sourceTree = "<group>"; };
 		D5A1C00000000000000000B1 /* BattleAIDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAIDriver.swift; sourceTree = "<group>"; };
 		D5A1C00000000000000000B2 /* SpriteColorResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteColorResolver.swift; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 				D5A1B00000000000000000B4 /* OpponentAI.swift */,
 				D5A1B00000000000000000B5 /* LoadoutAI.swift */,
 				D5A1B00000000000000000B6 /* BattleContext.swift */,
+				D5A1B00000000000000000B7 /* BattleAITools.swift */,
 				D5BA13072E70000000000221 /* OpponentCandidate.swift */,
 				D5C46D8B2FBF56E00085527B /* LLMInstructions */,
 			);
@@ -657,6 +660,7 @@
 				D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */,
 				D5A1B00000000000000000A5 /* LoadoutAI.swift in Sources */,
 				D5A1B00000000000000000A6 /* BattleContext.swift in Sources */,
+				D5A1B00000000000000000A7 /* BattleAITools.swift in Sources */,
 				D5BA13062E70000000000220 /* OpponentCandidate.swift in Sources */,
 				D5BA13082E70000000000301 /* BattleSetupViewModel.swift in Sources */,
 				D5BA130A2E70000000000303 /* BattleSetupView.swift in Sources */,
@@ -930,7 +934,7 @@
 			repositoryURL = "https://github.com/brillcp/pokebattlekit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.7;
+				minimumVersion = 0.0.8;
 			};
 		};
 		D57366012E2114C100FE4ED0 /* XCRemoteSwiftPackageReference "Networking" */ = {
