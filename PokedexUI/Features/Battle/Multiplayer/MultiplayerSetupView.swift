@@ -23,8 +23,13 @@ struct MultiplayerSetupView: View {
                 .applyPokedexStyling(title: "Local Battle", color: .darkGrey)
                 .foregroundStyle(.white)
                 .task { viewModel.startListening() }
+                .onAppear { viewModel.startDiscovery() }
+                .onDisappear { viewModel.stopDiscovery() }
                 .navigationDestination(item: $viewModel.launch) { launch in
                     BattleView(viewModel: launch.viewModel)
+                }
+                .onChange(of: viewModel.launch) { old, new in
+                    if old != nil, new == nil { viewModel.returnToLobby() }
                 }
                 .alert(
                     "Invitation",
@@ -63,77 +68,29 @@ private extension MultiplayerSetupView {
             .onChange(of: viewModel.isConnected) { _, connected in
                 if connected { viewModel.phase = .picking }
             }
-//            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
     var phaseView: some View {
         switch viewModel.phase {
-        case .menu:                menuView
-        case .hosting:             hostingView
-        case .browsing:            browsingView
-        case .connecting:          loadingView(message: "Connecting…")
-        case .picking:             pickerView
-        case .waitingForOpponent:  loadingView(message: "Waiting for opponent…")
-        case .launching:           loadingView(message: "Starting battle…")
-        case .error(let message):  errorView(message)
+        case .discovering:        discoveryView
+        case .connecting:         loadingView(message: "Connecting…")
+        case .picking:            pickerView
+        case .waitingForOpponent: loadingView(message: "Waiting for opponent…")
+        case .launching:          loadingView(message: "Starting battle…")
+        case .error(let message): errorView(message)
         }
     }
 
-    var menuView: some View {
-        VStack(spacing: 32) {
-            Spacer()
-            Image(systemName: "person.2.wave.2.fill")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
-            Text("Battle a nearby trainer")
-                .font(.pixel14)
-            Spacer()
-            VStack(spacing: 12) {
-                PrimaryCapsuleButton(
-                    icon: "antenna.radiowaves.left.and.right",
-                    title: "Host",
-                    isEnabled: true,
-                    isLoading: false,
-                    action: viewModel.startHosting
-                )
-                PrimaryCapsuleButton(
-                    icon: "magnifyingglass",
-                    title: "Browse",
-                    isEnabled: true,
-                    isLoading: false,
-                    action: viewModel.startBrowsing
-                )
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
-        }
-    }
-
-    var hostingView: some View {
-        VStack(spacing: 16) {
-            PixelSpinner()
-            Text("Advertising as \(viewModel.multipeer.localDisplayName)")
-                .font(.pixel14)
-            Text("Waiting for a trainer to invite you…")
-                .font(.pixel12)
-                .foregroundStyle(.secondary)
-            Spacer()
-            connectedHint
-        }
-        .padding()
-    }
-
-    var browsingView: some View {
+    var discoveryView: some View {
         VStack(spacing: 12) {
-            Text("Nearby trainers")
-                .font(.pixel12)
-                .foregroundStyle(.secondary)
             if viewModel.discoveredPeers.isEmpty {
-                PixelSpinner()
-                Text("Searching…")
+                Spacer()
+                Text("No nearby trainers")
                     .font(.pixel14)
                     .foregroundStyle(.secondary)
+                Spacer()
             } else {
                 ScrollView {
                     VStack(spacing: 8) {
@@ -142,24 +99,21 @@ private extension MultiplayerSetupView {
                                 viewModel.invite(peer)
                             } label: {
                                 HStack {
-                                    Image(systemName: "person.fill")
-                                    Text(peer.name)
-                                        .font(.pixel14)
+                                    Label(peer.name, systemImage: "person.fill")
                                     Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(.secondary)
+                                    Text(">")
                                 }
+                                .font(.pixel14)
                                 .padding()
+                                .frame(maxWidth: .infinity)
                                 .background(Color.cardBackground)
                             }
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding()
                 }
+                .frame(maxWidth: .infinity)
             }
-            Spacer()
-            connectedHint
         }
     }
 
@@ -172,7 +126,7 @@ private extension MultiplayerSetupView {
                     movePicker
                 }
             }
-            .padding(.horizontal)
+//            .padding(.horizontal)
         }
         .safeAreaBar(edge: .bottom) { submitButton }
     }
@@ -183,7 +137,7 @@ private extension MultiplayerSetupView {
                 .font(.pixel12)
                 .foregroundStyle(.secondary)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+                LazyHStack(spacing: 2) {
                     ForEach(allPokemon, id: \.id) { pokemon in
                         Button {
                             withAnimation(.easeOut(duration: 0.15)) {
@@ -318,16 +272,6 @@ private extension MultiplayerSetupView {
             .padding(.horizontal, 24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    var connectedHint: some View {
-        Group {
-            if case .connecting(let name) = viewModel.connectionState {
-                Text("Connecting to \(name)…")
-                    .font(.pixel12)
-                    .foregroundStyle(.secondary)
-            }
-        }
     }
 
     func isSelected(_ pokemon: Pokemon) -> Bool {

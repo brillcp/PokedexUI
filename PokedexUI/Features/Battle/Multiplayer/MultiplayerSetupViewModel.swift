@@ -3,11 +3,9 @@ import MultipeerConnectivity
 import PokeBattleKit
 import SwiftUI
 
-/// Discrete states the multiplayer lobby moves through, from menu to ready.
+/// Discrete states the multiplayer lobby moves through.
 enum MultiplayerSetupPhase: Equatable {
-    case menu
-    case hosting
-    case browsing
+    case discovering
     case connecting
     case picking
     case waitingForOpponent
@@ -44,7 +42,7 @@ final class MultiplayerSetupViewModel {
     let maxSelections: Int = 4
     let multipeer: MultipeerService
 
-    var phase: MultiplayerSetupPhase = .menu
+    var phase: MultiplayerSetupPhase = .discovering
     var selectedPokemon: Pokemon?
     var movePool: [Move] = []
     var selectedMoveNames: Set<String> = []
@@ -72,14 +70,16 @@ final class MultiplayerSetupViewModel {
 
 // MARK: - Lobby actions
 extension MultiplayerSetupViewModel {
-    func startHosting() {
-        multipeer.startHosting()
-        phase = .hosting
+    /// Start advertising + browsing. Called when the versus tab appears.
+    func startDiscovery() {
+        guard phase == .discovering else { return }
+        multipeer.startDiscovery()
     }
 
-    func startBrowsing() {
-        multipeer.startBrowsing()
-        phase = .browsing
+    /// Stop advertising + browsing. Called when the versus tab disappears.
+    func stopDiscovery() {
+        guard phase == .discovering else { return }
+        multipeer.stopDiscovery()
     }
 
     func invite(_ peer: PeerHandle) {
@@ -99,6 +99,14 @@ extension MultiplayerSetupViewModel {
     func cancel() {
         multipeer.disconnect()
         reset()
+    }
+
+    /// Called when navigating back from a finished battle. Resets lobby
+    /// state and restarts peer discovery.
+    func returnToLobby() {
+        multipeer.disconnect()
+        reset()
+        multipeer.startDiscovery()
     }
 
     func selectPokemon(_ pokemon: Pokemon) {
@@ -205,7 +213,7 @@ private extension MultiplayerSetupViewModel {
     }
 
     func reset() {
-        phase = .menu
+        phase = .discovering
         selectedPokemon = nil
         movePool = []
         selectedMoveNames = []

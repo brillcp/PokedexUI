@@ -125,8 +125,7 @@ private extension SearchView {
                                 .foregroundStyle(.white)
                             Spacer()
                         }
-                        .padding(.horizontal)
-                        .padding(.vertical)
+                        .padding()
                         .frame(maxWidth: .infinity)
                         .background(Color.cardBackground)
                     }

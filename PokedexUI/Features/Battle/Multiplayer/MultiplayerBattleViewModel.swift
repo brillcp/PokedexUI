@@ -136,6 +136,9 @@ private extension MultiplayerBattleViewModel {
     }
 
     func receivePeerMove(name: String, turn: Int) async {
+        if pendingSelfMove == nil {
+            log.append(formatter.chooseMove())
+        }
         guard role == .host else { return }
         guard turn == turnNumber || turn == turnNumber + (pendingSelfMove == nil ? 1 : 0) else { return }
         pendingPeerMoveName = name
@@ -146,7 +149,7 @@ private extension MultiplayerBattleViewModel {
         guard role == .guest else { return }
         guard turn == turnNumber else { return }
         isResolvingTurn = true
-        removeWaitingLine()
+        removePromptLines()
         let flipped = events.map(flip(_:))
         await play(events: flipped)
         pendingSelfMove = nil
@@ -161,7 +164,7 @@ private extension MultiplayerBattleViewModel {
               var eng = engine
         else { return }
         isResolvingTurn = true
-        removeWaitingLine()
+        removePromptLines()
         let events = eng.resolveRound(playerMove: selfMove, opponentMove: peerMove)
         self.engine = eng
         multipeer.send(.roundResolved(events: events, turnNumber: turnNumber))
@@ -246,10 +249,11 @@ private extension MultiplayerBattleViewModel {
         await audioPlayer.play(from: cry)
     }
 
-    func removeWaitingLine() {
+    func removePromptLines() {
         withAnimation(.easeOut(duration: 0.25)) {
-            if let idx = log.lastIndex(where: { String($0.characters).contains("Waiting for opponent") }) {
-                log.remove(at: idx)
+            log.removeAll { line in
+                let text = String(line.characters)
+                return text.contains("Waiting for opponent") || text.contains("Choose a move")
             }
         }
     }

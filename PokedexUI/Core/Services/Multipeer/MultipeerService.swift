@@ -5,7 +5,6 @@ import SwiftUI
 /// Connection lifecycle status surfaced to the lobby UI.
 enum MultipeerConnectionState: Equatable {
     case idle
-    case hosting
     case browsing
     case connecting(to: String)
     case connected(peerName: String)
@@ -79,11 +78,13 @@ final class MultipeerService: NSObject {
         }
     }
 
-    /// Begin advertising this device as a host. Disables any prior browse
-    /// session so a peer can only play one role at a time.
-    func startHosting() {
-        stopBrowsing()
-        role = .host
+    /// Advertise and browse simultaneously so both devices see each other
+    /// immediately. Role is decided when a connection is established: the
+    /// device that sent the invite becomes `.guest`, the one that accepted
+    /// becomes `.host`.
+    func startDiscovery() {
+        stopDiscovery()
+        discoveredPeers = []
         advertiser = MCNearbyServiceAdvertiser(
             peer: myPeerID,
             discoveryInfo: nil,
@@ -91,19 +92,16 @@ final class MultipeerService: NSObject {
         )
         advertiser?.delegate = self
         advertiser?.startAdvertisingPeer()
-        connectionState = .hosting
-    }
-
-    /// Begin browsing for nearby hosts. Disables advertising for the same
-    /// reason `startHosting` disables browsing.
-    func startBrowsing() {
-        stopHosting()
-        role = .guest
-        discoveredPeers = []
         browser = MCNearbyServiceBrowser(peer: myPeerID, serviceType: Self.serviceType)
         browser?.delegate = self
         browser?.startBrowsingForPeers()
         connectionState = .browsing
+    }
+
+    /// Stop both advertising and browsing. Safe to call when neither is active.
+    func stopDiscovery() {
+        stopHosting()
+        stopBrowsing()
     }
 
     /// Stop advertising. Safe to call when not hosting.
@@ -121,20 +119,22 @@ final class MultipeerService: NSObject {
         discoveredPeers = []
     }
 
-    /// Browser-side: send an invite to a discovered host.
+    /// Send an invite to a discovered peer. The inviter becomes the guest.
     func invite(_ peer: MCPeerID) {
         guard let browser else { return }
+        role = .guest
         connectionState = .connecting(to: peer.displayName)
         browser.invitePeer(peer, to: session, withContext: nil, timeout: 30)
     }
 
-    /// Host-side: accept the latest pending invitation prompt.
+    /// Accept the latest pending invitation. The accepter becomes the host.
     func acceptInvitation() {
+        role = .host
         pendingInvitation?.handler(true)
         pendingInvitation = nil
     }
 
-    /// Host-side: decline the latest pending invitation prompt.
+    /// Decline the latest pending invitation.
     func declineInvitation() {
         pendingInvitation?.handler(false)
         pendingInvitation = nil
@@ -158,8 +158,7 @@ final class MultipeerService: NSObject {
     /// Tear down the session and all discovery. Idempotent.
     func disconnect() {
         send(.disconnect)
-        stopHosting()
-        stopBrowsing()
+        stopDiscovery()
         session.disconnect()
         role = nil
         connectedPeers = []
@@ -175,8 +174,7 @@ extension MultipeerService: MCSessionDelegate {
             case .connected:
                 self.connectedPeers = session.connectedPeers
                 self.connectionState = .connected(peerName: peerID.displayName)
-                if self.role == .host { self.stopHosting() }
-                if self.role == .guest { self.stopBrowsing() }
+                self.stopDiscovery()
             case .connecting:
                 self.connectionState = .connecting(to: peerID.displayName)
             case .notConnected:
