@@ -25,6 +25,7 @@ struct BookmarksView: View {
                         Button(role: .cancel) { dismiss() }
                     }
                 }
+                .applyPokedexStyling(title: Tabs.favourites.title, color: .darkGrey)
         }
     }
 }

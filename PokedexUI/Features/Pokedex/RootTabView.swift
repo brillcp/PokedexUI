@@ -57,7 +57,6 @@ private extension RootTabView {
     var favouritesTab: some View {
         NavigationStack {
             BookmarksView()
-                .applyPokedexStyling(title: Tabs.favourites.title, color: .darkGrey)
         }
     }
 
