@@ -10,7 +10,6 @@ enum MultiplayerSetupPhase: Equatable {
     case picking
     case waitingForOpponent
     case launching
-    case error(String)
 }
 
 /// Composite payload the lobby hands back to the navigation host once both
@@ -43,6 +42,8 @@ final class MultiplayerSetupViewModel {
     let multipeer: MultipeerService
 
     var phase: MultiplayerSetupPhase = .discovering
+    var showPicker: Bool = false
+    var errorMessage: String?
     var selectedPokemon: Pokemon?
     var movePool: [Move] = []
     var selectedMoveNames: Set<String> = []
@@ -70,13 +71,13 @@ final class MultiplayerSetupViewModel {
 
 // MARK: - Lobby actions
 extension MultiplayerSetupViewModel {
-    /// Start advertising + browsing. Called when the battle tab appears.
+    /// Start advertising + browsing. Called when the versus tab appears.
     func startDiscovery() {
         guard phase == .discovering else { return }
         multipeer.startDiscovery()
     }
 
-    /// Stop advertising + browsing. Called when the battle tab disappears.
+    /// Stop advertising + browsing. Called when the versus tab disappears.
     func stopDiscovery() {
         guard phase == .discovering else { return }
         multipeer.stopDiscovery()
@@ -96,29 +97,30 @@ extension MultiplayerSetupViewModel {
         multipeer.declineInvitation()
     }
 
-    /// Called when the peer we invited declined (MC session went idle
-    /// while we were in `.connecting` phase).
+    /// Called when the peer we invited declined (MC went idle while connecting).
     func inviteDeclined() {
-        phase = .error("Trainer declined the battle.")
+        phase = .discovering
+        errorMessage = "Trainer declined the battle."
         multipeer.startDiscovery()
     }
 
-    /// Called when the connected peer left during picking or waiting.
-    func peerLeft() {
-        resetSelection()
-        phase = .error("Opponent left.")
-        multipeer.startDiscovery()
-    }
-
-    /// Leave the current session, notify peer, return to discovery.
-    func cancel() {
+    /// Called when the picker sheet is dismissed without completing.
+    func pickerDismissed() {
+        guard phase != .launching, launch == nil else { return }
         multipeer.disconnect()
-        reset()
+        resetSelection()
+        phase = .discovering
         multipeer.startDiscovery()
     }
 
-    /// Called when navigating back from a finished battle. Resets lobby
-    /// state and restarts peer discovery.
+    func dismissError() {
+        errorMessage = nil
+        if phase == .discovering {
+            multipeer.startDiscovery()
+        }
+    }
+
+    /// Called when navigating back from a finished battle.
     func returnToLobby() {
         multipeer.disconnect()
         reset()
@@ -130,6 +132,7 @@ extension MultiplayerSetupViewModel {
         movePool = Self.rankedByImpact(movesForPokemon(pokemon))
         selectedMoveNames = []
         selectionOrder = []
+        phase = .picking
     }
 
     func toggleMove(_ move: Move) {
@@ -148,9 +151,7 @@ extension MultiplayerSetupViewModel {
         return selectionOrder.compactMap { byName[$0] }
     }
 
-    /// Send the locally chosen loadout to the peer. Role determines whether
-    /// the message is `.challengeProposed` (host) or `.challengeAccepted`
-    /// (guest); the two are functionally identical in handling.
+    /// Send the locally chosen loadout to the peer.
     func submitLoadout() {
         guard let pokemon = selectedPokemon,
               selectedMoveNames.count == maxSelections,
@@ -165,8 +166,12 @@ extension MultiplayerSetupViewModel {
         case .guest: multipeer.send(.challengeAccepted(payload))
         }
         ownChallengeSent = true
-        phase = peerChallenge == nil ? .waitingForOpponent : .launching
-        tryLaunch()
+        if peerChallenge != nil {
+            phase = .launching
+            tryLaunch()
+        } else {
+            phase = .waitingForOpponent
+        }
     }
 
     var pendingInvitation: PendingInvitation? { multipeer.pendingInvitation }
@@ -186,19 +191,26 @@ private extension MultiplayerSetupViewModel {
         switch message {
         case .hello(let version, _, _):
             if version != MultipeerProtocol.version {
-                phase = .error("Opponent uses a different protocol version.")
+                errorMessage = "Opponent uses a different protocol version."
                 multipeer.disconnect()
+                showPicker = false
+                reset()
             }
         case .challengeProposed(let payload), .challengeAccepted(let payload):
             peerChallenge = payload
-            if phase == .waitingForOpponent || ownChallengeSent {
+            if ownChallengeSent {
                 phase = .launching
                 tryLaunch()
             }
         case .challengeDeclined:
-            phase = .error("Opponent declined the challenge.")
+            errorMessage = "Opponent declined the challenge."
+            showPicker = false
+            reset()
         case .disconnect:
-            phase = .error("Opponent disconnected.")
+            errorMessage = "Opponent left."
+            showPicker = false
+            reset()
+            multipeer.startDiscovery()
         case .moveCommitted, .roundResolved, .battleEnded, .rematch:
             break
         }
@@ -213,9 +225,12 @@ private extension MultiplayerSetupViewModel {
         let selfMoves = selectedMoves()
         let peerMoves = peerChallenge.moveNames.compactMap { PokeBattleKit.move(named: $0) }
         guard peerMoves.count == maxSelections else {
-            phase = .error("Opponent sent an invalid loadout.")
+            errorMessage = "Opponent sent an invalid loadout."
+            showPicker = false
+            reset()
             return
         }
+        showPicker = false
         let viewModel = MultiplayerBattleViewModel(
             role: role,
             selfSummary: PokemonSummary(pokemon: pokemon),

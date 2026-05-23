@@ -2,15 +2,13 @@ import SwiftUI
 import SwiftData
 import PokeBattleKit
 
-/// Lobby screen for two-device multipeer battles. Walks the user through
-/// discovery, role selection, pokemon + move pick, and finally hands off
-/// to `BattleView` once both peers have submitted their loadouts.
+/// Versus tab root. Shows nearby trainers via MultipeerConnectivity.
+/// Tapping a trainer invites them; on connect a sheet walks both
+/// players through pokemon + move selection before launching the battle.
 struct MultiplayerSetupView: View {
     @Environment(\.container) private var container
-    @Environment(\.modelContext) private var modelContext
 
     @State private var viewModel: MultiplayerSetupViewModel
-    @Query(sort: \Pokemon.id) private var allPokemon: [Pokemon]
 
     init(container: AppContainer) {
         _viewModel = State(initialValue: MultiplayerSetupViewModel(container: container))
@@ -18,12 +16,26 @@ struct MultiplayerSetupView: View {
 
     var body: some View {
         NavigationStack {
-            content
+            discoveryView
                 .applyPokedexStyling(title: "Local Battle", color: .darkGrey)
                 .foregroundStyle(.white)
                 .task { viewModel.startListening() }
                 .onAppear { viewModel.startDiscovery() }
                 .onDisappear { viewModel.stopDiscovery() }
+                .onChange(of: viewModel.isConnected) { _, connected in
+                    if connected { viewModel.showPicker = true }
+                }
+                .onChange(of: viewModel.connectionState) { _, newState in
+                    guard newState == .idle else { return }
+                    if viewModel.phase == .connecting {
+                        viewModel.inviteDeclined()
+                    }
+                }
+                .sheet(isPresented: $viewModel.showPicker, onDismiss: {
+                    viewModel.pickerDismissed()
+                }) {
+                    MultiplayerPickerSheet(viewModel: viewModel)
+                }
                 .navigationDestination(item: $viewModel.launch) { launch in
                     BattleView(viewModel: launch.viewModel)
                 }
@@ -34,11 +46,20 @@ struct MultiplayerSetupView: View {
                     "Invitation",
                     isPresented: pendingInvitationBinding,
                     presenting: viewModel.pendingInvitation
-                ) { invite in
+                ) { _ in
                     Button("Accept") { viewModel.acceptInvitation() }
                     Button("Decline", role: .cancel) { viewModel.declineInvitation() }
                 } message: { invite in
                     Text("\(invite.peerName) wants to battle.")
+                }
+                .alert(
+                    "Error",
+                    isPresented: errorBinding,
+                    presenting: viewModel.errorMessage
+                ) { _ in
+                    Button("OK") { viewModel.dismissError() }
+                } message: { message in
+                    Text(message)
                 }
         }
     }
@@ -53,50 +74,37 @@ private extension MultiplayerSetupView {
         )
     }
 
-    @ViewBuilder
-    var content: some View {
-        phaseView
-            .onChange(of: viewModel.isConnected) { _, connected in
-                if connected { viewModel.phase = .picking }
-            }
-            .onChange(of: viewModel.connectionState) { _, newState in
-                guard newState == .idle else { return }
-                switch viewModel.phase {
-                case .connecting:
-                    viewModel.inviteDeclined()
-                case .picking, .waitingForOpponent, .launching:
-                    viewModel.peerLeft()
-                default:
-                    break
-                }
-            }
-            .frame(maxWidth: .infinity)
-    }
-
-    @ViewBuilder
-    var phaseView: some View {
-        switch viewModel.phase {
-        case .discovering:        discoveryView
-        case .connecting:         loadingView(message: "Connecting…", cancelable: true)
-        case .picking:            pickerView
-        case .waitingForOpponent: loadingView(message: "Waiting for opponent…", cancelable: true)
-        case .launching:          loadingView(message: "Starting battle…")
-        case .error(let message): errorView(message)
-        }
+    var errorBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { _ in }
+        )
     }
 
     var discoveryView: some View {
-        VStack(spacing: 12) {
+        Group {
             if viewModel.discoveredPeers.isEmpty {
-                Spacer()
-                Text("No nearby trainers")
-                    .font(.pixel14)
-                    .foregroundStyle(.secondary)
-                Spacer()
+                VStack(spacing: 16) {
+                    Spacer()
+                    if viewModel.phase == .connecting {
+                        PixelSpinner()
+                        Text("Connecting…")
+                            .font(.pixel14)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text("Searching for nearby trainers…")
+                            .font(.pixel14)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 8.0) {
-                        Label("Devices", systemImage: "antenna.radiowaves.left.and.right")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Nearby trainers", systemImage: "antenna.radiowaves.left.and.right")
                             .font(.pixel12)
                             .foregroundStyle(.secondary)
                             .padding(.horizontal)
@@ -107,7 +115,8 @@ private extension MultiplayerSetupView {
                                 HStack {
                                     Label(peer.name, systemImage: "person.fill")
                                     Spacer()
-                                    Text(">")
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.secondary)
                                 }
                                 .font(.pixel14)
                                 .padding()
@@ -115,6 +124,7 @@ private extension MultiplayerSetupView {
                                 .background(Color.cardBackground)
                             }
                             .buttonStyle(.plain)
+                            .disabled(viewModel.phase == .connecting)
                         }
                     }
                 }
@@ -122,60 +132,95 @@ private extension MultiplayerSetupView {
             }
         }
     }
+}
 
-    var pickerView: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
-                pokemonPicker
-                if let selected = viewModel.selectedPokemon {
-                    selectedSummary(selected)
-                    movePicker
-                }
-            }
-//            .padding(.horizontal)
-        }
-        .safeAreaBar(edge: .bottom) { submitButton }
-    }
+// MARK: - Picker Sheet
 
-    var pokemonPicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Pick your pokemon")
-                .font(.pixel12)
-                .foregroundStyle(.secondary)
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 2) {
-                    ForEach(allPokemon, id: \.id) { pokemon in
-                        Button {
-                            withAnimation(.easeOut(duration: 0.15)) {
-                                viewModel.selectPokemon(pokemon)
-                            }
-                        } label: {
-                            VStack(spacing: 4) {
-                                SpriteImage(url: pokemon.frontSprite)
-                                    .frame(width: 64, height: 64)
-                                Text(pokemon.name)
-                                    .font(.pixel9)
-                                    .lineLimit(1)
-                            }
-                            .padding(8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(isSelected(pokemon) ? Color.cardBackground.opacity(0.8) : Color.cardBackground)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .strokeBorder(isSelected(pokemon) ? Color.white : .clear, lineWidth: 2)
-                            )
-                        }
-                        .buttonStyle(.plain)
+/// Modal sheet for pokemon + move selection after connecting to a peer.
+private struct MultiplayerPickerSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Pokemon.id) private var allPokemon: [Pokemon]
+
+    var viewModel: MultiplayerSetupViewModel
+    @State private var selectedForMoves: Pokemon?
+
+    var body: some View {
+        NavigationStack {
+            pokemonGrid
+                .applyPokedexStyling(title: "Pick your pokemon", color: .darkGrey)
+                .foregroundStyle(.white)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
                     }
                 }
-                .padding(.vertical, 4)
+                .navigationDestination(item: $selectedForMoves) { pokemon in
+                    MultiplayerMovePickerView(viewModel: viewModel, pokemon: pokemon)
+                }
+        }
+        .onChange(of: viewModel.phase) { _, newPhase in
+            if newPhase == .launching {
+                dismiss()
             }
         }
+        .onChange(of: viewModel.errorMessage) { _, error in
+            if error != nil { dismiss() }
+        }
+    }
+}
+
+// MARK: - Private
+private extension MultiplayerPickerSheet {
+    var pokemonGrid: some View {
+        ScrollView {
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(maximum: .infinity), spacing: 2),
+                    GridItem(.flexible(maximum: .infinity), spacing: 2)
+                ],
+                spacing: 2
+            ) {
+                ForEach(allPokemon, id: \.id) { pokemon in
+                    Button {
+                        viewModel.selectPokemon(pokemon)
+                        selectedForMoves = pokemon
+                    } label: {
+                        PokemonSpriteCard(pokemon: pokemon)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .scrollIndicators(.hidden)
     }
 
-    func selectedSummary(_ pokemon: Pokemon) -> some View {
+}
+
+// MARK: - Move Picker
+
+/// Separate View struct so `@Observable` tracking works through
+/// `navigationDestination`. Function-returned anonymous views don't
+/// reliably re-evaluate `safeAreaBar` content when observed properties change.
+private struct MultiplayerMovePickerView: View {
+    var viewModel: MultiplayerSetupViewModel
+    let pokemon: Pokemon
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 16) {
+                selectedSummary
+                movePicker
+            }
+        }
+        .safeAreaBar(edge: .bottom) { submitButton }
+        .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
+        .foregroundStyle(.white)
+    }
+}
+
+// MARK: - Private
+private extension MultiplayerMovePickerView {
+    var selectedSummary: some View {
         HStack(spacing: 12) {
             SpriteImage(url: pokemon.frontSprite)
                 .frame(width: 80, height: 80)
@@ -208,15 +253,14 @@ private extension MultiplayerSetupView {
                     .font(.pixel12)
                     .foregroundStyle(.secondary)
             }
+            .padding(.horizontal)
             let spacing: CGFloat = 2
             let columns = [
                 GridItem(.flexible(), spacing: spacing),
                 GridItem(.flexible(), spacing: spacing)
             ]
             LazyVGrid(columns: columns, spacing: spacing) {
-                ForEach(viewModel.movePool, id: \.name) { move in
-                    moveCard(move)
-                }
+                ForEach(viewModel.movePool, id: \.name, content: moveCard)
             }
         }
     }
@@ -239,61 +283,14 @@ private extension MultiplayerSetupView {
     var submitButton: some View {
         let ready = viewModel.selectedPokemon != nil
             && viewModel.selectedMoveNames.count == viewModel.maxSelections
-        return VStack(spacing: 8) {
-            PrimaryCapsuleButton(
-                icon: "bolt.fill",
-                title: ready ? "Send loadout" : "Pick \(viewModel.maxSelections - viewModel.selectedMoveNames.count) more",
-                isEnabled: ready,
-                isLoading: false,
-                action: viewModel.submitLoadout
-            )
-            Button("Cancel") { viewModel.cancel() }
-                .font(.pixel12)
-                .foregroundStyle(.secondary)
-        }
+        let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
+        return PrimaryCapsuleButton(
+            icon: "bolt.fill",
+            title: ready ? "Ready!" : "Pick \(remaining) more",
+            isEnabled: ready,
+            isLoading: viewModel.phase == .waitingForOpponent,
+            action: viewModel.submitLoadout
+        )
         .padding(.horizontal, 24)
-    }
-
-    func loadingView(message: String, cancelable: Bool = false) -> some View {
-        VStack(spacing: 16) {
-            Spacer()
-            PixelSpinner()
-            Text(message)
-                .font(.pixel14)
-                .foregroundStyle(.secondary)
-            Spacer()
-            if cancelable {
-                Button("Cancel") { viewModel.cancel() }
-                    .font(.pixel12)
-                    .foregroundStyle(.secondary)
-                    .padding(.bottom, 24)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    func errorView(_ message: String) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.red)
-            Text(message)
-                .font(.pixel14)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            PrimaryCapsuleButton(
-                icon: "arrow.uturn.backward",
-                title: "Back",
-                isEnabled: true,
-                isLoading: false,
-                action: viewModel.cancel
-            )
-            .padding(.horizontal, 24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    func isSelected(_ pokemon: Pokemon) -> Bool {
-        viewModel.selectedPokemon?.id == pokemon.id
     }
 }
