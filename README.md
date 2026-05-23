@@ -34,7 +34,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Clean Separation**: App / Features / Core / DesignSystem layers with one-way dependencies (App can see everything, Core depends on nothing).
 - ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every keyed cache entity (Pokemon by id, MoveDetail by name, TypeDetail by name, EvolutionChainEntity by chainId). Nested rows ride on cascade; `ItemData` is keyed by category title.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
-- ✅ **On-Device AI**: Apple `FoundationModels` integrated with plain-text generation, an integer-extracting parser, and deterministic fallbacks at every call site.
+- ✅ **On-Device AI**: Apple `FoundationModels` with `@Generable` structured output, `Tool`-based type/damage reasoning, and deterministic fallbacks via [PokeBattleKit](https://github.com/brillcp/PokeBattleKit) at every call site.
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
@@ -70,7 +70,7 @@ Every long-lived worker is an actor unless it has to bind to SwiftUI directly:
 
 | Type                       | Isolation                  | Why                                                          |
 | -------------------------- | -------------------------- | ------------------------------------------------------------ |
-| `BattleAIService`          | `actor`                    | Owns the `LanguageModelSession`, called from any context     |
+| `BattleAIService`          | `actor`                    | Owns the `LanguageModelClient`, called from any context      |
 | `SpriteLoader`             | `actor`                    | Image download + `URLCache` access                           |
 | `ImageColorAnalyzer`       | `actor`                    | Pixel-scan pipeline, off the main thread                     |
 | `AudioPlayer`              | `actor`                    | AVFoundation playback                                        |
@@ -131,22 +131,52 @@ The opponent is driven entirely by **Apple's `FoundationModels` framework**, run
 
 ## What the AI does
 
-PokedexUI uses `SystemLanguageModel.default` in three places:
+PokedexUI uses `SystemLanguageModel.default` with **structured generation** (`@Generable`) and **tool use** (`Tool` protocol) for three decisions:
 
 1. **Opponent picking** ("Smart pick" button in the picker sheet)
-   The model receives the player's name and types plus a roster of 40 candidate pokemon and returns a `pokedex id` representing a worthy matchup.
+   The model receives the player's name, types, and BST plus a shuffled roster of up to 50 pre-filtered candidates with matchup annotations. It returns a structured `OpponentPickResult` with the chosen index.
 2. **Loadout selection** (background task during the loadout screen)
-   The model receives the opponent's typing, the player's typing, and a 40-move sample of the opponent's full movepool with pre-computed type-effectiveness multipliers. It returns 4 zero-based indices: the moves the opponent brings into battle.
+   The model receives both combatants' typings and a shortlisted move pool. It can call `checkTypeEffectiveness` and `estimateDamage` tools to reason about coverage before returning a `LoadoutPickResult` with four move names.
 3. **Per-turn move selection** (every time the player commits a move)
-   The model receives both combatants' current HP, status, and types, plus the opponent's 4 chosen moves with effectiveness multipliers, and returns the index of the move to play.
+   The model receives both combatants' current HP, status, types, and the opponent's four moves. It can call `estimateDamage` to compare options and detect KOs, then returns a `MovePickResult` with the chosen move name.
 
-All three calls share one `LanguageModelSession` instance per battle (so the model has conversation memory across turns) and degrade gracefully to deterministic heuristics if Apple Intelligence isn't available on the device, the session is busy, or the model returns garbage. **The battle UI never blocks waiting on a model response.**
+Every call degrades gracefully to deterministic heuristics (in [PokeBattleKit](https://github.com/brillcp/PokeBattleKit)) if Apple Intelligence is unavailable, the session is busy, or the model returns an unresolvable result. **The battle UI never blocks waiting on a model response.**
 
-## How the prompts are built
+## Structured generation and tools
 
-`BattleAIPromptBuilder` constructs each prompt as a compact text snapshot. The model never has to recall the type chart from training: every damaging move row carries a pre-computed `×N vs defender` multiplier, so the model just compares numbers. Status moves are flagged explicitly. System prompts live in [`PokedexUI/Features/Battle/AI/`](PokedexUI/Features/Battle/AI/), split per task: [`BattleAIMoveInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIMoveInstructions.md), [`BattleAILoadoutInstructions.md`](PokedexUI/Features/Battle/AI/BattleAILoadoutInstructions.md), [`BattleAIOpponentInstructions.md`](PokedexUI/Features/Battle/AI/BattleAIOpponentInstructions.md). Each is loaded once when its session initializes.
+Each AI decision uses `@Generable` structs for type-safe output instead of free-text parsing. The model returns typed results (`MovePickResult`, `LoadoutPickResult`, `OpponentPickResult`) that resolve directly to game objects by name or index lookup.
 
-Output is plain text, parsed by `BattleAIResponseParser`. The session runs with `.permissiveContentTransformations` guardrails because Pokemon move/status names (`hyper-beam`, `burn`, `poison`) false-positive the default safety classifier; guided generation via `@Generable` re-enables those defaults and breaks the call. The parser just extracts the first integer from the response and validates it against the legal index range. If extraction fails the call drops to a deterministic fallback (random move, heuristic loadout, random opponent).
+Two `Tool` conformances give the model access to game data it can't derive from training:
+
+- **`CheckTypeTool`**: wraps the type chart to report effectiveness multipliers for any attacking type vs defending types.
+- **`EstimateDamageTool`**: wraps the Gen-V damage calculator to return estimated damage, defender HP, and whether the hit would KO.
+
+System instructions live in [`PokedexUI/Features/Battle/AI/LLMInstructions/`](PokedexUI/Features/Battle/AI/LLMInstructions/), split per task. Each is a single short paragraph guiding tool usage and tactical priorities.
+
+## Deterministic strategy layer
+
+The scoring, filtering, and post-pick correction logic lives in [PokeBattleKit](https://github.com/brillcp/PokeBattleKit) as pure deterministic code with no LLM dependency:
+
+- **`MoveScoring`**: in-battle and loadout scoring with STAB, type effectiveness, priority, and escalating recency penalties to prevent move spamming.
+- **`MoveStrategy`**: heuristic fallback pick and post-pick adjustments (immune repair, phase-aware switching, KO override, status redundancy).
+- **`LoadoutStrategy`**: shortlisting, heuristic 4-move selection, fill (pad LLM partial picks to 4), and mild fairness handicapping.
+- **`OpponentStrategy`**: BST-tolerant pool filtering, mutual-threat scoring, and heuristic best-opponent ranking.
+
+Every `BattleAIService` method follows the same shape: PokeBattleKit computes a heuristic fallback, the LLM attempts a smarter pick via structured generation with tools, then PokeBattleKit runs post-pick corrections on whichever branch won.
+
+## Tuning the AI
+
+All scoring weights live in `MoveScoring.Weights` inside PokeBattleKit. They're public static properties, so you can read (and fork) them to experiment with AI behavior:
+
+| Weight group | What it controls | Examples |
+| --- | --- | --- |
+| **Damage** | How much the AI values raw damage, KO potential, resisted hits | `koBonus` (55), `nearKOBonus` (18), `resistedMult` (0.4) |
+| **Status** | Value of inflicting paralysis, burn, poison, sleep | `paralysisFaster` (28), `burnPhysical` (24), `sleep` (22) |
+| **Stat changes** | Boost/debuff desirability based on matchup context | `statBoostMatching` (10), `statBoostSpeedSlow` (16) |
+| **Recency** | Escalating penalties for repeating the same move | `repeatFirst` (18), `repeatSecond` (40), `repeatThird` (65) |
+| **Low HP** | Survival instinct: healing and priority at low health | `lowHPHealBonus` (35), `lowHPPriorityBonus` (6) |
+
+Raising `koBonus` makes the AI more aggressive. Lowering the recency penalties lets it spam its best move. Bumping `lowHPHealBonus` makes it play safer when hurt. The heuristic fallback and LLM post-pick adjustments both flow through these weights, so a single change affects both code paths.
 
 ## Why on-device?
 
@@ -214,11 +244,15 @@ Pixel font, gameboy-style aesthetic, glass effects:
 
 # Dependencies 🔗
 
-PokedexUI uses the [Networking](https://github.com/brillcp/Networking) package for all PokeAPI HTTP calls. It's a thin actor-based wrapper around `URLSession` with a generic `Requestable` protocol that drives every endpoint in the app. Read more about that [here](https://github.com/brillcp/Networking#readme).
+| Package | What it does |
+| --- | --- |
+| [Networking](https://github.com/brillcp/Networking) | Thin actor-based `URLSession` wrapper with a generic `Requestable` protocol driving every PokeAPI endpoint |
+| [PokeBattleKit](https://github.com/brillcp/PokeBattleKit) | Standalone battle engine: damage calculator, type chart, move/combatant models, and deterministic AI strategies (scoring, heuristics, adjustments) |
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/brillcp/Networking.git", .upToNextMajor(from: "0.9.3"))
+    .package(url: "https://github.com/brillcp/Networking.git", .upToNextMajor(from: "0.10.0")),
+    .package(url: "https://github.com/brillcp/PokeBattleKit.git", .upToNextMinor(from: "0.0.9"))
 ]
 ```
 
