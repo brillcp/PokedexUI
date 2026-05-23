@@ -4,11 +4,11 @@ import PokeBattleKit
 /// Drives `BattleView` as a conductor over engine, animator, log, and audio.
 @MainActor
 protocol BattleViewModelProtocol: AnyObject {
-    var playerPokemon: PokemonViewModel { get }
-    var opponentPokemon: PokemonViewModel { get }
+    var playerName: String { get }
+    var opponentName: String { get }
     var animator: BattleAnimator { get }
     var state: BattleState? { get }
-    var engine: BattleEngine? { get }
+    var canSelectMove: Bool { get }
     var log: [AttributedString] { get }
     var isResolvingTurn: Bool { get }
     var winner: Side? { get }
@@ -77,11 +77,18 @@ final class BattleViewModel {
 
 // MARK: - BattleViewModelProtocol
 extension BattleViewModel: BattleViewModelProtocol {
+    var playerName: String { playerPokemon.name }
+    var opponentName: String { opponentPokemon.name }
+    var canSelectMove: Bool { engine != nil }
 
     func prepare() async {
         async let entrance: Void = playEntrance()
         async let colors: Void = spriteColors.resolve(
-            player: playerPokemon, opponent: opponentPokemon, animator: animator
+            playerID: playerPokemon.id,
+            playerSpriteURL: playerPokemon.frontSprite,
+            opponentID: opponentPokemon.id,
+            opponentSpriteURL: opponentPokemon.frontSprite,
+            animator: animator
         )
         _ = await (entrance, colors)
     }

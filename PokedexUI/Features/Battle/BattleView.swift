@@ -9,7 +9,7 @@ struct BattleView<ViewModel: BattleViewModelProtocol>: View {
 
     var body: some View {
         content
-            .applyPokedexStyling(title: "\(viewModel.playerPokemon.name) vs \(viewModel.opponentPokemon.name)", color: .darkGrey)
+            .applyPokedexStyling(title: "\(viewModel.playerName) vs \(viewModel.opponentName)", color: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare() }
             .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.animator.attackTick)
@@ -125,7 +125,7 @@ private extension BattleView {
     }
 
     func moveGrid(state: BattleState) -> some View {
-        let disabled = viewModel.engine == nil || viewModel.isResolvingTurn || viewModel.winner != nil
+        let disabled = !viewModel.canSelectMove || viewModel.isResolvingTurn || viewModel.winner != nil
         let spacing: CGFloat = 2
         let columns = [
             GridItem(.flexible(), spacing: spacing),

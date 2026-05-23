@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -79,6 +79,12 @@
 		D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */; };
 		D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D503082E39305500AC4BC5 /* Tabs.swift */; };
 		D5D6250D2E2194230030867D /* ItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D6250C2E2194230030867D /* ItemDetailView.swift */; };
+		D5DA000000000000000000A1 /* PokemonSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DA000000000000000000B1 /* PokemonSummary.swift */; };
+		D5DA000000000000000000A2 /* BattleMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DA000000000000000000B2 /* BattleMessage.swift */; };
+		D5DA000000000000000000A3 /* MultipeerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DA000000000000000000B3 /* MultipeerService.swift */; };
+		D5DA000000000000000000C1 /* MultiplayerBattleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DA000000000000000000D1 /* MultiplayerBattleViewModel.swift */; };
+		D5DA000000000000000000C2 /* MultiplayerSetupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DA000000000000000000D2 /* MultiplayerSetupViewModel.swift */; };
+		D5DA000000000000000000C3 /* MultiplayerSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DA000000000000000000D3 /* MultiplayerSetupView.swift */; };
 		D5E0000000000000000000C1 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000C2 /* AppContainer.swift */; };
 		D5E0000000000000000000C3 /* AppContainerKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000C4 /* AppContainerKey.swift */; };
 		D5E0000000000000000000D1 /* WeaknessGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D2 /* WeaknessGridView.swift */; };
@@ -167,6 +173,12 @@
 		D5D4590D2E40F28600ADB89A /* PokemonDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonDetailViewModel.swift; sourceTree = "<group>"; };
 		D5D503082E39305500AC4BC5 /* Tabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tabs.swift; sourceTree = "<group>"; };
 		D5D6250C2E2194230030867D /* ItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailView.swift; sourceTree = "<group>"; };
+		D5DA000000000000000000B1 /* PokemonSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonSummary.swift; sourceTree = "<group>"; };
+		D5DA000000000000000000B2 /* BattleMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleMessage.swift; sourceTree = "<group>"; };
+		D5DA000000000000000000B3 /* MultipeerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerService.swift; sourceTree = "<group>"; };
+		D5DA000000000000000000D1 /* MultiplayerBattleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplayerBattleViewModel.swift; sourceTree = "<group>"; };
+		D5DA000000000000000000D2 /* MultiplayerSetupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplayerSetupViewModel.swift; sourceTree = "<group>"; };
+		D5DA000000000000000000D3 /* MultiplayerSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplayerSetupView.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000C2 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000C4 /* AppContainerKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainerKey.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000D2 /* WeaknessGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeaknessGridView.swift; sourceTree = "<group>"; };
@@ -285,6 +297,26 @@
 			path = LLMInstructions;
 			sourceTree = "<group>";
 		};
+		D5DA000000000000000000A0 /* Multipeer */ = {
+			isa = PBXGroup;
+			children = (
+				D5DA000000000000000000B1 /* PokemonSummary.swift */,
+				D5DA000000000000000000B2 /* BattleMessage.swift */,
+				D5DA000000000000000000B3 /* MultipeerService.swift */,
+			);
+			path = Multipeer;
+			sourceTree = "<group>";
+		};
+		D5DA000000000000000000C0 /* Multiplayer */ = {
+			isa = PBXGroup;
+			children = (
+				D5DA000000000000000000D1 /* MultiplayerBattleViewModel.swift */,
+				D5DA000000000000000000D2 /* MultiplayerSetupViewModel.swift */,
+				D5DA000000000000000000D3 /* MultiplayerSetupView.swift */,
+			);
+			path = Multiplayer;
+			sourceTree = "<group>";
+		};
 		D5E0000000000000000000A1 /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -374,6 +406,7 @@
 				D5E0000000000000000000AE /* Pokemon */,
 				D5E0000000000000000000AF /* Evolution */,
 				D5E0000000000000000000B2 /* Item */,
+				D5DA000000000000000000A0 /* Multipeer */,
 				9332C0E7273F3219003AF377 /* SpriteLoader.swift */,
 				D5FED1BC2E3B973A0013D99B /* ImageColorAnalyzer.swift */,
 				D5329F3A2E29351400DC38B3 /* AudioPlayer.swift */,
@@ -482,6 +515,7 @@
 				D5E0000000000000000000EB /* Subviews */,
 				D5BA13062E70000000000207 /* AI */,
 				D5BA130C2E70000000000305 /* Setup */,
+				D5DA000000000000000000C0 /* Multiplayer */,
 			);
 			path = Battle;
 			sourceTree = "<group>";
@@ -697,6 +731,12 @@
 				D573661D2E217D5700FE4ED0 /* APIService.swift in Sources */,
 				D5329F3B2E29351500DC38B3 /* AudioPlayer.swift in Sources */,
 				D5D4590E2E40F28600ADB89A /* PokemonDetailViewModel.swift in Sources */,
+				D5DA000000000000000000A1 /* PokemonSummary.swift in Sources */,
+				D5DA000000000000000000A2 /* BattleMessage.swift in Sources */,
+				D5DA000000000000000000A3 /* MultipeerService.swift in Sources */,
+				D5DA000000000000000000C1 /* MultiplayerBattleViewModel.swift in Sources */,
+				D5DA000000000000000000C2 /* MultiplayerSetupViewModel.swift in Sources */,
+				D5DA000000000000000000C3 /* MultiplayerSetupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

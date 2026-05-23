@@ -67,6 +67,21 @@ struct BattleLogFormatter {
         attr.inlinePresentationIntent = .stronglyEmphasized
         return plain("A wild ") + attr + plain(" appeared!")
     }
+
+    /// Multiplayer-flavored entrance line shown when a peer's pokemon arrives.
+    func opponentReady(opponentColor: Color?) -> AttributedString {
+        var attr = nameAttr(opponentName, color: opponentColor)
+        attr.inlinePresentationIntent = .stronglyEmphasized
+        return attr + plain(" is ready to battle!")
+    }
+
+    /// Placeholder line shown after the local player commits a move while
+    /// the remote peer's commit is still in flight.
+    func waitingForOpponent() -> AttributedString {
+        var str = AttributedString("Waiting for opponent...")
+        str.foregroundColor = .gray
+        return str
+    }
 }
 
 // MARK: - Private

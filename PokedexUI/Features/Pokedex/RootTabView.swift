@@ -21,6 +21,9 @@ struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
             Tab(Tabs.favourites.title, systemImage: Tabs.favourites.icon, value: Tabs.favourites) {
                 favouritesTab
             }
+            Tab(Tabs.versus.title, systemImage: Tabs.versus.icon, value: Tabs.versus) {
+                versusTab
+            }
             Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
                 searchTab
             }
@@ -58,6 +61,10 @@ private extension RootTabView {
             BookmarksView()
                 .applyPokedexStyling(title: Tabs.favourites.title)
         }
+    }
+
+    var versusTab: some View {
+        MultiplayerSetupView(container: container)
     }
 }
 

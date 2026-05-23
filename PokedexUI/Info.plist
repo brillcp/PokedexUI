@@ -6,5 +6,12 @@
 	<array>
 		<string>pixelmix.ttf</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>PokedexUI uses your local network to discover nearby trainers for Versus battles.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_pokedex-vs._tcp</string>
+		<string>_pokedex-vs._udp</string>
+	</array>
 </dict>
 </plist>

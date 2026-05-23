@@ -10,17 +10,19 @@ struct SpriteColorResolver {
     let imageColorAnalyzer: ImageColorAnalyzing
 
     func resolve(
-        player: PokemonViewModel,
-        opponent: PokemonViewModel,
+        playerID: Int,
+        playerSpriteURL: String,
+        opponentID: Int,
+        opponentSpriteURL: String,
         animator: BattleAnimator
     ) async {
-        async let playerImage   = spriteLoader.spriteImage(from: player.frontSprite)
-        async let opponentImage = spriteLoader.spriteImage(from: opponent.frontSprite)
+        async let playerImage   = spriteLoader.spriteImage(from: playerSpriteURL)
+        async let opponentImage = spriteLoader.spriteImage(from: opponentSpriteURL)
         let (pImg, oImg) = await (playerImage, opponentImage)
-        if let pImg, let color = await imageColorAnalyzer.dominantColor(for: player.id, image: pImg) {
+        if let pImg, let color = await imageColorAnalyzer.dominantColor(for: playerID, image: pImg) {
             animator.mutateCues(.player) { $0.color = color }
         }
-        if let oImg, let color = await imageColorAnalyzer.dominantColor(for: opponent.id, image: oImg) {
+        if let oImg, let color = await imageColorAnalyzer.dominantColor(for: opponentID, image: oImg) {
             animator.mutateCues(.opponent) { $0.color = color }
         }
     }
