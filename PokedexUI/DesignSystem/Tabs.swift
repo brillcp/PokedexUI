@@ -9,7 +9,7 @@ extension Tabs {
             case .pokedex: "Pokedex"
             case .items: "Items"
             case .favourites: "Favourites"
-            case .battle: "Battle"
+            case .battle: "Gym"
             case .search: "Search"
         }
     }
@@ -19,7 +19,7 @@ extension Tabs {
             case .pokedex: GridLayout.three.icon
             case .items: "xmark.triangle.circle.square.fill"
             case .favourites: "heart.fill"
-            case .battle: "person.2.wave.2.fill"
+            case .battle: "bolt.shield.fill"
             case .search: "magnifyingglass"
         }
     }

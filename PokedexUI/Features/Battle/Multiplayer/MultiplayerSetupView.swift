@@ -17,13 +17,17 @@ struct MultiplayerSetupView: View {
     var body: some View {
         NavigationStack {
             discoveryView
-                .applyPokedexStyling(title: "Local Battle", color: .darkGrey)
+                .applyPokedexStyling(title: "Gym")
                 .foregroundStyle(.white)
                 .task { viewModel.startListening() }
                 .onAppear { viewModel.startDiscovery() }
                 .onDisappear { viewModel.stopDiscovery() }
                 .onChange(of: viewModel.isConnected) { _, connected in
-                    if connected { viewModel.showPicker = true }
+                    if connected {
+                        viewModel.showPicker = true
+                    } else if viewModel.phase != .discovering {
+                        viewModel.connectionLost()
+                    }
                 }
                 .onChange(of: viewModel.connectionState) { _, newState in
                     guard newState == .idle else { return }
@@ -45,14 +49,14 @@ struct MultiplayerSetupView: View {
                     }
                 }
                 .alert(
-                    "Invitation",
+                    "Battle challange!",
                     isPresented: pendingInvitationBinding,
                     presenting: viewModel.pendingInvitation
                 ) { _ in
-                    Button("Accept", role: .confirm) { viewModel.acceptInvitation() }
-                    Button("Decline", role: .cancel) { viewModel.declineInvitation() }
+                    Button("Accept", role: .confirm, action: viewModel.acceptInvitation)
+                    Button("Decline", role: .cancel, action: viewModel.declineInvitation)
                 } message: { invite in
-                    Text("\(invite.peerName) wants to battle.")
+                    Text("\(invite.peerName) wants to challange you to a 1v1 battle.")
                 }
                 .alert(
                     "Error",
@@ -91,11 +95,12 @@ private extension MultiplayerSetupView {
                     if viewModel.phase == .connecting {
                         PixelSpinner()
                         Text("Connecting…")
-                    } else {
+                            .frame(maxWidth: .infinity)
+                        } else {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .resizable()
                             .frame(width: 24, height: 24)
-                        Text("Searching for nearby trainers…")
+                        Text("Waiting for nearby trainers…")
                     }
                     Spacer()
                 }
@@ -128,6 +133,7 @@ private extension MultiplayerSetupView {
                             .disabled(viewModel.phase == .connecting)
                         }
                     }
+                    .padding(.vertical)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -150,7 +156,7 @@ private struct MultiplayerPickerSheet: View {
         NavigationStack {
             pokemonGrid
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .applyPokedexStyling(title: "Pick your pokemon", color: .darkGrey)
+                .applyPokedexStyling(title: "Pick your fighter", color: .darkGrey)
                 .foregroundStyle(.white)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {

@@ -120,6 +120,14 @@ extension MultiplayerSetupViewModel {
         }
     }
 
+    /// Called when MC drops unexpectedly during picking, waiting, or battle.
+    func connectionLost() {
+        errorMessage = "Connection lost."
+        showPicker = false
+        reset()
+        multipeer.startDiscovery()
+    }
+
     /// Called when navigating back from a finished battle.
     func returnToLobby() {
         multipeer.disconnect()
