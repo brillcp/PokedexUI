@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/brillcp/pokebattlekit",
       "state" : {
-        "revision" : "5f1e39ccb8150573bbbc8a4bccd71994aa7a951c",
-        "version" : "0.0.9"
+        "revision" : "c8b9a03dc80884a934834649f5b11411dacfe451",
+        "version" : "0.1.1"
       }
     }
   ],
