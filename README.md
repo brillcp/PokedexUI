@@ -32,7 +32,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Storage-First**: SwiftData is the source of truth; the network is a backfill mechanism.
 - ✅ **Actor-Based Concurrency**: every long-lived worker is an actor; SwiftUI-bound types are `@MainActor @Observable`.
 - ✅ **Clean Separation**: App / Features / Core / DesignSystem layers with one-way dependencies (App can see everything, Core depends on nothing).
-- ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every keyed cache entity (Pokemon by id, MoveDetail by name, TypeDetail by name, EvolutionChainEntity by chainId). Nested rows ride on cascade; `ItemData` is keyed by category title.
+- ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every keyed cache entity (Pokemon by id, EvolutionChainEntity by chainId). Nested rows ride on cascade; `ItemData` is keyed by category title. Move and type data live in PokeBattleKit's own disk cache.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
 - ✅ **On-Device AI**: Apple `FoundationModels` with `@Generable` structured output, `Tool`-based type/damage reasoning, and deterministic fallbacks via [PokeBattleKit](https://github.com/brillcp/PokeBattleKit) at every call site.
 
@@ -106,15 +106,13 @@ Tests and previews swap in a custom container with mocks; the rest of the app is
 
 ## Storage
 
-Five top-level `@Model` types, each deduped on a unique key. Nested rows (stats, abilities, sprites, moves, etc.) live under their parent and ride on cascade delete.
+Three top-level `@Model` types, each deduped on a unique key. Nested rows (stats, abilities, sprites, etc.) live under their parent and ride on cascade delete.
 
 - `Pokemon` (id-unique): full hydrated detail, stats, sprites, moves, species fields, bookmark flag
-- `MoveDetail` (name-unique): power, accuracy, type, damage class, ailment
-- `TypeDetail` (name-unique): damage relations for the 18 elemental types
 - `ItemData` (title-keyed): item catalogue bucketed by category title
 - `EvolutionChainEntity` (chainId-unique): evolution chain rows keyed by chain id
 
-The pokedex grid renders from `Pokemon` rows; full hydration runs once at app launch and is cached forever, since Pokémon data is immutable.
+Move and type effectiveness data are owned by PokeBattleKit, which caches them as JSON files on disk via its own `DiskCache`. The pokedex grid renders from `Pokemon` rows; full hydration runs once at app launch and is cached forever, since Pokemon data is immutable.
 
 ---
 
