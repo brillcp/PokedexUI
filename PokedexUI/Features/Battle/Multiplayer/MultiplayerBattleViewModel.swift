@@ -78,7 +78,13 @@ final class MultiplayerBattleViewModel {
             self.typeChart = chart
             self.engine = BattleEngine(state: state!, typeChart: chart)
         }
-        Task { await self.listen() }
+        let stream = multipeer.messages()
+        Task { [weak self] in
+            for await message in stream {
+                guard let self else { return }
+                await self.handle(message)
+            }
+        }
     }
 }
 
@@ -113,12 +119,6 @@ extension MultiplayerBattleViewModel: BattleViewModelProtocol {
 
 // MARK: - Message handling
 private extension MultiplayerBattleViewModel {
-    func listen() async {
-        for await message in multipeer.messages {
-            await handle(message)
-        }
-    }
-
     func handle(_ message: BattleMessage) async {
         switch message {
         case .moveCommitted(let moveName, let turn):

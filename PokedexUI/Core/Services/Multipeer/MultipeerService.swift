@@ -39,8 +39,7 @@ enum MultipeerRole: Sendable {
 final class MultipeerService: NSObject {
     private static let serviceType = "pokedex-vs"
 
-    let messages: AsyncStream<BattleMessage>
-    private let messageContinuation: AsyncStream<BattleMessage>.Continuation
+    private var subscribers: [UUID: AsyncStream<BattleMessage>.Continuation] = [:]
     private let myPeerID: MCPeerID
     private let session: MCSession
     private var advertiser: MCNearbyServiceAdvertiser?
@@ -61,11 +60,23 @@ final class MultipeerService: NSObject {
             securityIdentity: nil,
             encryptionPreference: .required
         )
-        var continuation: AsyncStream<BattleMessage>.Continuation!
-        self.messages = AsyncStream { continuation = $0 }
-        self.messageContinuation = continuation
         super.init()
         self.session.delegate = self
+    }
+
+    /// Return a new `AsyncStream` that receives all future messages. Each
+    /// subscriber gets its own copy (broadcast). The stream auto-unregisters
+    /// on termination so callers don't need to manually unsubscribe.
+    func messages() -> AsyncStream<BattleMessage> {
+        let id = UUID()
+        return AsyncStream { continuation in
+            self.subscribers[id] = continuation
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.subscribers.removeValue(forKey: id)
+                }
+            }
+        }
     }
 
     /// Begin advertising this device as a host. Disables any prior browse
@@ -187,7 +198,9 @@ extension MultipeerService: MCSessionDelegate {
             return
         }
         Task { @MainActor in
-            self.messageContinuation.yield(message)
+            for continuation in self.subscribers.values {
+                continuation.yield(message)
+            }
         }
     }
 

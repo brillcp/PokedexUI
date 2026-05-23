@@ -54,9 +54,16 @@ final class MultiplayerSetupViewModel {
     init(container: AppContainer) {
         self.container = container
         self.multipeer = container.multipeerService
-        self.listenTask = Task { [weak self] in
-            guard let self else { return }
-            for await message in self.multipeer.messages {
+    }
+
+    /// Begin listening for peer messages. Call once from the view's `.task`
+    /// modifier so the listen loop is tied to view lifetime, not init.
+    func startListening() {
+        guard listenTask == nil else { return }
+        let stream = multipeer.messages()
+        listenTask = Task { [weak self] in
+            for await message in stream {
+                guard let self else { return }
                 await self.handle(message)
             }
         }

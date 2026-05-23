@@ -22,6 +22,7 @@ struct MultiplayerSetupView: View {
             content
                 .applyPokedexStyling(title: "Local Battle", color: .darkGrey)
                 .foregroundStyle(.white)
+                .task { viewModel.startListening() }
                 .navigationDestination(item: $viewModel.launch) { launch in
                     BattleView(viewModel: launch.viewModel)
                 }
@@ -58,6 +59,15 @@ private extension MultiplayerSetupView {
 
     @ViewBuilder
     var content: some View {
+        phaseView
+            .onChange(of: viewModel.isConnected) { _, connected in
+                if connected { viewModel.phase = .picking }
+            }
+//            .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    var phaseView: some View {
         switch viewModel.phase {
         case .menu:                menuView
         case .hosting:             hostingView
@@ -112,9 +122,6 @@ private extension MultiplayerSetupView {
             connectedHint
         }
         .padding()
-        .onChange(of: viewModel.isConnected) { _, connected in
-            if connected { viewModel.phase = .picking }
-        }
     }
 
     var browsingView: some View {
@@ -153,9 +160,6 @@ private extension MultiplayerSetupView {
             }
             Spacer()
             connectedHint
-        }
-        .onChange(of: viewModel.isConnected) { _, connected in
-            if connected { viewModel.phase = .picking }
         }
     }
 
