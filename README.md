@@ -126,7 +126,7 @@ The opponent is driven entirely by **Apple's `FoundationModels` framework**, run
 
 PokedexUI uses `SystemLanguageModel.default` with **structured generation** (`@Generable`) and **tool use** (`Tool` protocol) for three decisions:
 
-1. **Opponent picking** ("Smart pick" button in the picker sheet)
+1. **Opponent picking** ("Random" button in the picker sheet)
    The model receives the player's name, types, and BST plus a shuffled roster of up to 50 pre-filtered candidates with matchup annotations. It returns a structured `OpponentPickResult` with the chosen index.
 2. **Loadout selection** (background task during the loadout screen)
    The model receives both combatants' typings and a shortlisted move pool. It can call `checkTypeEffectiveness` and `estimateDamage` tools to reason about coverage before returning a `LoadoutPickResult` with four move names.
@@ -182,27 +182,13 @@ This is the kind of feature `FoundationModels` was built for: small, structured,
 
 ---
 
-# Data loading 📥
-
-Background workers fill the on-disk cache at app launch so the UI never waits on the network.
-
-| Worker                  | What it pulls                             | When             |
-| ----------------------- | ----------------------------------------- | ---------------- |
-| `PokeBattleKit`         | Type chart (18 type damage relations) + full move catalogue | App launch via `PokeBattleKit.initialize()` |
-| `PokemonService`        | Full pokedex hydration (detail + species)  | App launch       |
-| `EvolutionService`      | Evolution chains for hydrated pokemon     | App launch, background priority |
-
-Sprite colors are resolved lazily on first display through `ImageColorAnalyzer` (an actor) and cached in-process by pokemon id, so a detail view that opens the same pokemon twice runs the pixel scan once. The pokedex grid pulls the full `/pokemon?limit=1150` index in a single request, then fans out detail + species fetches concurrently with progress ticks. Subsequent app launches read everything from SwiftData with zero network calls.
-
----
-
 # Battle UX flow 🎮
 
 ```
 Detail view
    │ (tap Fight ⚡)
    ▼
-Opponent picker sheet  ◄── Random / Smart pick (AI)
+Opponent picker sheet  ◄── Random (AI)
    │ (tap a candidate)
    ▼
 Loadout screen
@@ -220,6 +206,20 @@ Battle view
 ```
 
 The battle screen never holds the loadout sheet open: every preflight task either completes before the player commits, or runs lazily inside the battle view itself. The move grid is disabled while the AI resolves the opponent's pick so the player can't double-tap into a stale turn.
+
+---
+
+# Data loading 📥
+
+Background workers fill the on-disk cache at app launch so the UI never waits on the network.
+
+| Worker                  | What it pulls                             | When             |
+| ----------------------- | ----------------------------------------- | ---------------- |
+| `PokeBattleKit`         | Type chart (18 type damage relations) + full move catalogue | App launch via `PokeBattleKit.initialize()` |
+| `PokemonService`        | Full pokedex hydration (detail + species)  | App launch       |
+| `EvolutionService`      | Evolution chains for hydrated pokemon     | App launch, background priority |
+
+Sprite colors are resolved lazily on first display through `ImageColorAnalyzer` (an actor) and cached in-process by pokemon id, so a detail view that opens the same pokemon twice runs the pixel scan once. The pokedex grid pulls the full `/pokemon?limit=1150` index in a single request, then fans out detail + species fetches concurrently with progress ticks. Subsequent app launches read everything from SwiftData with zero network calls.
 
 ---
 
