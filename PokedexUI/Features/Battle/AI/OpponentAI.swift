@@ -35,7 +35,8 @@ enum OpponentPrompt {
     }
 
     static func parsePick(raw: String, indexMap: [Int: Int]) -> Int? {
-        guard let displayIdx = firstInt(in: raw) else { return nil }
+        guard let match = raw.firstMatch(of: /\d+/),
+              let displayIdx = Int(match.output) else { return nil }
         return indexMap[displayIdx]
     }
 }

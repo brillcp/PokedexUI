@@ -47,7 +47,6 @@
 		D58F8D992E3970F300BB9A45 /* SortType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58F8D982E3970F300BB9A45 /* SortType.swift */; };
 		D58F9B032E1FC82800BB2D36 /* ItemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D58F9B022E1FC82800BB2D36 /* ItemListView.swift */; };
 		D5A1B00000000000000000A1 /* LanguageModelClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B1 /* LanguageModelClient.swift */; };
-		D5A1B00000000000000000A2 /* MoveAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B2 /* MoveAI.swift */; };
 		D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B4 /* OpponentAI.swift */; };
 		D5A1B00000000000000000A6 /* BattleContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B6 /* BattleContext.swift */; };
 		D5A1B00000000000000000A7 /* BattleAITools.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A1B00000000000000000B7 /* BattleAITools.swift */; };
@@ -136,7 +135,6 @@
 		D58F8D982E3970F300BB9A45 /* SortType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortType.swift; sourceTree = "<group>"; };
 		D58F9B022E1FC82800BB2D36 /* ItemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemListView.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B1 /* LanguageModelClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageModelClient.swift; sourceTree = "<group>"; };
-		D5A1B00000000000000000B2 /* MoveAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B4 /* OpponentAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpponentAI.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B6 /* BattleContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleContext.swift; sourceTree = "<group>"; };
 		D5A1B00000000000000000B7 /* BattleAITools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleAITools.swift; sourceTree = "<group>"; };
@@ -250,7 +248,6 @@
 			children = (
 				D5BA13012E70000000000202 /* BattleAIService.swift */,
 				D5A1B00000000000000000B1 /* LanguageModelClient.swift */,
-				D5A1B00000000000000000B2 /* MoveAI.swift */,
 				D5A1B00000000000000000B4 /* OpponentAI.swift */,
 				D5A1B00000000000000000B6 /* BattleContext.swift */,
 				D5A1B00000000000000000B7 /* BattleAITools.swift */,
@@ -653,7 +650,6 @@
 				D5BA12192E70000000000059 /* BattleLogFormatter.swift in Sources */,
 				D5BA13002E70000000000201 /* BattleAIService.swift in Sources */,
 				D5A1B00000000000000000A1 /* LanguageModelClient.swift in Sources */,
-				D5A1B00000000000000000A2 /* MoveAI.swift in Sources */,
 				D5A1B00000000000000000A4 /* OpponentAI.swift in Sources */,
 				D5A1B00000000000000000A6 /* BattleContext.swift in Sources */,
 				D5A1B00000000000000000A7 /* BattleAITools.swift in Sources */,

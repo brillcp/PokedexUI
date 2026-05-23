@@ -90,7 +90,7 @@ extension BattleAIService: BattleAIServiceProtocol {
         ]
 
         let seen = defenderSeenMoves.isEmpty ? "" : "\nDefender used: \(defenderSeenMoves.joined(separator: ", "))"
-        let moveList = moves.map { describeMove($0) }.joined(separator: "\n")
+        let moveList = moves.map(\.promptDescription).joined(separator: "\n")
         let prompt = """
         \(BattleContext.compact(attacker: attacker, defender: defender, turnNumber: turnNumber))\(seen)
 
@@ -183,7 +183,7 @@ extension BattleAIService: BattleAIServiceProtocol {
             EstimateDamageTool(attacker: fighter, defender: opponent, typeChart: typeChart, movesByName: movesByName)
         ]
 
-        let moveList = shortlist.map { describeMove($0) }.joined(separator: "\n")
+        let moveList = shortlist.map(\.promptDescription).joined(separator: "\n")
         let prompt = """
         Pick 4 moves for \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))) vs \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
 
@@ -225,5 +225,16 @@ extension BattleAIService: BattleAIServiceProtocol {
         )
         aiLog("FINAL LOADOUT: \(picks.map(\.name).joined(separator: ", "))")
         return picks
+    }
+}
+
+// MARK: - Move + Prompt
+
+private extension Move {
+    /// Compact one-liner for LLM prompts: `"thunderbolt (electric) 90/100"`.
+    var promptDescription: String {
+        let pwr = power.map(String.init) ?? "-"
+        let acc = accuracy.map(String.init) ?? "-"
+        return "\(name) (\(typeName)) \(pwr)/\(acc)"
     }
 }
