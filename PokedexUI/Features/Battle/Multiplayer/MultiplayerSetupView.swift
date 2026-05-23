@@ -59,6 +59,17 @@ private extension MultiplayerSetupView {
             .onChange(of: viewModel.isConnected) { _, connected in
                 if connected { viewModel.phase = .picking }
             }
+            .onChange(of: viewModel.connectionState) { _, newState in
+                guard newState == .idle else { return }
+                switch viewModel.phase {
+                case .connecting:
+                    viewModel.inviteDeclined()
+                case .picking, .waitingForOpponent, .launching:
+                    viewModel.peerLeft()
+                default:
+                    break
+                }
+            }
             .frame(maxWidth: .infinity)
     }
 
@@ -66,9 +77,9 @@ private extension MultiplayerSetupView {
     var phaseView: some View {
         switch viewModel.phase {
         case .discovering:        discoveryView
-        case .connecting:         loadingView(message: "Connecting…")
+        case .connecting:         loadingView(message: "Connecting…", cancelable: true)
         case .picking:            pickerView
-        case .waitingForOpponent: loadingView(message: "Waiting for opponent…")
+        case .waitingForOpponent: loadingView(message: "Waiting for opponent…", cancelable: true)
         case .launching:          loadingView(message: "Starting battle…")
         case .error(let message): errorView(message)
         }
@@ -228,22 +239,35 @@ private extension MultiplayerSetupView {
     var submitButton: some View {
         let ready = viewModel.selectedPokemon != nil
             && viewModel.selectedMoveNames.count == viewModel.maxSelections
-        return PrimaryCapsuleButton(
-            icon: "bolt.fill",
-            title: ready ? "Send loadout" : "Pick \(viewModel.maxSelections - viewModel.selectedMoveNames.count) more",
-            isEnabled: ready,
-            isLoading: false,
-            action: viewModel.submitLoadout
-        )
+        return VStack(spacing: 8) {
+            PrimaryCapsuleButton(
+                icon: "bolt.fill",
+                title: ready ? "Send loadout" : "Pick \(viewModel.maxSelections - viewModel.selectedMoveNames.count) more",
+                isEnabled: ready,
+                isLoading: false,
+                action: viewModel.submitLoadout
+            )
+            Button("Cancel") { viewModel.cancel() }
+                .font(.pixel12)
+                .foregroundStyle(.secondary)
+        }
         .padding(.horizontal, 24)
     }
 
-    func loadingView(message: String) -> some View {
+    func loadingView(message: String, cancelable: Bool = false) -> some View {
         VStack(spacing: 16) {
+            Spacer()
             PixelSpinner()
             Text(message)
                 .font(.pixel14)
                 .foregroundStyle(.secondary)
+            Spacer()
+            if cancelable {
+                Button("Cancel") { viewModel.cancel() }
+                    .font(.pixel12)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom, 24)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

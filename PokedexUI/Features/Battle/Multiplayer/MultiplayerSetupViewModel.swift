@@ -96,9 +96,25 @@ extension MultiplayerSetupViewModel {
         multipeer.declineInvitation()
     }
 
+    /// Called when the peer we invited declined (MC session went idle
+    /// while we were in `.connecting` phase).
+    func inviteDeclined() {
+        phase = .error("Trainer declined the battle.")
+        multipeer.startDiscovery()
+    }
+
+    /// Called when the connected peer left during picking or waiting.
+    func peerLeft() {
+        resetSelection()
+        phase = .error("Opponent left.")
+        multipeer.startDiscovery()
+    }
+
+    /// Leave the current session, notify peer, return to discovery.
     func cancel() {
         multipeer.disconnect()
         reset()
+        multipeer.startDiscovery()
     }
 
     /// Called when navigating back from a finished battle. Resets lobby
@@ -214,6 +230,10 @@ private extension MultiplayerSetupViewModel {
 
     func reset() {
         phase = .discovering
+        resetSelection()
+    }
+
+    func resetSelection() {
         selectedPokemon = nil
         movePool = []
         selectedMoveNames = []
