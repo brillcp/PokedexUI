@@ -286,7 +286,7 @@ private extension MultiplayerMovePickerView {
         let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
-            title: ready ? "Ready!" : "Pick \(remaining) more",
+            title: ready ? "Ready" : "Pick \(remaining) more",
             isEnabled: ready,
             isLoading: viewModel.phase == .waitingForOpponent,
             action: viewModel.submitLoadout
