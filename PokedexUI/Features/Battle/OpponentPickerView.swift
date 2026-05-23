@@ -12,6 +12,7 @@ struct OpponentPickerView: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
     @Query private var allPokemon: [Pokemon]
+    @State private var searchText = ""
     @State private var isAIThinking = false
     @State private var setupOpponent: Pokemon?
     @State private var candidateCache: [Candidate]?
@@ -42,7 +43,7 @@ struct OpponentPickerView: View {
                     ],
                     spacing: 2
                 ) {
-                    ForEach(allPokemon, id: \.id) { pokemon in
+                    ForEach(filteredPokemon, id: \.id) { pokemon in
                         Button {
                             setupOpponent = pokemon
                         } label: {
@@ -63,6 +64,7 @@ struct OpponentPickerView: View {
                     Button(role: .cancel) { dismiss() }
                 }
             }
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .applyPokedexStyling(title: "Pick opponent", color: .darkGrey)
             .task(id: allPokemon.count) {
                 await prebuildCandidatesIfNeeded()
@@ -87,6 +89,12 @@ struct OpponentPickerView: View {
 
 // MARK: - Private
 private extension OpponentPickerView {
+    var filteredPokemon: [Pokemon] {
+        guard !searchText.isEmpty else { return allPokemon }
+        let query = searchText.lowercased()
+        return allPokemon.filter { $0.name.lowercased().contains(query) }
+    }
+
     var pickerButton: some View {
         PrimaryCapsuleButton(
             icon: "sparkle",

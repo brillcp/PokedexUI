@@ -143,16 +143,18 @@ private struct MultiplayerPickerSheet: View {
     @Query(sort: \Pokemon.id) private var allPokemon: [Pokemon]
 
     var viewModel: MultiplayerSetupViewModel
+    @State private var searchText = ""
     @State private var selectedForMoves: Pokemon?
 
     var body: some View {
         NavigationStack {
             pokemonGrid
+                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
                 .applyPokedexStyling(title: "Pick your pokemon", color: .darkGrey)
                 .foregroundStyle(.white)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { dismiss() }
+                        Button(role: .cancel) { dismiss() }
                     }
                 }
                 .navigationDestination(item: $selectedForMoves) { pokemon in
@@ -172,6 +174,12 @@ private struct MultiplayerPickerSheet: View {
 
 // MARK: - Private
 private extension MultiplayerPickerSheet {
+    var filteredPokemon: [Pokemon] {
+        guard !searchText.isEmpty else { return allPokemon }
+        let query = searchText.lowercased()
+        return allPokemon.filter { $0.name.lowercased().contains(query) }
+    }
+
     var pokemonGrid: some View {
         ScrollView {
             LazyVGrid(
@@ -182,7 +190,7 @@ private extension MultiplayerPickerSheet {
                 ],
                 spacing: 2
             ) {
-                ForEach(allPokemon, id: \.id) { pokemon in
+                ForEach(filteredPokemon, id: \.id) { pokemon in
                     Button {
                         viewModel.selectPokemon(pokemon)
                         selectedForMoves = pokemon

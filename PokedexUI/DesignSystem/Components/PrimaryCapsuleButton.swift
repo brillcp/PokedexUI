@@ -16,7 +16,7 @@ struct PrimaryCapsuleButton: View {
                 } else {
                     Image(systemName: icon)
                 }
-                Text(isLoading ? "Thinking": title)
+                Text(isLoading ? "Thinking" : title)
             }
             .font(.pixel17)
             .frame(height: 28)
