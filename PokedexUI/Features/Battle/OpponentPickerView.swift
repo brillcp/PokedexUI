@@ -37,6 +37,7 @@ struct OpponentPickerView: View {
                 LazyVGrid(
                     columns: [
                         GridItem(.flexible(maximum: .infinity), spacing: 2),
+                        GridItem(.flexible(maximum: .infinity), spacing: 2),
                         GridItem(.flexible(maximum: .infinity), spacing: 2)
                     ],
                     spacing: 2

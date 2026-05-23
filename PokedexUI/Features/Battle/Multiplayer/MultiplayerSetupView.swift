@@ -40,14 +40,16 @@ struct MultiplayerSetupView: View {
                     BattleView(viewModel: launch.viewModel)
                 }
                 .onChange(of: viewModel.launch) { old, new in
-                    if old != nil, new == nil { viewModel.returnToLobby() }
+                    if old != nil, new == nil, viewModel.phase == .launching {
+                        viewModel.returnToLobby()
+                    }
                 }
                 .alert(
                     "Invitation",
                     isPresented: pendingInvitationBinding,
                     presenting: viewModel.pendingInvitation
                 ) { _ in
-                    Button("Accept") { viewModel.acceptInvitation() }
+                    Button("Accept", role: .confirm) { viewModel.acceptInvitation() }
                     Button("Decline", role: .cancel) { viewModel.declineInvitation() }
                 } message: { invite in
                     Text("\(invite.peerName) wants to battle.")
@@ -89,18 +91,17 @@ private extension MultiplayerSetupView {
                     if viewModel.phase == .connecting {
                         PixelSpinner()
                         Text("Connecting…")
-                            .font(.pixel14)
-                            .foregroundStyle(.secondary)
                     } else {
                         Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
+                            .resizable()
+                            .frame(width: 24, height: 24)
                         Text("Searching for nearby trainers…")
-                            .font(.pixel14)
-                            .foregroundStyle(.secondary)
                     }
                     Spacer()
                 }
+                .foregroundStyle(.secondary)
+                .font(.pixel14)
+                .frame(maxWidth: .infinity)
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
@@ -175,6 +176,7 @@ private extension MultiplayerPickerSheet {
         ScrollView {
             LazyVGrid(
                 columns: [
+                    GridItem(.flexible(maximum: .infinity), spacing: 2),
                     GridItem(.flexible(maximum: .infinity), spacing: 2),
                     GridItem(.flexible(maximum: .infinity), spacing: 2)
                 ],
