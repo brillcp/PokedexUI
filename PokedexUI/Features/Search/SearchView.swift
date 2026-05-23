@@ -40,6 +40,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
             viewModel.updateFilteredPokemon()
         }
         .sensoryFeedback(.impact(weight: .light), trigger: viewModel.query)
+        .applyPokedexStyling(title: Tabs.search.title)
     }
 }
 

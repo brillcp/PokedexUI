@@ -18,6 +18,7 @@ protocol PokedexViewModelProtocol {
     /// Active sort applied to the pokemon array.
     var sortType: SortType { get set }
 
+    var openFavourites: Bool { get set }
     /// Load all Pokemon: cache first, then network if needed.
     func requestPokemon() async
 }
@@ -37,6 +38,7 @@ final class PokedexViewModel {
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
     var sortType: SortType = .number
+    var openFavourites: Bool = false
 
     init(modelContext: ModelContext, container: AppContainer) {
         self.fetcher = PokemonFetcher(modelContext: modelContext, container: container)

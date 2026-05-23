@@ -36,6 +36,7 @@ final class MultiplayerSetupViewModel {
     private let container: AppContainer
     private var listenTask: Task<Void, Never>?
     private var ownChallengeSent: Bool = false
+    private var battleComplete: Bool = false
     private var peerChallenge: ChallengePayload?
 
     let maxSelections: Int = 4
@@ -122,14 +123,15 @@ extension MultiplayerSetupViewModel {
 
     /// Called when MC drops unexpectedly during picking, waiting, or battle.
     func connectionLost() {
-        errorMessage = "Connection lost."
+        if !battleComplete { errorMessage = "Connection lost." }
         showPicker = false
         reset()
         multipeer.startDiscovery()
     }
 
     /// Called when navigating back from a finished battle.
-    func returnToLobby() {
+    func returnToLobby(battleEnded: Bool = false) {
+        if battleEnded { battleComplete = true }
         multipeer.disconnect()
         reset()
         multipeer.startDiscovery()
@@ -215,11 +217,13 @@ private extension MultiplayerSetupViewModel {
             showPicker = false
             reset()
         case .disconnect:
-            errorMessage = "Opponent left."
+            if !battleComplete { errorMessage = "Opponent left." }
             showPicker = false
             reset()
             multipeer.startDiscovery()
-        case .moveCommitted, .roundResolved, .battleEnded, .rematch:
+        case .battleEnded:
+            battleComplete = true
+        case .moveCommitted, .roundResolved, .rematch:
             break
         }
     }
@@ -262,6 +266,7 @@ private extension MultiplayerSetupViewModel {
         selectedMoveNames = []
         selectionOrder = []
         ownChallengeSent = false
+        battleComplete = false
         peerChallenge = nil
         launch = nil
     }

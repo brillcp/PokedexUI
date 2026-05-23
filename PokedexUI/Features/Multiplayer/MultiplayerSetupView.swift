@@ -20,8 +20,9 @@ struct MultiplayerSetupView: View {
                 .applyPokedexStyling(title: "Gym")
                 .foregroundStyle(.white)
                 .task { viewModel.startListening() }
-                .onAppear { viewModel.startDiscovery() }
-                .onDisappear { viewModel.stopDiscovery() }
+                .onAppear(perform: viewModel.startDiscovery)
+                .onDisappear(perform: viewModel.stopDiscovery)
+                .animation(.default, value: viewModel.phase)
                 .onChange(of: viewModel.isConnected) { _, connected in
                     if connected {
                         viewModel.showPicker = true
@@ -44,8 +45,8 @@ struct MultiplayerSetupView: View {
                     BattleView(viewModel: launch.viewModel)
                 }
                 .onChange(of: viewModel.launch) { old, new in
-                    if old != nil, new == nil, viewModel.phase == .launching {
-                        viewModel.returnToLobby()
+                    if let old, new == nil, viewModel.phase == .launching {
+                        viewModel.returnToLobby(battleEnded: old.viewModel.winner != nil)
                     }
                 }
                 .alert(

@@ -26,6 +26,7 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
             }
         }
         .task { await viewModel.loadItems() }
+        .applyPokedexStyling(title: Tabs.items.title)
     }
 }
 

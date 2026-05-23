@@ -15,14 +15,11 @@ struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
             Tab(Tabs.pokedex.title, systemImage: viewModel.grid.icon, value: Tabs.pokedex) {
                 pokedexTab
             }
-            Tab(Tabs.items.title, systemImage: Tabs.items.icon, value: Tabs.items) {
-                itemsTab
-            }
-            Tab(Tabs.favourites.title, systemImage: Tabs.favourites.icon, value: Tabs.favourites) {
-                favouritesTab
-            }
             Tab(Tabs.battle.title, systemImage: Tabs.battle.icon, value: Tabs.battle) {
                 battleTab
+            }
+            Tab(Tabs.items.title, systemImage: Tabs.items.icon, value: Tabs.items) {
+                itemsTab
             }
             Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
                 searchTab
@@ -30,6 +27,9 @@ struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
         }
         .task { await viewModel.requestPokemon() }
         .colorScheme(.dark)
+        .sheet(isPresented: $viewModel.openFavourites) {
+            favouritesTab
+        }
     }
 }
 
@@ -42,7 +42,6 @@ private extension RootTabView {
     var itemsTab: some View {
         NavigationStack {
             ItemListView(viewModel: ItemListViewModel(modelContext: modelContext, container: container))
-                .applyPokedexStyling(title: Tabs.items.title)
         }
     }
 
@@ -52,14 +51,13 @@ private extension RootTabView {
                 viewModel: SearchViewModel(),
                 selectedTab: $viewModel.selectedTab
             )
-            .applyPokedexStyling(title: Tabs.search.title)
         }
     }
 
     var favouritesTab: some View {
         NavigationStack {
             BookmarksView()
-                .applyPokedexStyling(title: Tabs.favourites.title)
+                .applyPokedexStyling(title: Tabs.favourites.title, color: .darkGrey)
         }
     }
 
@@ -94,11 +92,18 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
     var body: some ToolbarContent {
         ToolbarItem { gridLayoutButton }
         ToolbarItem { sortMenu }
+        ToolbarItem { favourites }
     }
 
     private var gridLayoutButton: some View {
         Button("", systemImage: viewModel.grid.otherIcon) {
             withAnimation(.bouncy(duration: 0.25)) { viewModel.grid.toggle() }
+        }
+    }
+
+    private var favourites: some View {
+        Button("", systemImage: Tabs.favourites.icon) {
+            viewModel.openFavourites.toggle()
         }
     }
 
