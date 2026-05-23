@@ -37,7 +37,7 @@ enum LoadoutPrompt {
     /// Tries move-name substring match first, then falls back to integer
     /// indices via `indexMap`. Stops at 4 unique moves.
     static func parsePicks(raw: String, indexMap: [Int: Int], moves: [Move]) -> [Move] {
-        let byName = Dictionary(uniqueKeysWithValues: moves.map { ($0.name, $0) })
+        let byName = Dictionary(moves.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
         var picked: [Move] = []
         var used: Set<String> = []
 

@@ -91,6 +91,8 @@ extension BattleViewModel: BattleViewModelProtocol {
         animator.attackTick += 1
         isResolvingTurn = true
 
+        log.append("...")
+
         let opponentMove = await aiDriver.nextOpponentMove(
             attacker:      snapshot.opponent,
             defender:      snapshot.player,
@@ -98,6 +100,13 @@ extension BattleViewModel: BattleViewModelProtocol {
             playerMoves:   playerMoves,
             typeChart:     typeChart
         )
+
+        withAnimation(.easeOut(duration: 0.25)) {
+            if let idx = log.lastIndex(where: { String($0.characters).contains("...") }) {
+                log.remove(at: idx)
+            }
+        }
+
         let events = eng.resolveRound(playerMove: move, opponentMove: opponentMove)
         self.engine = eng
 
@@ -132,6 +141,8 @@ private extension BattleViewModel {
 
     func playEntrance() async {
         await animator.playEntrance()
+        log.append(formatter.wildAppeared(opponentColor: animator.opponentCues.color))
+
         if let cry = opponentPokemon.latestCry {
             await audioPlayer.play(from: cry)
         }

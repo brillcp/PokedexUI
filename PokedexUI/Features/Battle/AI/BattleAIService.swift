@@ -83,7 +83,7 @@ extension BattleAIService: BattleAIServiceProtocol {
         ) ?? first
         aiLog("Heuristic fallback: \(fallback.name)")
 
-        let movesByName = Dictionary(uniqueKeysWithValues: moves.map { ($0.name, $0) })
+        let movesByName = Dictionary(moves.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
         let tools: [any Tool] = [
             CheckTypeTool(typeChart: typeChart),
             EstimateDamageTool(attacker: attacker, defender: defender, typeChart: typeChart, movesByName: movesByName)
@@ -177,7 +177,7 @@ extension BattleAIService: BattleAIServiceProtocol {
         )
         aiLog("Shortlist: \(shortlist.count) moves")
 
-        let movesByName = Dictionary(uniqueKeysWithValues: shortlist.map { ($0.name, $0) })
+        let movesByName = Dictionary(shortlist.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
         let tools: [any Tool] = [
             CheckTypeTool(typeChart: typeChart),
             EstimateDamageTool(attacker: fighter, defender: opponent, typeChart: typeChart, movesByName: movesByName)

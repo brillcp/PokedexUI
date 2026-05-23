@@ -89,7 +89,7 @@ extension BattleSetupViewModel: BattleSetupViewModelProtocol {
     }
 
     func playerMoves() -> [Move] {
-        let byName = Dictionary(uniqueKeysWithValues: playerMovePool.map { ($0.name, $0) })
+        let byName = Dictionary(playerMovePool.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
         return selectionOrder.compactMap { byName[$0] }
     }
 

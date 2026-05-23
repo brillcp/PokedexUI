@@ -13,10 +13,8 @@ struct BattleLogFormatter {
     ) -> AttributedString {
         let nameAttr = { (side: Side) -> AttributedString in
             let name = side == .player ? self.playerName : self.opponentName
-            let tint = self.legibleColor((side == .player ? playerColor : opponentColor) ?? .white)
-            var str = AttributedString(name)
-            str.foregroundColor = tint
-            return str
+            let color = side == .player ? playerColor : opponentColor
+            return self.nameAttr(name, color: color)
         }
         switch event {
         case .used(let side, let moveName):
@@ -63,10 +61,22 @@ struct BattleLogFormatter {
             return nameAttr(winner) + colored(" wins!", .green)
         }
     }
+
+    func wildAppeared(opponentColor: Color?) -> AttributedString {
+        var attr = nameAttr(opponentName, color: opponentColor)
+        attr.inlinePresentationIntent = .stronglyEmphasized
+        return plain("A wild ") + attr + plain(" appeared!")
+    }
 }
 
 // MARK: - Private
 private extension BattleLogFormatter {
+    func nameAttr(_ name: String, color: Color?) -> AttributedString {
+        var str = AttributedString(name)
+        str.foregroundColor = legibleColor(color ?? .white)
+        return str
+    }
+
     func plain(_ text: String) -> AttributedString {
         AttributedString(text)
     }
