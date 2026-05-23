@@ -85,7 +85,7 @@ struct BattleLogFormatter {
 
     /// Prompt shown when the peer has already committed and is waiting on us.
     func chooseMove() -> AttributedString {
-        var str = AttributedString("Choose a move!")
+        var str = AttributedString("Pick a move")
         str.foregroundColor = .yellow
         return str
     }

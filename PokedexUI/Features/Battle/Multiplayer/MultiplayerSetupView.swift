@@ -93,7 +93,11 @@ private extension MultiplayerSetupView {
                 Spacer()
             } else {
                 ScrollView {
-                    VStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8.0) {
+                        Label("Devices", systemImage: "antenna.radiowaves.left.and.right")
+                            .font(.pixel12)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal)
                         ForEach(viewModel.discoveredPeers) { peer in
                             Button {
                                 viewModel.invite(peer)

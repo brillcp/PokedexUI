@@ -253,7 +253,7 @@ private extension MultiplayerBattleViewModel {
         withAnimation(.easeOut(duration: 0.25)) {
             log.removeAll { line in
                 let text = String(line.characters)
-                return text.contains("Waiting for opponent") || text.contains("Choose a move")
+                return text.contains("Waiting for opponent") || text.contains("Pick a move")
             }
         }
     }
