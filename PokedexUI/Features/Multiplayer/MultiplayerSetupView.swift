@@ -101,7 +101,7 @@ private extension MultiplayerSetupView {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .resizable()
                             .frame(width: 24, height: 24)
-                        Text("Waiting for nearby trainers…")
+                        Text("No nearby trainers")
                     }
                     Spacer()
                 }
@@ -223,12 +223,16 @@ private struct MultiplayerMovePickerView: View {
     let pokemon: Pokemon
 
     var body: some View {
+        let waiting = viewModel.phase == .waitingForOpponent
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 selectedSummary
                 movePicker
             }
         }
+        .disabled(waiting)
+        .opacity(waiting ? Opacity.disabled : 1)
+        .animation(.easeInOut(duration: 0.2), value: waiting)
         .safeAreaBar(edge: .bottom) { submitButton }
         .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
         .foregroundStyle(.white)
@@ -304,6 +308,7 @@ private extension MultiplayerMovePickerView {
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
             title: ready ? "Ready" : "Pick \(remaining) more",
+            loadingTitle: "Waiting for opponent",
             isEnabled: ready,
             isLoading: viewModel.phase == .waitingForOpponent,
             action: viewModel.submitLoadout

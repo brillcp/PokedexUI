@@ -4,6 +4,7 @@ import SwiftUI
 struct PrimaryCapsuleButton: View {
     let icon: String
     let title: String
+    var loadingTitle: String = "Thinking"
     var isEnabled: Bool = true
     var isLoading: Bool = false
     let action: () -> Void
@@ -16,7 +17,7 @@ struct PrimaryCapsuleButton: View {
                 } else {
                     Image(systemName: icon)
                 }
-                Text(isLoading ? "Thinking" : title)
+                Text(isLoading ? loadingTitle : title)
             }
             .font(.pixel17)
             .frame(height: 28)
