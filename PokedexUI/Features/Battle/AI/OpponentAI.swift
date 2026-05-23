@@ -12,8 +12,8 @@ enum OpponentPrompt {
     }
 
     static func build(
-        player: OpponentCandidate,
-        candidates: [OpponentCandidate],
+        player: Candidate,
+        candidates: [Candidate],
         typeChart: TypeChart?
     ) -> Output {
         var indexMap: [Int: Int] = [:]
@@ -44,9 +44,9 @@ enum OpponentPrompt {
 private extension OpponentPrompt {
 
     static func describe(
-        _ candidate: OpponentCandidate,
+        _ candidate: Candidate,
         index: Int,
-        player: OpponentCandidate,
+        player: Candidate,
         playerBST: Int,
         typeChart: TypeChart?
     ) -> String {
@@ -65,8 +65,8 @@ private extension OpponentPrompt {
 
     static func matchupTag(
         chart: TypeChart,
-        candidate: OpponentCandidate,
-        player: OpponentCandidate
+        candidate: Candidate,
+        player: Candidate
     ) -> String {
         let cPressure = chart.bestSTABMultiplier(attackerTypes: candidate.typeNames, defenderTypes: player.typeNames)
         let pPressure = chart.bestSTABMultiplier(attackerTypes: player.typeNames, defenderTypes: candidate.typeNames)

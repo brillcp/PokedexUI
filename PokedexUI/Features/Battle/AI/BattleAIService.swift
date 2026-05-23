@@ -32,8 +32,8 @@ protocol BattleAIServiceProtocol: Sendable {
     ) async -> Move
     /// Pick an opponent id from the curated candidate pool.
     func chooseOpponent(
-        player: OpponentCandidate,
-        candidates: [OpponentCandidate],
+        player: Candidate,
+        candidates: [Candidate],
         typeChart: TypeChart?
     ) async -> Int?
     /// Pick a 4-move loadout, informed by what the player chose.
@@ -125,8 +125,8 @@ extension BattleAIService: BattleAIServiceProtocol {
     }
 
     func chooseOpponent(
-        player: OpponentCandidate,
-        candidates: [OpponentCandidate],
+        player: Candidate,
+        candidates: [Candidate],
         typeChart: TypeChart?
     ) async -> Int? {
         let pool = candidates.filter { $0.id != player.id }

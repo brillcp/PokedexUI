@@ -14,7 +14,7 @@ struct OpponentPickerView: View {
     @Query private var allPokemon: [Pokemon]
     @State private var isAIThinking = false
     @State private var setupOpponent: Pokemon?
-    @State private var candidateCache: [OpponentCandidate]?
+    @State private var candidateCache: [Candidate]?
 
     init(
         player: Pokemon,
@@ -101,7 +101,7 @@ private extension OpponentPickerView {
         guard !allPokemon.isEmpty, !isAIThinking else { return }
         isAIThinking = true
 
-        let playerCandidate = OpponentCandidate(pokemon: player, fallbackTypes: playerTypes)
+        let playerCandidate = Candidate(pokemon: player, fallbackTypes: playerTypes)
         let chart: TypeChart? = PokeBattleKit.isInitialized ? PokeBattleKit.typeChart : nil
         let aiService = container.battleAI
 
@@ -142,18 +142,18 @@ private extension OpponentPickerView {
 
     /// Returns the cached candidates, building them if the prebuild
     /// hasn't completed yet (fallback for an eager Random tap).
-    func ensureCandidates() async -> [OpponentCandidate] {
+    func ensureCandidates() async -> [Candidate] {
         if let cached = candidateCache { return cached }
         let built = await buildCandidates(from: allPokemon)
         candidateCache = built
         return built
     }
 
-    func buildCandidates(from pokemons: [Pokemon]) async -> [OpponentCandidate] {
-        var result: [OpponentCandidate] = []
+    func buildCandidates(from pokemons: [Pokemon]) async -> [Candidate] {
+        var result: [Candidate] = []
         result.reserveCapacity(pokemons.count)
         for (index, pokemon) in pokemons.enumerated() {
-            result.append(OpponentCandidate(pokemon: pokemon))
+            result.append(Candidate(pokemon: pokemon))
             if index % 16 == 15 { await Task.yield() }
         }
         return result
