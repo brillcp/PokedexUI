@@ -51,7 +51,7 @@ private struct IndexingOverlay: View {
             ProgressView(value: progress)
                 .tint(.pokedexRed)
                 .frame(width: 200)
-            Text("Indexing Pokedex \(Int(progress * 100))%")
+            Text("Loading Pokedex \(Int(progress * 100))%")
                 .font(.pixel14)
                 .foregroundStyle(.secondary)
         }
