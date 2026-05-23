@@ -21,8 +21,8 @@ struct RootTabView<PokedexViewModel: PokedexViewModelProtocol>: View {
             Tab(Tabs.favourites.title, systemImage: Tabs.favourites.icon, value: Tabs.favourites) {
                 favouritesTab
             }
-            Tab(Tabs.versus.title, systemImage: Tabs.versus.icon, value: Tabs.versus) {
-                versusTab
+            Tab(Tabs.battle.title, systemImage: Tabs.battle.icon, value: Tabs.battle) {
+                battleTab
             }
             Tab(Tabs.search.title, systemImage: Tabs.search.icon, value: Tabs.search, role: .search) {
                 searchTab
@@ -63,7 +63,7 @@ private extension RootTabView {
         }
     }
 
-    var versusTab: some View {
+    var battleTab: some View {
         MultiplayerSetupView(container: container)
     }
 }

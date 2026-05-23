@@ -70,13 +70,13 @@ final class MultiplayerSetupViewModel {
 
 // MARK: - Lobby actions
 extension MultiplayerSetupViewModel {
-    /// Start advertising + browsing. Called when the versus tab appears.
+    /// Start advertising + browsing. Called when the battle tab appears.
     func startDiscovery() {
         guard phase == .discovering else { return }
         multipeer.startDiscovery()
     }
 
-    /// Stop advertising + browsing. Called when the versus tab disappears.
+    /// Stop advertising + browsing. Called when the battle tab disappears.
     func stopDiscovery() {
         guard phase == .discovering else { return }
         multipeer.stopDiscovery()
