@@ -116,14 +116,19 @@ private extension MultiplayerSetupView {
                             .foregroundStyle(.secondary)
                             .padding(.horizontal)
                         ForEach(viewModel.discoveredPeers) { peer in
+                            let isInvited = viewModel.invitedPeer == peer
                             Button {
                                 viewModel.invite(peer)
                             } label: {
                                 HStack {
                                     Label(peer.name, systemImage: "person.fill")
                                     Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(.secondary)
+                                    if isInvited {
+                                        PixelSpinner()
+                                    } else {
+                                        Image(systemName: "chevron.right")
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 .font(.pixel14)
                                 .padding()

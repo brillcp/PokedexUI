@@ -49,6 +49,7 @@ final class MultiplayerSetupViewModel {
     var movePool: [Move] = []
     var selectedMoveNames: Set<String> = []
     var selectionOrder: [String] = []
+    var invitedPeer: PeerHandle?
     var launch: MultiplayerLaunch?
 
     init(container: AppContainer) {
@@ -85,6 +86,7 @@ extension MultiplayerSetupViewModel {
     }
 
     func invite(_ peer: PeerHandle) {
+        invitedPeer = peer
         multipeer.invite(peer.id)
         phase = .connecting
     }
@@ -100,6 +102,7 @@ extension MultiplayerSetupViewModel {
 
     /// Called when the peer we invited declined (MC went idle while connecting).
     func inviteDeclined() {
+        invitedPeer = nil
         phase = .discovering
         errorMessage = "Trainer declined the battle."
         multipeer.startDiscovery()
@@ -257,6 +260,7 @@ private extension MultiplayerSetupViewModel {
     }
 
     func reset() {
+        invitedPeer = nil
         phase = .discovering
         resetSelection()
     }
