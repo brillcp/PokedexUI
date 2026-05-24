@@ -29,6 +29,8 @@
 		D55D580C2E204BBC008F1B16 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = D55D580B2E204BBC008F1B16 /* Font.swift */; };
 		D56F0FA52FC0D90A0002A450 /* PokeBattleKit in Frameworks */ = {isa = PBXBuildFile; productRef = D56F0FA42FC0D90A0002A450 /* PokeBattleKit */; };
 		D56F11112FC2FC360002A450 /* MovePickerGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56F11102FC2FC360002A450 /* MovePickerGrid.swift */; };
+		D56F11132FC302000002A450 /* PokemonPickerGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56F11122FC302000002A450 /* PokemonPickerGrid.swift */; };
+		D56F11152FC3022F0002A450 /* MoveLoadoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56F11142FC3022F0002A450 /* MoveLoadoutView.swift */; };
 		D57366002E2110E000FE4ED0 /* ItemListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57365FF2E2110E000FE4ED0 /* ItemListViewModel.swift */; };
 		D57366032E2114C100FE4ED0 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = D57366022E2114C100FE4ED0 /* Networking */; };
 		D57366072E2114E400FE4ED0 /* ItemRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57366062E2114E400FE4ED0 /* ItemRequest.swift */; };
@@ -125,6 +127,8 @@
 		D55D580A2E204BA5008F1B16 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D55D580B2E204BBC008F1B16 /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
 		D56F11102FC2FC360002A450 /* MovePickerGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovePickerGrid.swift; sourceTree = "<group>"; };
+		D56F11122FC302000002A450 /* PokemonPickerGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PokemonPickerGrid.swift; sourceTree = "<group>"; };
+		D56F11142FC3022F0002A450 /* MoveLoadoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveLoadoutView.swift; sourceTree = "<group>"; };
 		D57365FF2E2110E000FE4ED0 /* ItemListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemListViewModel.swift; sourceTree = "<group>"; };
 		D57366052E2114E400FE4ED0 /* ItemModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemModels.swift; sourceTree = "<group>"; };
 		D57366062E2114E400FE4ED0 /* ItemRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRequest.swift; sourceTree = "<group>"; };
@@ -542,8 +546,10 @@
 		D5E0000000000000000000BB /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				D56F11102FC2FC360002A450 /* MovePickerGrid.swift */,
+				D56F11122FC302000002A450 /* PokemonPickerGrid.swift */,
 				D5011AA72E36C13E00A2F8EE /* PokedexGridView.swift */,
+				D56F11142FC3022F0002A450 /* MoveLoadoutView.swift */,
+				D56F11102FC2FC360002A450 /* MovePickerGrid.swift */,
 				D5F41B752E256D5A000341D3 /* ItemRowView.swift */,
 				D5164F722E22702000E3EC8D /* ItemDetailRowView.swift */,
 				D5BA14012E70000000000402 /* Chip.swift */,
@@ -697,6 +703,7 @@
 				D5BA130E2E70000000000307 /* BattleLaunch.swift in Sources */,
 				D5BA12082E70000000000048 /* BattleView.swift in Sources */,
 				D5BA120A2E7000000000004A /* OpponentPickerView.swift in Sources */,
+				D56F11132FC302000002A450 /* PokemonPickerGrid.swift in Sources */,
 				D5751CF62E3641EF0090FB5F /* SearchView.swift in Sources */,
 				D57366092E2114E400FE4ED0 /* ItemModels.swift in Sources */,
 				D5164F732E22702000E3EC8D /* ItemDetailRowView.swift in Sources */,
@@ -712,6 +719,7 @@
 				D5D503092E39305500AC4BC5 /* Tabs.swift in Sources */,
 				D573660C2E2115FA00FE4ED0 /* Endpoints.swift in Sources */,
 				9332C0F2273F5454003AF377 /* UIImage.swift in Sources */,
+				D56F11152FC3022F0002A450 /* MoveLoadoutView.swift in Sources */,
 				D51DA2572E3409E900028782 /* GridLayout.swift in Sources */,
 				D58F8D992E3970F300BB9A45 /* SortType.swift in Sources */,
 				D55D580C2E204BBC008F1B16 /* Font.swift in Sources */,

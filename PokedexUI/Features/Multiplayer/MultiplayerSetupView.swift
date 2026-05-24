@@ -150,23 +150,24 @@ private struct MultiplayerPickerSheet: View {
     @Query(sort: \Pokemon.id) private var allPokemon: [Pokemon]
 
     var viewModel: MultiplayerSetupViewModel
-    @State private var searchText = ""
     @State private var selectedForMoves: Pokemon?
 
     var body: some View {
         NavigationStack {
-            pokemonGrid
-                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .applyPokedexStyling(title: "Pick your fighter", color: .darkGrey)
-                .foregroundStyle(.white)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(role: .cancel) { dismiss() }
-                    }
+            PokemonPickerGrid(pokemon: allPokemon) { pokemon in
+                viewModel.selectPokemon(pokemon)
+                selectedForMoves = pokemon
+            }
+            .applyPokedexStyling(title: "Pick your fighter", color: .darkGrey)
+            .foregroundStyle(.white)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(role: .cancel) { dismiss() }
                 }
-                .navigationDestination(item: $selectedForMoves) { pokemon in
-                    MultiplayerMovePickerView(viewModel: viewModel, pokemon: pokemon)
-                }
+            }
+            .navigationDestination(item: $selectedForMoves) { pokemon in
+                MultiplayerMovePickerView(viewModel: viewModel, pokemon: pokemon)
+            }
         }
         .onChange(of: viewModel.phase) { _, newPhase in
             if newPhase == .launching {
@@ -179,61 +180,26 @@ private struct MultiplayerPickerSheet: View {
     }
 }
 
-// MARK: - Private
-private extension MultiplayerPickerSheet {
-    var filteredPokemon: [Pokemon] {
-        guard !searchText.isEmpty else { return allPokemon }
-        let query = searchText.lowercased()
-        return allPokemon.filter { $0.name.lowercased().contains(query) }
-    }
-
-    var pokemonGrid: some View {
-        ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(maximum: .infinity), spacing: 2),
-                    GridItem(.flexible(maximum: .infinity), spacing: 2),
-                    GridItem(.flexible(maximum: .infinity), spacing: 2)
-                ],
-                spacing: 2
-            ) {
-                ForEach(filteredPokemon, id: \.id) { pokemon in
-                    Button {
-                        viewModel.selectPokemon(pokemon)
-                        selectedForMoves = pokemon
-                    } label: {
-                        PokemonSpriteCard(pokemon: pokemon)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .scrollIndicators(.hidden)
-    }
-
-}
-
 // MARK: - Move Picker
 
 /// Separate View struct so `@Observable` tracking works through
-/// `navigationDestination`. Function-returned anonymous views don't
-/// reliably re-evaluate `safeAreaBar` content when observed properties change.
+/// `navigationDestination`. Wraps shared `MoveLoadoutView` with
+/// multiplayer-specific button and waiting state.
 private struct MultiplayerMovePickerView: View {
     var viewModel: MultiplayerSetupViewModel
     let pokemon: Pokemon
 
     var body: some View {
-        let waiting = viewModel.phase == .waitingForOpponent
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
-                selectedSummary
-                movePicker
-            }
+        MoveLoadoutView(
+            pokemon: pokemon,
+            moves: viewModel.movePool,
+            selectedNames: viewModel.selectedMoveNames,
+            maxSelections: viewModel.maxSelections,
+            isDisabled: viewModel.phase == .waitingForOpponent,
+            onToggle: viewModel.toggleMove
+        ) {
+            submitButton
         }
-        .disabled(waiting)
-        .opacity(waiting ? Opacity.disabled : 1)
-        .animation(.easeInOut(duration: 0.2), value: waiting)
-        .safeAreaBar(edge: .bottom) { submitButton }
         .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
         .foregroundStyle(.white)
     }
@@ -241,37 +207,6 @@ private struct MultiplayerMovePickerView: View {
 
 // MARK: - Private
 private extension MultiplayerMovePickerView {
-    var selectedSummary: some View {
-        HStack(spacing: 12) {
-            SpriteImage(url: pokemon.frontSprite)
-                .frame(width: 80, height: 80)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(pokemon.name)
-                    .font(.pixel14)
-                HStack(spacing: 4) {
-                    ForEach(pokemon.types) { type in
-                        Chip(
-                            type.type.name.uppercased(),
-                            style: .custom(background: TypeColor.color(for: type.type.name))
-                        )
-                    }
-                }
-            }
-            Spacer()
-        }
-        .padding()
-        .background(Color.cardBackground)
-    }
-
-    var movePicker: some View {
-        MovePickerGrid(
-            moves: viewModel.movePool,
-            selectedNames: viewModel.selectedMoveNames,
-            maxSelections: viewModel.maxSelections,
-            onToggle: viewModel.toggleMove
-        )
-    }
-
     var submitButton: some View {
         let ready = viewModel.selectedPokemon != nil
             && viewModel.selectedMoveNames.count == viewModel.maxSelections

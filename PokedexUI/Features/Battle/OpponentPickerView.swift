@@ -12,7 +12,6 @@ struct OpponentPickerView: View {
     @Environment(\.container) private var container
     @Environment(\.modelContext) private var modelContext
     @Query private var allPokemon: [Pokemon]
-    @State private var searchText = ""
     @State private var isAIThinking = false
     @State private var setupOpponent: Pokemon?
     @State private var candidateCache: [Candidate]?
@@ -34,37 +33,17 @@ struct OpponentPickerView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(maximum: .infinity), spacing: 2),
-                        GridItem(.flexible(maximum: .infinity), spacing: 2),
-                        GridItem(.flexible(maximum: .infinity), spacing: 2)
-                    ],
-                    spacing: 2
-                ) {
-                    ForEach(filteredPokemon, id: \.id) { pokemon in
-                        Button {
-                            setupOpponent = pokemon
-                        } label: {
-                            PokemonSpriteCard(pokemon: pokemon)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-            .disabled(isAIThinking)
+            PokemonPickerGrid(pokemon: allPokemon, onSelect: { setupOpponent = $0 })
+                .safeAreaBar(edge: .bottom) { pickerButton }
+                .disabled(isAIThinking)
             .opacity(isAIThinking ? Opacity.disabled : 1)
             .animation(.easeInOut(duration: 0.2), value: isAIThinking)
-            .scrollIndicators(.hidden)
             .foregroundStyle(.white)
-            .safeAreaBar(edge: .bottom) { pickerButton }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(role: .cancel) { dismiss() }
                 }
             }
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .applyPokedexStyling(title: "Pick opponent", color: .darkGrey)
             .task(id: allPokemon.count) {
                 await prebuildCandidatesIfNeeded()
@@ -89,12 +68,6 @@ struct OpponentPickerView: View {
 
 // MARK: - Private
 private extension OpponentPickerView {
-    var filteredPokemon: [Pokemon] {
-        guard !searchText.isEmpty else { return allPokemon }
-        let query = searchText.lowercased()
-        return allPokemon.filter { $0.name.lowercased().contains(query) }
-    }
-
     var pickerButton: some View {
         PrimaryCapsuleButton(
             icon: "sparkle",
