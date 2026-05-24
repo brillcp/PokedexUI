@@ -217,6 +217,7 @@ private extension MultiplayerSetupViewModel {
             showPicker = false
             reset()
         case .disconnect:
+            guard phase != .discovering else { return }
             if !battleComplete { errorMessage = "Opponent left." }
             showPicker = false
             reset()
