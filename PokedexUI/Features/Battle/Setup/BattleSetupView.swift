@@ -216,51 +216,13 @@ private extension BattleSetupView {
     // MARK: - Move picker
 
     var movePicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Pick \(viewModel.maxSelections) moves")
-                    .font(.pixel12)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(viewModel.selectedMoveNames.count)/\(viewModel.maxSelections)")
-                    .font(.pixel12)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal)
-            let spacing: CGFloat = 2
-            let columns = [
-                GridItem(.flexible(), spacing: spacing),
-                GridItem(.flexible(), spacing: spacing)
-            ]
-
-            LazyVGrid(
-                columns: columns,
-                spacing: spacing
-            ) {
-                ForEach(viewModel.playerMovePool, id: \.name) { move in
-                    moveCard(move)
-                }
-            }
-        }
-    }
-
-    func moveCard(_ move: Move) -> some View {
-        let selected = viewModel.selectedMoveNames.contains(move.name)
-        let atCap = !selected && viewModel.selectedMoveNames.count >= viewModel.maxSelections
-        let opponentTypes = viewModel.opponentPokemon?.typeNames ?? []
-        let effectiveness: Double? = opponentTypes.isEmpty
-            ? nil
-            : PokeBattleKit.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
-        return Button {
-            withAnimation(.easeOut(duration: 0.15)) {
-                viewModel.toggle(move)
-            }
-        } label: {
-            MoveCell(move: move, mode: .loadout(selected: selected), effectiveness: effectiveness)
-        }
-        .buttonStyle(.plain)
-        .opacity(atCap ? Opacity.disabled : 1)
-        .disabled(atCap)
+        MovePickerGrid(
+            moves: viewModel.playerMovePool,
+            selectedNames: viewModel.selectedMoveNames,
+            maxSelections: viewModel.maxSelections,
+            opponentTypes: viewModel.opponentPokemon?.typeNames ?? [],
+            onToggle: viewModel.toggle
+        )
     }
 
     // MARK: - Battle button

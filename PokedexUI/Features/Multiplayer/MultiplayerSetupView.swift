@@ -264,41 +264,12 @@ private extension MultiplayerMovePickerView {
     }
 
     var movePicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Pick \(viewModel.maxSelections) moves")
-                    .font(.pixel12)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(viewModel.selectedMoveNames.count)/\(viewModel.maxSelections)")
-                    .font(.pixel12)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal)
-            let spacing: CGFloat = 2
-            let columns = [
-                GridItem(.flexible(), spacing: spacing),
-                GridItem(.flexible(), spacing: spacing)
-            ]
-            LazyVGrid(columns: columns, spacing: spacing) {
-                ForEach(viewModel.movePool, id: \.name, content: moveCard)
-            }
-        }
-    }
-
-    func moveCard(_ move: Move) -> some View {
-        let selected = viewModel.selectedMoveNames.contains(move.name)
-        let atCap = !selected && viewModel.selectedMoveNames.count >= viewModel.maxSelections
-        return Button {
-            withAnimation(.easeOut(duration: 0.15)) {
-                viewModel.toggleMove(move)
-            }
-        } label: {
-            MoveCell(move: move, mode: .loadout(selected: selected), effectiveness: nil)
-        }
-        .buttonStyle(.plain)
-        .opacity(atCap ? Opacity.disabled : 1)
-        .disabled(atCap)
+        MovePickerGrid(
+            moves: viewModel.movePool,
+            selectedNames: viewModel.selectedMoveNames,
+            maxSelections: viewModel.maxSelections,
+            onToggle: viewModel.toggleMove
+        )
     }
 
     var submitButton: some View {
