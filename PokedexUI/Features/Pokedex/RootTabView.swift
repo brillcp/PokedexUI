@@ -72,7 +72,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             PokedexGridView(
-                pokemon: viewModel.pokemon.sorted(by: viewModel.sortType.comparator),
+                pokemon: viewModel.pokemon.sorted(by: viewModel.sortType.comparator(direction: viewModel.sortDirection)),
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading,
                 loadingProgress: viewModel.loadingProgress
@@ -80,6 +80,7 @@ private struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
             .applyPokedexStyling(title: Tabs.pokedex.title)
             .toolbar { PokedexToolbar(viewModel: viewModel) }
             .animation(.snappy(duration: 0.25), value: viewModel.sortType)
+            .animation(.snappy(duration: 0.25), value: viewModel.sortDirection)
         }
     }
 }
@@ -106,15 +107,33 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
         }
     }
 
+    private var sortTypeBinding: Binding<SortType> {
+        Binding(
+            get: { viewModel.sortType },
+            set: { newType in
+                viewModel.sortType = newType
+                viewModel.sortDirection = newType.defaultDirection
+            }
+        )
+    }
+
     private var sortMenu: some View {
         Menu {
-            Label("Sort by", systemImage: "arrow.up.and.down.text.horizontal")
-            ForEach(SortType.allCases, id: \.self) { type in
-                Button {
-                    viewModel.sortType = type
-                } label: {
+            Button {
+                viewModel.sortDirection.toggle()
+            } label: {
+                Label(viewModel.sortDirection.label, systemImage: viewModel.sortDirection.systemImage)
+            }
+
+            Divider()
+
+            Picker(selection: sortTypeBinding) {
+                ForEach(SortType.allCases, id: \.self) { type in
                     Label(type.title, systemImage: type.systemImage)
+                        .tag(type)
                 }
+            } label: {
+                Text("Sort by")
             }
         } label: {
             Image(systemName: "arrow.up.and.down.text.horizontal")

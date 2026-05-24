@@ -17,6 +17,8 @@ protocol PokedexViewModelProtocol {
     var grid: GridLayout { get set }
     /// Active sort applied to the pokemon array.
     var sortType: SortType { get set }
+    /// Ascending or descending.
+    var sortDirection: SortDirection { get set }
 
     var openFavourites: Bool { get set }
     /// Load all Pokemon: cache first, then network if needed.
@@ -38,6 +40,7 @@ final class PokedexViewModel {
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
     var sortType: SortType = .number
+    var sortDirection: SortDirection = .ascending
     var openFavourites: Bool = false
 
     init(modelContext: ModelContext, container: AppContainer) {
