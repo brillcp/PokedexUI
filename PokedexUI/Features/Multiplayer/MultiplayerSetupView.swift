@@ -25,7 +25,7 @@ struct MultiplayerSetupView: View {
                 .animation(.default, value: viewModel.phase)
                 .onChange(of: viewModel.isConnected) { _, connected in
                     if connected {
-                        viewModel.showPicker = true
+                        viewModel.peerConnected()
                     } else if viewModel.phase != .discovering {
                         viewModel.connectionLost()
                     }
@@ -50,14 +50,14 @@ struct MultiplayerSetupView: View {
                     }
                 }
                 .alert(
-                    "Battle challange!",
+                    "Battle challenge!",
                     isPresented: pendingInvitationBinding,
                     presenting: viewModel.pendingInvitation
                 ) { _ in
                     Button("Accept", role: .confirm, action: viewModel.acceptInvitation)
                     Button("Decline", role: .cancel, action: viewModel.declineInvitation)
                 } message: { invite in
-                    Text("\(invite.peerName) wants to challange you to a 1v1 battle.")
+                    Text("\(invite.peerName) wants to challenge you to a 1v1 battle.")
                 }
                 .alert(
                     "Error",
@@ -121,14 +121,16 @@ private extension MultiplayerSetupView {
                                 viewModel.invite(peer)
                             } label: {
                                 HStack {
-                                    Label(peer.name, systemImage: "person.fill")
-                                    Spacer()
                                     if isInvited {
                                         PixelSpinner()
                                     } else {
-                                        Image(systemName: "chevron.right")
-                                            .foregroundStyle(.secondary)
+                                        Image(systemName: "person.fill")
+                                            .frame(width: 24, height: 24)
                                     }
+                                    Text(peer.name)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.secondary)
                                 }
                                 .font(.pixel14)
                                 .padding()

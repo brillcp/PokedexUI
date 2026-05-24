@@ -38,6 +38,7 @@ final class MultiplayerSetupViewModel {
     private var ownChallengeSent: Bool = false
     private var battleComplete: Bool = false
     private var peerChallenge: ChallengePayload?
+    private var connectedPeerName: String?
 
     let maxSelections: Int = 4
     let multipeer: MultipeerService
@@ -91,6 +92,12 @@ extension MultiplayerSetupViewModel {
         phase = .connecting
     }
 
+    /// Called when MC reports a successful peer connection.
+    func peerConnected() {
+        connectedPeerName = multipeer.connectedPeers.first?.displayName
+        showPicker = true
+    }
+
     func acceptInvitation() {
         multipeer.acceptInvitation()
         phase = .connecting
@@ -102,9 +109,10 @@ extension MultiplayerSetupViewModel {
 
     /// Called when the peer we invited declined (MC went idle while connecting).
     func inviteDeclined() {
+        let name = invitedPeer?.name ?? "Trainer"
         invitedPeer = nil
         phase = .discovering
-        errorMessage = "Trainer declined the battle."
+        errorMessage = "\(name) declined the battle."
         multipeer.startDiscovery()
     }
 
@@ -126,7 +134,10 @@ extension MultiplayerSetupViewModel {
 
     /// Called when MC drops unexpectedly during picking, waiting, or battle.
     func connectionLost() {
-        if !battleComplete { errorMessage = "Connection lost." }
+        if !battleComplete {
+            let name = connectedPeerName ?? "Opponent"
+            errorMessage = "\(name) canceled."
+        }
         showPicker = false
         reset()
         multipeer.startDiscovery()
@@ -216,12 +227,16 @@ private extension MultiplayerSetupViewModel {
                 tryLaunch()
             }
         case .challengeDeclined:
-            errorMessage = "Opponent declined the challenge."
+            let name = connectedPeerName ?? "Opponent"
+            errorMessage = "\(name) declined the challenge."
             showPicker = false
             reset()
         case .disconnect:
             guard phase != .discovering else { return }
-            if !battleComplete { errorMessage = "Opponent left." }
+            if !battleComplete {
+                let name = connectedPeerName ?? "Opponent"
+                errorMessage = "\(name) canceled."
+            }
             showPicker = false
             reset()
             multipeer.startDiscovery()
@@ -273,6 +288,7 @@ private extension MultiplayerSetupViewModel {
         ownChallengeSent = false
         battleComplete = false
         peerChallenge = nil
+        connectedPeerName = nil
         launch = nil
     }
 
