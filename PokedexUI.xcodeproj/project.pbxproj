@@ -891,7 +891,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PokedexUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PokedexUI;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pokedex+";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.role-playing-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -931,7 +931,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PokedexUI/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = PokedexUI;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pokedex+";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.role-playing-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
