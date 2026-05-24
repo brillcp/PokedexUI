@@ -44,9 +44,9 @@ struct MultiplayerSetupView: View {
                 .navigationDestination(item: $viewModel.launch) { launch in
                     BattleView(viewModel: launch.viewModel)
                 }
-                .onChange(of: viewModel.launch) { old, new in
-                    if let old, new == nil, viewModel.phase == .launching {
-                        viewModel.returnToLobby(battleEnded: old.viewModel.winner != nil)
+                .onChange(of: viewModel.launch) { _, new in
+                    if new == nil, viewModel.phase == .launching {
+                        viewModel.returnToLobby()
                     }
                 }
                 .alert(

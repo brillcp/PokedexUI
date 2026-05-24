@@ -36,9 +36,9 @@ final class MultiplayerSetupViewModel {
     private let container: AppContainer
     private var listenTask: Task<Void, Never>?
     private var ownChallengeSent: Bool = false
-    private var battleComplete: Bool = false
     private var peerChallenge: ChallengePayload?
     private var connectedPeerName: String?
+    private var receivedBattleEnded: Bool = false
 
     let maxSelections: Int = 4
     let multipeer: MultipeerService
@@ -95,6 +95,7 @@ extension MultiplayerSetupViewModel {
     /// Called when MC reports a successful peer connection.
     func peerConnected() {
         connectedPeerName = multipeer.connectedPeers.first?.displayName
+        receivedBattleEnded = false
         showPicker = true
     }
 
@@ -134,7 +135,7 @@ extension MultiplayerSetupViewModel {
 
     /// Called when MC drops unexpectedly during picking, waiting, or battle.
     func connectionLost() {
-        if !battleComplete {
+        if !battleEnded {
             let name = connectedPeerName ?? "Opponent"
             errorMessage = "\(name) canceled."
         }
@@ -144,8 +145,7 @@ extension MultiplayerSetupViewModel {
     }
 
     /// Called when navigating back from a finished battle.
-    func returnToLobby(battleEnded: Bool = false) {
-        if battleEnded { battleComplete = true }
+    func returnToLobby() {
         multipeer.disconnect()
         reset()
         multipeer.startDiscovery()
@@ -207,6 +207,9 @@ extension MultiplayerSetupViewModel {
     }
 
     var isConnected: Bool { !multipeer.connectedPeers.isEmpty }
+
+    /// Derived from `.battleEnded` message or launch VM's winner.
+    var battleEnded: Bool { receivedBattleEnded || launch?.viewModel.winner != nil }
 }
 
 // MARK: - Private
@@ -233,7 +236,7 @@ private extension MultiplayerSetupViewModel {
             reset()
         case .disconnect:
             guard phase != .discovering else { return }
-            if !battleComplete {
+            if !battleEnded {
                 let name = connectedPeerName ?? "Opponent"
                 errorMessage = "\(name) canceled."
             }
@@ -241,7 +244,7 @@ private extension MultiplayerSetupViewModel {
             reset()
             multipeer.startDiscovery()
         case .battleEnded:
-            battleComplete = true
+            receivedBattleEnded = true
         case .moveCommitted, .roundResolved, .rematch:
             break
         }
@@ -286,7 +289,6 @@ private extension MultiplayerSetupViewModel {
         selectedMoveNames = []
         selectionOrder = []
         ownChallengeSent = false
-        battleComplete = false
         peerChallenge = nil
         connectedPeerName = nil
         launch = nil
