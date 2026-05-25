@@ -10,9 +10,9 @@
 
 # PokedexUI
 
-PokedexUI is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokémon battle mode driven by **Apple's on-device FoundationModels framework**. Browse the dex, dig into a pokemon, pick a fight.
+PokedexUI is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokemon battle mode driven by **Apple's on-device FoundationModels framework** and **local multiplayer** over MultipeerConnectivity. Browse the dex, dig into a pokemon, pick a fight against AI or a friend nearby.
 
-If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI integration), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every public type plus every protocol member carries a doc comment explaining why it exists.
+If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI, MultipeerConnectivity), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every public type plus every protocol member carries a doc comment explaining why it exists.
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
@@ -35,14 +35,15 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every keyed cache entity (Pokemon by id, EvolutionChainEntity by chainId). Nested rows ride on cascade; `ItemData` is keyed by category title. Move and type data live in PokeBattleKit's own disk cache.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
 - ✅ **On-Device AI**: Apple `FoundationModels` with `@Generable` structured output, `Tool`-based type/damage reasoning, and deterministic fallbacks via [PokeBattleKit](https://github.com/brillcp/PokeBattleKit) at every call site.
+- ✅ **Local Multiplayer**: host-authoritative peer-to-peer battles over MultipeerConnectivity with a typed `Codable` message protocol. No servers, no accounts.
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
-- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor: cue timing delegated to `BattleAnimator`, AI move history to `BattleAIDriver`, log rendering to `BattleLogFormatter`.
-- **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
-- **L**iskov Substitution: every service is reached through its protocol on `AppContainer`, so previews and tests can swap the concrete actor for any conforming type without touching call sites.
-- **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`; `BattleSetupView` reads pool + selection state. No god-protocol shared across consumers.
-- **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`; no `static let shared` lookups in feature code.
+- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor: cue timing delegated to `BattleAnimator`, AI move selection to `BattleAIDriver`, log rendering to `BattleLogFormatter`. `MultiplayerBattleViewModel` is a separate type handling the network battle path rather than branching inside the AI one. Shared UI components (`PokemonPickerGrid`, `MoveLoadoutView`, `MovePickerGrid`) each own a single reusable concern, used across both single-player and multiplayer flows.
+- **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. `BattleViewModelProtocol` allowed multiplayer battles to be added without touching `BattleView`, `BattleAnimator`, or `BattleLogFormatter`. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
+- **L**iskov Substitution: every service is reached through its protocol on `AppContainer`, so previews and tests can swap the concrete actor for any conforming type without touching call sites. `BattleViewModel` and `MultiplayerBattleViewModel` both conform to `BattleViewModelProtocol` -- `BattleView` renders either without knowing which one it has.
+- **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`. `BattleSetupView` reads pool + selection state. `MultiplayerSetupViewModel` exposes lobby discovery, connection state, and loadout selection -- no overlap with the battle protocol.
+- **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`. `MultipeerService` lives on the container alongside all other services. No `static let shared` lookups in feature code.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -51,7 +52,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 ├─────────────────────────────────────────────────────────┤
 │  Features/                                              │
 │    Pokedex   PokemonDetail   Battle   Search            │
-│    Bookmarks  Items                                     │
+│    Bookmarks  Items  Multiplayer                        │
 ├─────────────────────────────────────────────────────────┤
 │  Core/                                                  │
 │    Domain/  (SwiftData @Models)                         │
@@ -77,6 +78,7 @@ Every long-lived worker is an actor unless it has to bind to SwiftUI directly:
 | `EvolutionService`         | `actor`                    | Process-wide chain-id memo                                   |
 | `DataStorageReader`        | `@ModelActor`              | Isolated SwiftData `ModelContext`                             |
 | `APIService<Config>`       | `actor`                    | Generic network actor over `Requestable`                     |
+| `MultipeerService`         | `@Observable`              | MC delegate callbacks are `nonisolated`, hop to `@MainActor` inline only when mutating observable state |
 | `BattleAnimator`           | `@MainActor @Observable`   | Owns cue mutation + `withAnimation` blocks for the arena     |
 | View models                | `@MainActor @Observable`   | SwiftUI binding                                              |
 
@@ -92,10 +94,11 @@ final class AppContainer {
     let pokemonService:     PokemonServiceProtocol
     let evolutionService:   EvolutionServiceProtocol
     let itemService:        ItemServiceProtocol
-    let battleAI:           BattleAIServiceProtocol
     let spriteLoader:       SpriteLoading
     let imageColorAnalyzer: ImageColorAnalyzing
     let audioPlayer:        AudioPlaying
+    let battleAI:           BattleAIServiceProtocol
+    let multipeerService:   MultipeerService
     static let live = AppContainer()
 }
 
@@ -182,30 +185,98 @@ This is the kind of feature `FoundationModels` was built for: small, structured,
 
 ---
 
+# Local Multiplayer 🏟
+
+The Gym tab lets two nearby devices battle head-to-head over Wi-Fi or Bluetooth using MultipeerConnectivity. No servers, no accounts, no internet required.
+
+## Authority model
+
+**Host-authoritative.** The MC advertiser is the host; the browser is the guest. Only the host runs `BattleEngine`. The guest sends its move choice, receives resolved events, and renders them. This eliminates desync from random rolls (crits, accuracy, status chance).
+
+## Message protocol
+
+A single `Codable` enum (`BattleMessage`) covers the full lifecycle:
+
+| Phase | Messages | What crosses the wire |
+| --- | --- | --- |
+| Handshake | `.hello`, `.challengeProposed`, `.challengeAccepted`, `.challengeDeclined` | Protocol version, `PokemonSummary` (id, name, sprites, types, stats), 4 move names |
+| Battle | `.moveCommitted`, `.roundResolved`, `.battleEnded` | Move name + turn number, resolved `[Event]` array, winner side |
+| Session | `.rematch`, `.disconnect` | Control signals only |
+
+Move names resolve locally via `PokeBattleKit.move(named:)`. Full `Move` objects never cross the wire. Both devices share the same move database from `PokeBattleKit.initialize()`.
+
+## Turn synchronization
+
+Commit-collect-resolve pattern with no races:
+
+1. Both players see the move grid
+2. Player taps a move, sends `.moveCommitted(name, turnN)` to peer
+3. **Host collects**: stores own move + guest's move. When both present for turn N, runs `engine.resolveRound()`, sends `.roundResolved(events, N)` to guest
+4. **Guest receives**: applies events to local state, animates via `BattleAnimator`
+5. Both reset for turn N+1
+
+The guest reverses `.player`/`.opponent` in received events via `side.opposite` before rendering. `turnNumber` on every message prevents stale/duplicate processing.
+
+## Key design decisions
+
+- **Separate VM, not branching**: `MultiplayerBattleViewModel` conforms to `BattleViewModelProtocol` alongside `BattleViewModel`. `BattleView` renders either without knowing which one it has.
+- **Shared components**: `PokemonPickerGrid`, `MoveLoadoutView`, and `MovePickerGrid` are used by both single-player and multiplayer flows. Screen-level orchestration stays separate.
+- **Rematch reuses MC session**: no need to re-discover. Just exchange new `ChallengePayload`s.
+
+---
+
 # Battle UX flow 🎮
+
+### Single-player (AI)
 
 ```
 Detail view
-   │ (tap Fight ⚡)
+   │ (tap Fight)
    ▼
-Opponent picker sheet  ◄── Random (AI)
+Opponent picker sheet  <-- Random (AI)
    │ (tap a candidate)
    ▼
 Loadout screen
-   │ • Hydrate both pokemon (cache or network)
-   │ • AI picks opponent's 4 from full movepool (background task)
-   │ • Player hand-picks own 4 from sorted movepool
+   │ - Hydrate both pokemon (cache or network)
+   │ - AI picks opponent's 4 from full movepool (background task)
+   │ - Player hand-picks own 4 from sorted movepool
    │ (tap Battle)
    ▼
 Battle view
-   • Arena renders frame 1 (state built in init)
-   • Each turn: player taps move →
-       AI picks opponent's move →
-       Engine resolves both in speed order →
+   - Arena renders frame 1 (state built in init)
+   - Each turn: player taps move ->
+       AI picks opponent's move ->
+       Engine resolves both in speed order ->
        Events animate (lunge, shake, damage, faint)
 ```
 
 The battle screen never holds the loadout sheet open: every preflight task either completes before the player commits, or runs lazily inside the battle view itself. The move grid is disabled while the AI resolves the opponent's pick so the player can't double-tap into a stale turn.
+
+### Multiplayer (Gym)
+
+```
+Gym tab
+   │ (advertise + browse simultaneously)
+   ▼
+Discovery list
+   │ (tap a nearby trainer)
+   ▼
+Invitation alert on peer device
+   │ (accept)
+   ▼
+Pick your fighter (PokemonPickerGrid)
+   │ (tap a pokemon)
+   ▼
+Pick moves (MoveLoadoutView)
+   │ - Player picks 4 moves
+   │ - Sends ChallengePayload to peer
+   │ - "Waiting for opponent..." until peer submits
+   │ (both ready)
+   ▼
+Battle view
+   - Same BattleView, driven by MultiplayerBattleViewModel
+   - Moves committed over MC, host resolves, guest renders events
+```
 
 ---
 
@@ -229,8 +300,11 @@ Pixel font, gameboy-style aesthetic, glass effects:
 
 - **`Chip`**: small inline pill used for type tags, generation badges, status pills, effectiveness markers. Always a 4-point corner radius (capsules look too modern next to the pixel font).
 - **`MoveCell`**: shared between the battle move grid and the loadout move picker, switched via a `Mode` enum.
-- **`TypeColor`**: centralized type → color map used by every move chip, type tag, and weakness grid row.
+- **`TypeColor`**: centralized type-to-color map used by every move chip, type tag, and weakness grid row.
 - **`PokedexGridView`**: 2-column or 3-column grid of `Pokemon` rows used by the pokedex, search, and bookmarks tabs.
+- **`PokemonPickerGrid`**: searchable 3-column grid with cached haystack filtering (name, type, genus, habitat, legendary/mythical, abilities). Used by both single-player opponent picker and multiplayer fighter picker.
+- **`MoveLoadoutView`**: pokemon summary card + `MovePickerGrid` + caller-provided bottom bar slot. Shared across single-player and multiplayer move selection.
+- **`MovePickerGrid`**: 2-column move grid with toggle selection and optional type effectiveness annotations.
 
 ---
 
@@ -256,3 +330,4 @@ dependencies: [
 - iOS 26+ (for the `FoundationModels` framework, `@Observable`, SwiftData)
 - Swift 5 language mode
 - Apple Intelligence enabled on the device for the AI features (graceful fallback to deterministic heuristics on devices without it)
+- Local Network permission for multiplayer (prompted automatically on first Gym use)
