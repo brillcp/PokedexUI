@@ -33,7 +33,6 @@ enum MultipeerRole: Sendable {
 /// Process-wide MultipeerConnectivity wrapper. Owns the `MCSession`,
 /// advertiser, and browser; surfaces discovered peers, connection state,
 /// and an `AsyncStream` of typed `BattleMessage` payloads to consumers.
-@MainActor
 @Observable
 final class MultipeerService: NSObject {
     private static let serviceType = "pokedex-vs"

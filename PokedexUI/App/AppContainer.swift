@@ -25,7 +25,7 @@ final class AppContainer {
         imageColorAnalyzer: ImageColorAnalyzing      = ImageColorAnalyzer(),
         audioPlayer:        AudioPlaying             = AudioPlayer(),
         battleAI:           BattleAIServiceProtocol  = BattleAIService(),
-        multipeerService:   MultipeerService
+        multipeerService:   MultipeerService         = MultipeerService()
     ) {
         self.pokemonService     = pokemonService
         self.evolutionService   = evolutionService
@@ -39,5 +39,5 @@ final class AppContainer {
 
     /// Production composition. Reached via `Environment(\.container)`;
     /// also used by Previews to keep the tree close to the live wiring.
-    static let live = AppContainer(multipeerService: MultipeerService())
+    static let live = AppContainer()
 }
