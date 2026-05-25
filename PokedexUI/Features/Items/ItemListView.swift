@@ -5,28 +5,30 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
     @State var viewModel: ViewModel
 
     var body: some View {
-        List(viewModel.items, id: \.title) { item in
-            itemRow(for: item)
-                .listRowBackground(Color.clear)
-                .listRowSeparatorTint(Color.cardBackground)
-        }
-        .font(.pixel14)
-        .foregroundStyle(.white)
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .scrollIndicators(.hidden)
-        .overlay {
-            if viewModel.isLoading {
-                VStack(spacing: 16) {
-                    PixelSpinner()
-                    Text("Loading items…")
-                        .font(.pixel14)
-                        .foregroundStyle(.secondary)
+        NavigationStack {
+            List(viewModel.items, id: \.title) { item in
+                itemRow(for: item)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparatorTint(Color.cardBackground)
+            }
+            .font(.pixel14)
+            .foregroundStyle(.white)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .scrollIndicators(.hidden)
+            .overlay {
+                if viewModel.isLoading {
+                    VStack(spacing: 16) {
+                        PixelSpinner()
+                        Text("Loading items…")
+                            .font(.pixel14)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .task { await viewModel.loadItems() }
+            .applyPokedexStyling(title: Tabs.items.title)
         }
-        .task { await viewModel.loadItems() }
-        .applyPokedexStyling(title: Tabs.items.title)
     }
 }
 

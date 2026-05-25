@@ -92,6 +92,19 @@ final class Pokemon: Decodable {
 extension Pokemon {
     var frontSprite: String { sprite.front }
     var backSprite: String? { sprite.back }
+
+    /// Normalized haystack for full-text search across name, types,
+    /// genus, habitat, legendary/mythical status, and abilities.
+    static func searchHaystack(for pokemon: Pokemon) -> String {
+        var parts: [String] = [pokemon.name.normalize]
+        parts.append(contentsOf: pokemon.types.map(\.type.name.normalize))
+        if let genus = pokemon.genus { parts.append(genus.normalize) }
+        if let habitat = pokemon.habitat { parts.append(habitat.normalize) }
+        if pokemon.isLegendary { parts.append("legendary") }
+        if pokemon.isMythical { parts.append("mythical") }
+        parts.append(contentsOf: pokemon.abilities.map(\.ability.name.normalize))
+        return parts.joined(separator: " ")
+    }
 }
 
 extension Pokemon {

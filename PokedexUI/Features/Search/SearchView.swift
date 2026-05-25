@@ -12,35 +12,37 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     @Binding var selectedTab: Tabs
 
     var body: some View {
-        Group {
-            if viewModel.query.isEmpty {
-                emptyState
-            } else {
-                PokedexGridView(pokemon: viewModel.filtered)
+        NavigationStack {
+            Group {
+                if viewModel.query.isEmpty {
+                    emptyState
+                } else {
+                    PokedexGridView(pokemon: viewModel.filtered)
+                }
             }
-        }
-        .font(.pixel14)
-        .background(Color.darkGrey.ignoresSafeArea())
-        .searchable(text: $viewModel.query)
-        .searchFocused($isSearchFocused)
-        .onSubmit(of: .search) { viewModel.recordSearch() }
-        .onAppear {
-            viewModel.updateCorpus(corpus)
-        }
-        .onChange(of: corpus) { _, newCorpus in
-            viewModel.updateCorpus(newCorpus)
-        }
-        .scrollDismissesKeyboard(.immediately)
-        .onChange(of: isSearchFocused) { old, new in
-            if old, !new, !viewModel.query.isEmpty {
-                viewModel.recordSearch()
+            .font(.pixel14)
+            .background(Color.darkGrey.ignoresSafeArea())
+            .searchable(text: $viewModel.query)
+            .searchFocused($isSearchFocused)
+            .onSubmit(of: .search) { viewModel.recordSearch() }
+            .onAppear {
+                viewModel.updateCorpus(corpus)
             }
+            .onChange(of: corpus) { _, newCorpus in
+                viewModel.updateCorpus(newCorpus)
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .onChange(of: isSearchFocused) { old, new in
+                if old, !new, !viewModel.query.isEmpty {
+                    viewModel.recordSearch()
+                }
+            }
+            .onChange(of: viewModel.query) { _, _ in
+                viewModel.updateFilteredPokemon()
+            }
+            .sensoryFeedback(.impact(weight: .light), trigger: viewModel.query)
+            .applyPokedexStyling(title: Tabs.search.title)
         }
-        .onChange(of: viewModel.query) { _, _ in
-            viewModel.updateFilteredPokemon()
-        }
-        .sensoryFeedback(.impact(weight: .light), trigger: viewModel.query)
-        .applyPokedexStyling(title: Tabs.search.title)
     }
 }
 

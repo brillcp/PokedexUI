@@ -10,7 +10,6 @@ struct PokemonViewModel {
 
     let statLookup: [String: Int]
     let typeNames: [String]
-    let searchHaystack: String
     let types: String
     let abilities: String
     let moves: String
@@ -29,7 +28,6 @@ struct PokemonViewModel {
         )
         let rawTypeNames = pokemon.types.map { $0.type.name }
         self.typeNames = rawTypeNames
-        self.searchHaystack = "\(pokemon.name) \(rawTypeNames.joined(separator: " "))".normalize
         self.types = pokemon.types.map { $0.type }.joinedCapitalizedNames
         self.abilities = pokemon.abilities.map { $0.ability }.joinedCapitalizedNames
 

@@ -39,13 +39,7 @@ final class SearchViewModel {
         "electric bug", "ghost dark"
     ]
 
-    private struct Entry {
-        let pokemon: Pokemon
-        let haystack: String
-    }
-
-    private var entries: [Entry] = []
-    private var indexTask: Task<Void, Never>?
+    private var index: [(pokemon: Pokemon, haystack: String)] = []
     private let defaults: UserDefaults
 
     var filtered: [Pokemon] = []
@@ -63,13 +57,11 @@ final class SearchViewModel {
 
 extension SearchViewModel: SearchViewModelProtocol {
     func updateCorpus(_ corpus: [Pokemon]) {
+        index = corpus.map { ($0, Pokemon.searchHaystack(for: $0)) }
         if suggestedPokemon.isEmpty && !corpus.isEmpty {
             suggestedPokemon = Array(corpus.shuffled().prefix(2))
         }
-        indexTask?.cancel()
-        indexTask = Task { [weak self] in
-            await self?.rebuildIndex(corpus: corpus)
-        }
+        if !query.isEmpty { updateFilteredPokemon() }
     }
 
     func updateFilteredPokemon() {
@@ -83,7 +75,7 @@ extension SearchViewModel: SearchViewModelProtocol {
             return
         }
 
-        filtered = entries.compactMap { entry in
+        filtered = index.compactMap { entry in
             queryTerms.allSatisfy { entry.haystack.contains($0) } ? entry.pokemon : nil
         }
     }
@@ -105,32 +97,3 @@ extension SearchViewModel: SearchViewModelProtocol {
     }
 }
 
-// MARK: - Private
-private extension SearchViewModel {
-    @MainActor
-    func rebuildIndex(corpus: [Pokemon]) async {
-        var built: [Entry] = []
-        built.reserveCapacity(corpus.count)
-        for (index, pokemon) in corpus.enumerated() {
-            if Task.isCancelled { return }
-            built.append(Entry(pokemon: pokemon, haystack: Self.buildHaystack(for: pokemon)))
-            if index % 100 == 99 { await Task.yield() }
-        }
-        if Task.isCancelled { return }
-        entries = built
-        if !query.isEmpty {
-            updateFilteredPokemon()
-        }
-    }
-
-    static func buildHaystack(for pokemon: Pokemon) -> String {
-        var parts: [String] = [pokemon.name.normalize]
-        parts.append(contentsOf: pokemon.types.map(\.type.name.normalize))
-        if let genus = pokemon.genus { parts.append(genus.normalize) }
-        if let habitat = pokemon.habitat { parts.append(habitat.normalize) }
-        if pokemon.isLegendary { parts.append("legendary") }
-        if pokemon.isMythical { parts.append("mythical") }
-        parts.append(contentsOf: pokemon.abilities.map(\.ability.name.normalize))
-        return parts.joined(separator: " ")
-    }
-}

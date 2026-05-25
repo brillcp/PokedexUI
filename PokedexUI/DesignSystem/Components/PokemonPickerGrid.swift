@@ -9,6 +9,7 @@ struct PokemonPickerGrid: View {
     let onSelect: (Pokemon) -> Void
 
     @State private var searchText = ""
+    @State private var index: [(pokemon: Pokemon, haystack: String)] = []
 
     var body: some View {
         ScrollView {
@@ -32,14 +33,25 @@ struct PokemonPickerGrid: View {
         }
         .scrollIndicators(.hidden)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+        .onAppear(perform: buildIndex)
     }
 }
 
 // MARK: - Private
 private extension PokemonPickerGrid {
+    func buildIndex() {
+        guard index.isEmpty else { return }
+        index = pokemon.map { ($0, Pokemon.searchHaystack(for: $0)) }
+    }
+
     var filteredPokemon: [Pokemon] {
-        guard !searchText.isEmpty else { return pokemon }
-        let query = searchText.lowercased()
-        return pokemon.filter { $0.name.lowercased().contains(query) }
+        let terms = searchText
+            .split(whereSeparator: \.isWhitespace)
+            .map { $0.normalize }
+            .filter { !$0.isEmpty }
+        guard !terms.isEmpty else { return pokemon }
+        return index.compactMap { entry in
+            terms.allSatisfy { entry.haystack.contains($0) } ? entry.pokemon : nil
+        }
     }
 }

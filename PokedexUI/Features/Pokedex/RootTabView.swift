@@ -40,24 +40,18 @@ private extension RootTabView {
     }
 
     var itemsTab: some View {
-        NavigationStack {
-            ItemListView(viewModel: ItemListViewModel(modelContext: modelContext, container: container))
-        }
+        ItemListView(viewModel: ItemListViewModel(modelContext: modelContext, container: container))
     }
 
     var searchTab: some View {
-        NavigationStack {
-            SearchView(
-                viewModel: SearchViewModel(),
-                selectedTab: $viewModel.selectedTab
-            )
-        }
+        SearchView(
+            viewModel: SearchViewModel(),
+            selectedTab: $viewModel.selectedTab
+        )
     }
 
     var favouritesTab: some View {
-        NavigationStack {
-            BookmarksView()
-        }
+        BookmarksView()
     }
 
     var battleTab: some View {
@@ -119,10 +113,8 @@ private struct PokedexToolbar<ViewModel: PokedexViewModelProtocol & Sendable>: T
 
     private var sortMenu: some View {
         Menu {
-            Button {
+            Button(viewModel.sortDirection.label, systemImage: viewModel.sortDirection.systemImage) {
                 viewModel.sortDirection.toggle()
-            } label: {
-                Label(viewModel.sortDirection.label, systemImage: viewModel.sortDirection.systemImage)
             }
 
             Divider()
