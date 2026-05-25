@@ -31,7 +31,7 @@ struct MoveLoadoutView<BottomBar: View>: View {
         .disabled(isDisabled)
         .opacity(isDisabled ? Opacity.disabled : 1)
         .animation(.easeInOut(duration: 0.2), value: isDisabled)
-        .safeAreaBar(edge: .bottom) { bottomBar() }
+        .safeAreaBar(edge: .bottom, content: bottomBar)
     }
 }
 
