@@ -169,7 +169,7 @@ private struct MultiplayerPickerSheet: View {
             .foregroundStyle(.white)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(role: .cancel) { dismiss() }
+                    Button(role: .cancel, action: dismiss.callAsFunction)
                 }
             }
             .navigationDestination(item: $selectedForMoves) { pokemon in

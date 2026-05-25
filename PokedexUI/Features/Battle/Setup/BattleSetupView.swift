@@ -81,7 +81,7 @@ private extension BattleSetupView {
 
     var loadout: some View {
         let busy = viewModel.phase == .awaitingAI
-        return ScrollView(showsIndicators: false) {
+        return ScrollView {
             VStack {
                 matchupRow
                 typeMatchup

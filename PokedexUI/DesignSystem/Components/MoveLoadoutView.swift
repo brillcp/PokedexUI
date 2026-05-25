@@ -15,7 +15,7 @@ struct MoveLoadoutView<BottomBar: View>: View {
     @ViewBuilder let bottomBar: () -> BottomBar
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
+        ScrollView {
             VStack(spacing: 16) {
                 pokemonSummary
                 MovePickerGrid(
@@ -27,6 +27,7 @@ struct MoveLoadoutView<BottomBar: View>: View {
                 )
             }
         }
+        .scrollIndicators(.hidden)
         .disabled(isDisabled)
         .opacity(isDisabled ? Opacity.disabled : 1)
         .animation(.easeInOut(duration: 0.2), value: isDisabled)

@@ -11,7 +11,7 @@ struct PokedexGridView: View {
     var loadingProgress: Double = 0
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
+        ScrollView {
             LazyVGrid(columns: grid.layout, spacing: 2.0) {
                 ForEach(pokemon, id: \.id) { vm in
                     PokedexGridItem(
@@ -23,6 +23,7 @@ struct PokedexGridView: View {
             }
             .padding(.vertical, 2.0)
         }
+        .scrollIndicators(.hidden)
         .overlay {
             if isLoading && pokemon.isEmpty {
                 IndexingOverlay(progress: loadingProgress)

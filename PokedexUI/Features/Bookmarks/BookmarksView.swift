@@ -13,7 +13,7 @@ struct BookmarksView: View {
     var body: some View {
         NavigationStack {
             PokedexGridView(pokemon: bookmarks)
-                .overlay {
+                .background {
                     if bookmarks.isEmpty {
                         Text("No favourites")
                             .foregroundStyle(.secondary)
@@ -22,7 +22,7 @@ struct BookmarksView: View {
                 }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button(role: .cancel) { dismiss() }
+                        Button(role: .cancel, action: dismiss.callAsFunction)
                     }
                 }
                 .applyPokedexStyling(title: Tabs.favourites.title, color: .darkGrey)
