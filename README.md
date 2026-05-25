@@ -16,10 +16,9 @@ If you're a senior iOS engineer looking for a worked example of modern SwiftUI p
 
 Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
-<img height="800" alt="pokedex2026" src="https://github.com/user-attachments/assets/7a3be5ca-9b71-4107-9544-91738bb5291c" />
+<img height="800" alt="Pokedex+" src="https://github.com/user-attachments/assets/54299a42-cd22-4025-a4c9-e8a90c971591" />
 
 ---
-
 
 # Architecture 🏛
 
