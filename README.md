@@ -34,7 +34,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 - ✅ **Type Safety**: generics, Sendable AI snapshots crossing actor boundaries, `@Attribute(.unique)` on every keyed cache entity (Pokemon by id, EvolutionChainEntity by chainId). Nested rows ride on cascade; `ItemData` is keyed by category title. Move and type data live in PokeBattleKit's own disk cache.
 - ✅ **Reactive UI**: SwiftUI body re-renders driven entirely by `@Observable` view models.
 - ✅ **On-Device AI**: Apple `FoundationModels` with `@Generable` structured output, `Tool`-based type/damage reasoning, and deterministic fallbacks via [PokeBattleKit](https://github.com/brillcp/PokeBattleKit) at every call site.
-- ✅ **Local Multiplayer**: host-authoritative peer-to-peer battles over MultipeerConnectivity with a typed `Codable` message protocol. No servers, no accounts.
+- ✅ **Local Multiplayer**: host-authoritative architecture with a typed `Codable` message protocol over MultipeerConnectivity. The same `BattleViewModelProtocol` drives both AI and peer-to-peer battles with zero view changes.
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
