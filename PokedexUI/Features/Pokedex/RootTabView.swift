@@ -38,7 +38,7 @@ private extension RootTabView {
     }
 
     func battleTab() -> some View {
-        MultiplayerSetupView(container: container)
+        MultiplayerSetupView(viewModel: MultiplayerSetupViewModel(container: container))
     }
 }
 

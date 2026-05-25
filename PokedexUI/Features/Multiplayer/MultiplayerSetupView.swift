@@ -8,11 +8,7 @@ import PokeBattleKit
 struct MultiplayerSetupView: View {
     @Environment(\.container) private var container
 
-    @State private var viewModel: MultiplayerSetupViewModel
-
-    init(container: AppContainer) {
-        _viewModel = State(initialValue: MultiplayerSetupViewModel(container: container))
-    }
+    @State var viewModel: MultiplayerSetupViewModel
 
     var body: some View {
         NavigationStack {
