@@ -186,7 +186,7 @@ This is the kind of feature `FoundationModels` was built for: small, structured,
 
 # Local Multiplayer 🏟
 
-The Gym tab lets two nearby devices battle head-to-head over Wi-Fi or Bluetooth using MultipeerConnectivity. No servers, no accounts, no internet required.
+Both players open the Gym tab, which advertises and browses simultaneously. Nearby trainers appear in a discovery list; tapping one sends an invite. Once both accept, each picks a Pokemon and four moves, then the battle begins. All communication is peer-to-peer over Wi-Fi or Bluetooth via MultipeerConnectivity. No servers, no accounts, no internet required.
 
 ## Authority model
 
