@@ -300,8 +300,10 @@ Pixel font, gameboy-style aesthetic, glass effects:
 - **`Chip`**: small inline pill used for type tags, generation badges, status pills, effectiveness markers. Always a 4-point corner radius (capsules look too modern next to the pixel font).
 - **`MoveCell`**: shared between the battle move grid and the loadout move picker, switched via a `Mode` enum.
 - **`TypeColor`**: centralized type-to-color map used by every move chip, type tag, and weakness grid row.
-- **`PokedexGridView`**: 2-column or 3-column grid of `Pokemon` rows used by the pokedex, search, and bookmarks tabs.
-- **`PokemonPickerGrid`**: searchable 3-column grid with cached haystack filtering (name, type, genus, habitat, legendary/mythical, abilities). Used by both single-player opponent picker and multiplayer fighter picker.
+- **`PokemonGrid<Cell>`**: generic grid taking a `GridLayout` and a `@ViewBuilder` cell closure. Handles only scrolling and layout; navigation, search, and overlays are the caller's responsibility.
+- **`PokedexGridView`**: wraps `PokemonGrid` with color-analyzed cells (dominant-color backgrounds via `ImageColorAnalyzer`), `NavigationLink` routing, and a loading overlay. Toggleable between 3 and 4 columns.
+- **`PokemonPickerGrid`**: wraps `PokemonGrid` with a toolbar search bar and cached haystack filtering (name, type, genus, habitat, legendary/mythical, abilities). Used by opponent picker, multiplayer fighter picker, and bookmarks.
+- **`GridLayout`**: single source of truth for grid column counts and spacing across the app (`.two`, `.three`, `.four`).
 - **`MoveLoadoutView`**: pokemon summary card + `MovePickerGrid` + caller-provided bottom bar slot. Shared across single-player and multiplayer move selection.
 - **`MovePickerGrid`**: 2-column move grid with toggle selection and optional type effectiveness annotations.
 
