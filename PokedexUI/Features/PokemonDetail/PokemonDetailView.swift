@@ -17,9 +17,9 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 32) {
+            VStack(spacing: 16.0) {
                 spriteImage()
-                loadedSection()
+                loadedContent(pokemon: viewModel.pokemon)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -50,7 +50,22 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
                 )
             )
         }
-        .applyDetailViewStyling(viewModel: viewModel, textColor: textColor, context: modelContext)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    viewModel.toggleBookmark(in: modelContext)
+                } label: {
+                    Image(systemName: viewModel.isBookmarked ? "heart.fill" : "heart")
+                        .foregroundStyle(textColor)
+                }
+            }
+        }
+        .applyPokedexStyling(
+            title: "\(viewModel.pokemon.name) #\(viewModel.pokemon.id)",
+            navColor: .clear,
+            titleColor: textColor,
+            background: viewModel.color
+        )
     }
 }
 
@@ -66,16 +81,8 @@ private extension PokemonDetailView {
             .overlay(.secondary)
     }
 
-    @ViewBuilder
-    func loadedSection() -> some View {
-        let pokemon = viewModel.pokemon
-        VStack(spacing: 0) {
-            loadedContent(pokemon: pokemon)
-        }
-    }
-
     func loadedContent(pokemon: PokemonViewModel) -> some View {
-        Group {
+        VStack(spacing: 32) {
             actionButtons(pokemon: pokemon)
             speciesHeader(pokemon: pokemon)
 
@@ -105,6 +112,7 @@ private extension PokemonDetailView {
 
             rowSection(title: "Abilities", data: pokemon.abilities)
             rowSection(title: "Moves", data: pokemon.moves)
+            divider
             statsSection(pokemon: pokemon)
             divider
             EvolutionChainView(
@@ -117,7 +125,7 @@ private extension PokemonDetailView {
         .padding(.bottom, 32.0)
         .foregroundStyle(textColor)
         .lineHeight(.loose)
-        .transition(.scale)
+        .font(.pixel14)
     }
 
     func speciesHeader(pokemon: PokemonViewModel) -> some View {
@@ -196,7 +204,6 @@ private extension PokemonDetailView {
 private extension PokemonDetailView {
     func statsSection(pokemon: PokemonViewModel) -> some View {
         VStack(alignment: .leading) {
-            divider
             ForEach(pokemon.stats) { stat in
                 DetailRowStat(
                     title: stat.stat.name,

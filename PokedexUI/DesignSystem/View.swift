@@ -1,18 +1,23 @@
 import SwiftUI
 
 extension View {
-    func applyPokedexStyling(title: String, color: Color? = Color.pokedexRed) -> some View {
+    func applyPokedexStyling(
+        title: String,
+        navColor: Color = Color.pokedexRed,
+        titleColor: Color = .white,
+        background: Color? = Color.darkGrey
+    ) -> some View {
         self
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text(title)
                         .font(.pixel17)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(titleColor)
                 }
             }
-            .toolbarBackground(color ?? .red, for: .navigationBar)
+            .toolbarBackground(navColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .background(Color.darkGrey.ignoresSafeArea())
+            .background(background?.ignoresSafeArea())
     }
 }

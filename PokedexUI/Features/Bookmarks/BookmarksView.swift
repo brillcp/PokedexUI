@@ -25,7 +25,7 @@ struct BookmarksView: View {
                         Button(role: .cancel, action: dismiss.callAsFunction)
                     }
                 }
-                .applyPokedexStyling(title: Tabs.favourites.title, color: .darkGrey)
+                .applyPokedexStyling(title: Tabs.favourites.title, navColor: .darkGrey)
         }
     }
 }

@@ -15,7 +15,7 @@ struct BattleSetupView<ViewModel: BattleSetupViewModelProtocol>: View {
 
     var body: some View {
         content
-            .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
+            .applyPokedexStyling(title: "Pick moves", navColor: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare() }
             .onChange(of: viewModel.phase) { _, newPhase in

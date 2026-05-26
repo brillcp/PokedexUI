@@ -161,7 +161,7 @@ private struct MultiplayerPickerSheet: View {
                 viewModel.selectPokemon(pokemon)
                 selectedForMoves = pokemon
             }
-            .applyPokedexStyling(title: "Pick your fighter", color: .darkGrey)
+            .applyPokedexStyling(title: "Pick your fighter", navColor: .darkGrey)
             .foregroundStyle(.white)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -203,7 +203,7 @@ private struct MultiplayerMovePickerView: View {
         ) {
             submitButton
         }
-        .applyPokedexStyling(title: "Pick moves", color: .darkGrey)
+        .applyPokedexStyling(title: "Pick moves", navColor: .darkGrey)
         .foregroundStyle(.white)
     }
 }

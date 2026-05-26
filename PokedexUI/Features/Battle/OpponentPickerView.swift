@@ -44,7 +44,7 @@ struct OpponentPickerView: View {
                     Button(role: .cancel, action: dismiss.callAsFunction)
                 }
             }
-            .applyPokedexStyling(title: "Pick opponent", color: .darkGrey)
+            .applyPokedexStyling(title: "Pick opponent", navColor: .darkGrey)
             .task(id: allPokemon.count) {
                 await prebuildCandidatesIfNeeded()
             }
@@ -70,8 +70,8 @@ struct OpponentPickerView: View {
 private extension OpponentPickerView {
     var pickerButton: some View {
         PrimaryCapsuleButton(
-            icon: "sparkle",
-            title: "Random",
+            icon: "sparkles.2",
+            title: "Smart pick",
             isEnabled: !isAIThinking,
             isLoading: isAIThinking,
             action: pickSmart

@@ -102,7 +102,7 @@ private extension SearchView {
 
     var suggestedSection: some View {
         VStack(alignment: .leading, spacing: 8.0) {
-            sectionHeader(title: "Suggested", systemImage: "sparkle")
+            sectionHeader(title: "Suggested", systemImage: "sparkles.2")
                 .padding(.horizontal)
             suggestedGrid
         }
@@ -113,9 +113,11 @@ private extension SearchView {
             HStack {
                 sectionHeader(title: "Recent", systemImage: "clock.arrow.circlepath")
                 Spacer()
-                Button("Clear", action: viewModel.clearRecentSearches)
-                    .font(.pixel12)
-                    .foregroundStyle(Color.pokedexRed)
+                Button(action: viewModel.clearRecentSearches) {
+                    Image(systemName: "trash.fill")
+                        .font(.pixel17)
+                        .foregroundStyle(Color.pokedexRed)
+                }
             }
             .padding(.horizontal)
             VStack(spacing: 2.0) {

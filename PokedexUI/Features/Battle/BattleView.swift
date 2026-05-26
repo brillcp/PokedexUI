@@ -9,7 +9,7 @@ struct BattleView<ViewModel: BattleViewModelProtocol>: View {
 
     var body: some View {
         content
-            .applyPokedexStyling(title: "\(viewModel.playerName) vs \(viewModel.opponentName)", color: .darkGrey)
+            .applyPokedexStyling(title: "\(viewModel.playerName) vs \(viewModel.opponentName)", navColor: .darkGrey)
             .foregroundStyle(.white)
             .task { await viewModel.prepare() }
             .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.animator.attackTick)
@@ -167,7 +167,7 @@ private extension BattleView {
                 )
             )
         }
-        .applyPokedexStyling(title: "Battle", color: .darkGrey)
+        .applyPokedexStyling(title: "Battle", navColor: .darkGrey)
     }
     .colorScheme(.dark)
 }

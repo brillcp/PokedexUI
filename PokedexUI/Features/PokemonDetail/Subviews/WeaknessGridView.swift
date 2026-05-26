@@ -11,7 +11,7 @@ struct WeaknessGridView: View {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Damage Taken")
+                Text("Weaknesses")
                     .foregroundStyle(.secondary)
                 ForEach(buckets, id: \.label) { row in
                     HStack(alignment: .top, spacing: 12) {
