@@ -1,22 +1,13 @@
 import SwiftUI
 
-/// Reusable searchable pokemon grid used by both single-player opponent
-/// picker and multiplayer fighter picker. Callers provide the pokemon
-/// list and a selection callback. Bottom bars (e.g. AI random) are added
-/// by callers via `.safeAreaBar` on top.
-///
-/// Set `searchable` to false when the caller manages its own search bar
-/// (e.g. SearchView). Pass a `namespace` for matched zoom transitions.
-struct PokemonPickerGrid: View {
+/// Pure display grid of Pokemon sprite cards.
+/// Callers pass pre-filtered data and an optional namespace for zoom transitions.
+struct PokemonGrid: View {
     private static let gridSpacing: CGFloat = 2.0
 
     let pokemon: [Pokemon]
-    var searchEnabled: Bool = true
     var namespace: Namespace.ID?
     let onSelect: (Pokemon) -> Void
-
-    @State private var searchText = ""
-    @State private var index: [(pokemon: Pokemon, haystack: String)] = []
 
     var body: some View {
         ScrollView {
@@ -24,7 +15,7 @@ struct PokemonPickerGrid: View {
                 columns: Array(repeating: GridItem(.flexible(maximum: .infinity), spacing: Self.gridSpacing), count: 3),
                 spacing: Self.gridSpacing
             ) {
-                ForEach(displayedPokemon, id: \.id) { pokemon in
+                ForEach(pokemon, id: \.id) { pokemon in
                     Button {
                         onSelect(pokemon)
                     } label: {
@@ -36,19 +27,34 @@ struct PokemonPickerGrid: View {
             }
         }
         .scrollIndicators(.hidden)
-        .if(searchEnabled) { view in
-            view
-                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
-                .scrollDismissesKeyboard(.immediately)
-        }
-        .onAppear(perform: buildIndex)
+    }
+}
+
+/// Searchable Pokemon grid used by opponent picker, multiplayer fighter picker,
+/// and bookmarks. Wraps `PokemonGrid` with a toolbar search bar and
+/// haystack-based filtering.
+///
+/// Callers that manage their own search (e.g. SearchView) should use
+/// `PokemonGrid` directly instead.
+struct PokemonPickerGrid: View {
+    let pokemon: [Pokemon]
+    var namespace: Namespace.ID?
+    let onSelect: (Pokemon) -> Void
+
+    @State private var searchText = ""
+    @State private var index: [(pokemon: Pokemon, haystack: String)] = []
+
+    var body: some View {
+        PokemonGrid(pokemon: displayedPokemon, namespace: namespace, onSelect: onSelect)
+            .searchable(text: $searchText, placement: .toolbar)
+            .scrollDismissesKeyboard(.immediately)
+            .onAppear(perform: buildIndex)
     }
 }
 
 // MARK: - Private
 private extension PokemonPickerGrid {
     var displayedPokemon: [Pokemon] {
-        guard searchEnabled else { return pokemon }
         let terms = searchText
             .split(whereSeparator: \.isWhitespace)
             .map { $0.normalize }
@@ -60,7 +66,7 @@ private extension PokemonPickerGrid {
     }
 
     func buildIndex() {
-        guard searchEnabled, index.isEmpty else { return }
+        guard index.isEmpty else { return }
         index = pokemon.map { ($0, Pokemon.searchHaystack(for: $0)) }
     }
 }
@@ -71,15 +77,6 @@ private extension View {
     func applyTransitionSource(id: Int, namespace: Namespace.ID?) -> some View {
         if let namespace {
             self.matchedTransitionSource(id: id, in: namespace)
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder
-    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
-        if condition {
-            transform(self)
         } else {
             self
         }

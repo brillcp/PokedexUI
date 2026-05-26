@@ -17,9 +17,8 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
                 if viewModel.query.isEmpty {
                     emptyState
                 } else {
-                    PokemonPickerGrid(
+                    PokemonGrid(
                         pokemon: viewModel.filtered,
-                        searchEnabled: false,
                         namespace: namespace
                     ) { pokemon in
                         selectedPokemon = pokemon
