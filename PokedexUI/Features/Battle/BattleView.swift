@@ -123,13 +123,8 @@ private extension BattleView {
 
     func moveGrid(state: BattleState) -> some View {
         let disabled = !viewModel.canSelectMove || viewModel.isResolvingTurn || viewModel.winner != nil
-        let spacing: CGFloat = 2
-        let columns = [
-            GridItem(.flexible(), spacing: spacing),
-            GridItem(.flexible(), spacing: spacing)
-        ]
         let opponentTypes = state.opponent.typeNames
-        return LazyVGrid(columns: columns, spacing: spacing) {
+        return LazyVGrid(columns: GridLayout.two.layout, spacing: GridLayout.two.spacing) {
             ForEach(viewModel.displayMoves, id: \.name) { move in
                 let effectiveness: Double? = opponentTypes.isEmpty
                     ? nil

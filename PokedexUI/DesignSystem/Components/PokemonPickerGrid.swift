@@ -1,32 +1,29 @@
 import SwiftUI
 
-/// Pure display grid of Pokemon sprite cards.
-/// Callers pass pre-filtered data and an optional namespace for zoom transitions.
-struct PokemonGrid: View {
-    private static let gridSpacing: CGFloat = 2.0
-
+/// Generic Pokemon grid. Callers provide column layout and cell content
+/// via `@ViewBuilder`. Handles only scrolling and layout; navigation,
+/// search, and loading overlays are the caller's responsibility.
+struct PokemonGrid<Cell: View>: View {
     let pokemon: [Pokemon]
-    var namespace: Namespace.ID?
-    let onSelect: (Pokemon) -> Void
+    var grid: GridLayout = .three
+    var contentPadding: EdgeInsets = .init()
+    @ViewBuilder let cell: (Pokemon) -> Cell
+
+    @State private var tapTrigger = false
 
     var body: some View {
         ScrollView {
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(maximum: .infinity), spacing: Self.gridSpacing), count: 3),
-                spacing: Self.gridSpacing
-            ) {
+            LazyVGrid(columns: grid.layout, spacing: grid.spacing) {
                 ForEach(pokemon, id: \.id) { pokemon in
-                    Button {
-                        onSelect(pokemon)
-                    } label: {
-                        PokemonSpriteCard(pokemon: pokemon)
-                            .applyTransitionSource(id: pokemon.id, namespace: namespace)
-                    }
-                    .buttonStyle(.plain)
+                    cell(pokemon)
+                        .simultaneousGesture(TapGesture().onEnded { tapTrigger.toggle() })
                 }
             }
+            .padding(contentPadding)
         }
+        .scrollClipDisabled()
         .scrollIndicators(.hidden)
+        .sensoryFeedback(.impact(weight: .light), trigger: tapTrigger)
     }
 }
 
@@ -45,10 +42,18 @@ struct PokemonPickerGrid: View {
     @State private var index: [(pokemon: Pokemon, haystack: String)] = []
 
     var body: some View {
-        PokemonGrid(pokemon: displayedPokemon, namespace: namespace, onSelect: onSelect)
-            .searchable(text: $searchText, placement: .toolbar)
-            .scrollDismissesKeyboard(.immediately)
-            .onAppear(perform: buildIndex)
+        PokemonGrid(pokemon: displayedPokemon) { pokemon in
+            Button {
+                onSelect(pokemon)
+            } label: {
+                PokemonSpriteCard(pokemon: pokemon)
+                    .applyTransitionSource(id: pokemon.id, namespace: namespace)
+            }
+            .buttonStyle(.plain)
+        }
+        .searchable(text: $searchText, placement: .toolbar)
+        .scrollDismissesKeyboard(.immediately)
+        .onAppear(perform: buildIndex)
     }
 }
 
@@ -72,7 +77,7 @@ private extension PokemonPickerGrid {
 }
 
 // MARK: - Helpers
-private extension View {
+extension View {
     @ViewBuilder
     func applyTransitionSource(id: Int, namespace: Namespace.ID?) -> some View {
         if let namespace {

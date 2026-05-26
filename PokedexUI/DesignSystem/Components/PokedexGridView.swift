@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Shared Pokemon grid used by the pokedex, search, and bookmarks tabs.
+/// Pokedex tab grid. Wraps `PokemonGrid` with color-analyzed cells,
+/// navigation destination, and a loading overlay for first-launch fetch.
 struct PokedexGridView: View {
     @Namespace private var namespace
     @Environment(\.container) private var container
@@ -11,32 +12,30 @@ struct PokedexGridView: View {
     var loadingProgress: Double = 0
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: grid.layout, spacing: 2.0) {
-                ForEach(pokemon, id: \.id) { vm in
-                    PokedexGridItem(
-                        pokemon: vm,
-                        grid: grid,
-                        namespace: namespace
-                    )
-                }
-            }
-            .padding(.vertical, 2.0)
+        PokemonGrid(
+            pokemon: pokemon,
+            grid: grid,
+            contentPadding: .init(top: 2.0, leading: 0, bottom: 2.0, trailing: 0)
+        ) { pokemon in
+            PokedexGridItem(
+                pokemon: pokemon,
+                grid: grid,
+                namespace: namespace
+            )
         }
-        .scrollIndicators(.hidden)
         .overlay {
             if isLoading && pokemon.isEmpty {
                 IndexingOverlay(progress: loadingProgress)
             }
         }
-        .navigationDestination(for: Pokemon.self) { vm in
+        .navigationDestination(for: Pokemon.self) { pokemon in
             PokemonDetailView(
                 viewModel: PokemonDetailViewModel(
-                    summary: vm,
+                    summary: pokemon,
                     container: container
                 )
             )
-            .navigationTransition(.zoom(sourceID: vm.id, in: namespace))
+            .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
         }
     }
 }
@@ -48,7 +47,7 @@ private struct IndexingOverlay: View {
     var body: some View {
         VStack(spacing: 16) {
             PixelSpinner()
-                .opacity(progress >= 1.0  ? 1.0 : 0.0)
+                .opacity(progress >= 1.0 ? 1.0 : 0.0)
             ProgressView(value: progress)
                 .tint(.pokedexRed)
                 .frame(width: 200)

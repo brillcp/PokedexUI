@@ -17,19 +17,21 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
                 if viewModel.query.isEmpty {
                     emptyState
                 } else {
-                    PokemonGrid(
-                        pokemon: viewModel.filtered,
-                        namespace: namespace
-                    ) { pokemon in
-                        selectedPokemon = pokemon
+                    PokemonGrid(pokemon: viewModel.filtered) { pokemon in
+                        Button {
+                            selectedPokemon = pokemon
+                        } label: {
+                            PokemonSpriteCard(pokemon: pokemon)
+                                .applyTransitionSource(id: pokemon.id, namespace: namespace)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
             .font(.pixel14)
-            .background(Color.darkGrey.ignoresSafeArea())
             .searchable(text: $viewModel.query)
             .searchFocused($isSearchFocused)
-            .onSubmit(of: .search) { viewModel.recordSearch() }
+            .onSubmit(of: .search, viewModel.recordSearch)
             .onAppear {
                 viewModel.updateCorpus(corpus)
             }
@@ -38,9 +40,8 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
             }
             .scrollDismissesKeyboard(.immediately)
             .onChange(of: isSearchFocused) { old, new in
-                if old, !new, !viewModel.query.isEmpty {
-                    viewModel.recordSearch()
-                }
+                guard old, !new, !viewModel.query.isEmpty else { return }
+                viewModel.recordSearch()
             }
             .onChange(of: viewModel.query) { _, _ in
                 viewModel.updateFilteredPokemon()
@@ -161,13 +162,7 @@ private extension SearchView {
     }
 
     var suggestedGrid: some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.flexible(maximum: .infinity), spacing: 2.0),
-                GridItem(.flexible(maximum: .infinity), spacing: 2.0)
-            ],
-            spacing: 2.0
-        ) {
+        LazyVGrid(columns: GridLayout.two.layout, spacing: GridLayout.two.spacing) {
             ForEach(viewModel.suggestedPokemon, id: \.id) { pokemon in
                 NavigationLink(value: pokemon) {
                     PokemonSpriteCard(pokemon: pokemon)

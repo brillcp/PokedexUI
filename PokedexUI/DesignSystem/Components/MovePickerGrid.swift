@@ -35,12 +35,7 @@ private extension MovePickerGrid {
     }
 
     var grid: some View {
-        let spacing: CGFloat = 2
-        let columns = [
-            GridItem(.flexible(), spacing: spacing),
-            GridItem(.flexible(), spacing: spacing)
-        ]
-        return LazyVGrid(columns: columns, spacing: spacing) {
+        LazyVGrid(columns: GridLayout.two.layout, spacing: GridLayout.two.spacing) {
             ForEach(moves, id: \.name) { move in
                 moveCard(move)
             }
