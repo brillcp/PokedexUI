@@ -38,11 +38,11 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 
 ### SOLID Compliance Score: 0.94 / 1.0
 
-- **S**ingle Responsibility: each service, prefetcher, and view model has one job. `BattleViewModel` is a thin conductor: cue timing delegated to `BattleAnimator`, AI move selection to `BattleAIDriver`, log rendering to `BattleLogFormatter`. `MultiplayerBattleViewModel` is a separate type handling the network battle path rather than branching inside the AI one. Shared UI components (`PokemonPickerGrid`, `MoveLoadoutView`, `MovePickerGrid`) each own a single reusable concern, used across both single-player and multiplayer flows.
-- **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints be added without modifying the network layer. `BattleViewModelProtocol` allowed multiplayer battles to be added without touching `BattleView`, `BattleAnimator`, or `BattleLogFormatter`. New AI capabilities slot into `BattleAIServiceProtocol` without touching the views.
-- **L**iskov Substitution: every service is reached through its protocol on `AppContainer`, so previews and tests can swap the concrete actor for any conforming type without touching call sites. `BattleViewModel` and `MultiplayerBattleViewModel` both conform to `BattleViewModelProtocol` -- `BattleView` renders either without knowing which one it has.
-- **I**nterface Segregation: each view model exposes only the surface its view needs. `BattleView` reads cues off `viewModel.animator`, log text off `viewModel.log`. `BattleSetupView` reads pool + selection state. `MultiplayerSetupViewModel` exposes lobby discovery, connection state, and loadout selection -- no overlap with the battle protocol.
-- **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`. `MultipeerService` lives on the container alongside all other services. No `static let shared` lookups in feature code.
+- **S**ingle Responsibility: each service, prefetcher, and view model has one job. View models are thin conductors that delegate timing, formatting, and strategy to dedicated collaborators. Shared UI components each own a single reusable concern.
+- **O**pen/Closed: the `APIService<Config>` generic + `Requestable` protocol lets new endpoints slot in without modifying the network layer. `BattleViewModelProtocol` let an entirely new battle mode ship without touching the battle view, animator, or log formatter.
+- **L**iskov Substitution: every service is reached through its protocol on `AppContainer`, so previews and tests can swap any concrete type for a mock without touching call sites. Multiple conformers of the same protocol are interchangeable at runtime.
+- **I**nterface Segregation: each view model exposes only the surface its view needs. No god-protocol shared across consumers.
+- **D**ependency Inversion: `AppContainer` is the single composition root. Views read services via `@Environment(\.container)`. No `static let shared` lookups in feature code.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
