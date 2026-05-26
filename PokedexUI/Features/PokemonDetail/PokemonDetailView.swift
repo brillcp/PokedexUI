@@ -162,7 +162,7 @@ private extension PokemonDetailView {
             Text("Types")
                 .foregroundStyle(.secondary)
                 .frame(width: 82, alignment: .leading)
-            HStack(spacing: 4) {
+            HStack {
                 ForEach(pokemon.typeNames, id: \.self) { type in
                     Chip.type(type)
                 }
