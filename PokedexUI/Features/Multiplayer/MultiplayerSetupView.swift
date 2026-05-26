@@ -223,5 +223,6 @@ private extension MultiplayerMovePickerView {
             action: viewModel.submitLoadout
         )
         .padding(.horizontal, 24)
+        .padding(.bottom)
     }
 }

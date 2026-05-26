@@ -77,6 +77,7 @@ private extension OpponentPickerView {
             action: pickSmart
         )
         .padding(.horizontal, 24)
+        .padding(.bottom)
     }
 
     func pickSmart() {

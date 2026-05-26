@@ -242,6 +242,7 @@ private extension BattleSetupView {
                 : { Task { await viewModel.requestOpponentLoadout() } }
         )
         .padding(.horizontal, 24)
+        .padding(.bottom)
     }
 }
 
