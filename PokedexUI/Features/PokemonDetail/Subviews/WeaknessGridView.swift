@@ -50,10 +50,7 @@ private extension WeaknessGridView {
     func typeChips(_ types: [String]) -> some View {
         FlowLayout(spacing: 4) {
             ForEach(types, id: \.self) { type in
-                Chip(
-                    type.uppercased(),
-                    style: .custom(background: TypeColor.color(for: type))
-                )
+                Chip.type(type)
             }
         }
     }

@@ -114,12 +114,9 @@ private extension BattleView {
     }
 
     func typeChips(_ types: [String]) -> some View {
-        HStack(spacing: 4) {
+        HStack {
             ForEach(types, id: \.self) { type in
-                Chip(
-                    type.uppercased(),
-                    style: .custom(background: TypeColor.color(for: type))
-                )
+                Chip.type(type)
             }
         }
     }

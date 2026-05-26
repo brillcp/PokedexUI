@@ -237,6 +237,10 @@ final class Type: Decodable {
     init(type: APIItem) {
         self.type = type
     }
+
+    var name: String {
+        type.name
+    }
 }
 
 /// One of the six base stats (HP, attack, defense, sp.atk, sp.def, speed)

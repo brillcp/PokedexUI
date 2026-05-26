@@ -16,7 +16,6 @@ struct Chip: View {
         Text(text)
             .font(size.font)
             .lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
             .foregroundStyle(style.foreground)
@@ -78,5 +77,25 @@ extension Chip {
             case .medium: return 4
             }
         }
+    }
+}
+
+extension Chip {
+    /// Convenience for Pokemon type chips with auto color.
+    static func type(_ name: String, size: Size = .small) -> Chip {
+        Chip(
+            name.uppercased(),
+            style: .custom(background: TypeColor.color(for: name)),
+            size: size
+        )
+    }
+
+    /// Convenience for Pokemon type chips with auto color.
+    static func type(_ type: Type, size: Size = .small) -> Chip {
+        Chip(
+            type.name.uppercased(),
+            style: .custom(background: TypeColor.color(for: type.name)),
+            size: size
+        )
     }
 }

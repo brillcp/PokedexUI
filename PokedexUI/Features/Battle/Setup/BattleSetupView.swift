@@ -123,10 +123,7 @@ private extension BattleSetupView {
 
             HStack(spacing: 4) {
                 ForEach(pokemon.typeNames, id: \.self) { type in
-                    Chip(
-                        type.uppercased(),
-                        style: .custom(background: TypeColor.color(for: type))
-                    )
+                    Chip.type(type)
                 }
             }
 

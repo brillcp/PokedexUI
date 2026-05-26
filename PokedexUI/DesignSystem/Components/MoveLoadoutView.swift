@@ -46,10 +46,7 @@ private extension MoveLoadoutView {
                     .font(.pixel14)
                 HStack(spacing: 4) {
                     ForEach(pokemon.types) { type in
-                        Chip(
-                            type.type.name.uppercased(),
-                            style: .custom(background: TypeColor.color(for: type.type.name))
-                        )
+                        Chip.type(type)
                     }
                 }
             }

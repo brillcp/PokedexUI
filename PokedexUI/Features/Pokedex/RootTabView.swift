@@ -34,7 +34,7 @@ private extension RootTabView {
     }
 
     func searchTab() -> some View {
-        SearchView(viewModel: SearchViewModel(), selectedTab: $viewModel.selectedTab)
+        SearchView(viewModel: SearchViewModel())
     }
 
     func battleTab() -> some View {
@@ -45,7 +45,5 @@ private extension RootTabView {
 #Preview {
     @Previewable
     @Environment(\.modelContext) var modelContext
-
-    var vm = PokedexViewModel(modelContext: modelContext, container: .live)
-    RootTabView(viewModel: vm)
+    RootTabView(viewModel: PokedexViewModel(modelContext: modelContext, container: .live))
 }

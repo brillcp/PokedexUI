@@ -164,10 +164,7 @@ private extension PokemonDetailView {
                 .frame(width: 82, alignment: .leading)
             HStack(spacing: 4) {
                 ForEach(pokemon.typeNames, id: \.self) { type in
-                    Chip(
-                        type.uppercased(),
-                        style: .custom(background: TypeColor.color(for: type))
-                    )
+                    Chip.type(type)
                 }
                 Spacer()
             }

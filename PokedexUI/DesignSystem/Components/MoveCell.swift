@@ -57,7 +57,7 @@ private extension MoveCell {
 
     var footer: some View {
         HStack(spacing: 12) {
-            Chip(move.typeName.uppercased(), style: .custom(background: TypeColor.color(for: move.typeName)))
+            Chip.type(move.typeName)
             switch mode {
             case .battle:
                 if let pp = move.pp {

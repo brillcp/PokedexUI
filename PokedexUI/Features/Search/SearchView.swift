@@ -9,7 +9,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
 
     @State var viewModel: ViewModel
-    @Binding var selectedTab: Tabs
+    @State private var selectedPokemon: Pokemon?
 
     var body: some View {
         NavigationStack {
@@ -17,7 +17,13 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
                 if viewModel.query.isEmpty {
                     emptyState
                 } else {
-                    PokedexGridView(pokemon: viewModel.filtered)
+                    PokemonPickerGrid(
+                        pokemon: viewModel.filtered,
+                        searchEnabled: false,
+                        namespace: namespace
+                    ) { pokemon in
+                        selectedPokemon = pokemon
+                    }
                 }
             }
             .font(.pixel14)
@@ -42,6 +48,15 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
             }
             .sensoryFeedback(.impact(weight: .light), trigger: viewModel.query)
             .applyPokedexStyling(title: Tabs.search.title)
+            .navigationDestination(item: $selectedPokemon) { pokemon in
+                PokemonDetailView(
+                    viewModel: PokemonDetailViewModel(
+                        summary: pokemon,
+                        container: container
+                    )
+                )
+                .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
+            }
         }
     }
 }
@@ -165,8 +180,5 @@ private extension SearchView {
 }
 
 #Preview {
-    SearchView(
-        viewModel: SearchViewModel(),
-        selectedTab: .constant(.pokedex)
-    )
+    SearchView(viewModel: SearchViewModel())
 }

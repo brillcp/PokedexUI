@@ -152,17 +152,16 @@ struct PokemonSpriteCard: View, Equatable {
                 .frame(height: 92)
             Text(pokemon.name)
                 .font(.pixel12)
+                .lineLimit(1)
             HStack {
                 ForEach(pokemon.types) { type in
-                    Chip(
-                        type.type.name.uppercased(),
-                        style: .custom(background: TypeColor.color(for: type.type.name))
-                    )
+                    Chip.type(type)
                 }
             }
         }
-        .padding(.vertical)
+        .padding()
         .frame(maxWidth: .infinity)
         .background(Color.cardBackground)
+        .foregroundStyle(.white)
     }
 }
