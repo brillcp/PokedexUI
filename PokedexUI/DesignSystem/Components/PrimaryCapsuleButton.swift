@@ -9,8 +9,13 @@ struct PrimaryCapsuleButton: View {
     var isLoading: Bool = false
     let action: () -> Void
 
+    @State private var tapTrigger = false
+
     var body: some View {
-        Button(action: action) {
+        Button {
+            tapTrigger.toggle()
+            action()
+        } label: {
             HStack(spacing: 8) {
                 if isLoading {
                     PixelSpinner(color: .white)
@@ -28,6 +33,7 @@ struct PrimaryCapsuleButton: View {
         .glassEffect(.clear.tint(.pokedexRed.opacity(0.8)).interactive())
         .opacity(isEnabled && !isLoading ? 1 : Opacity.disabled)
         .disabled(!isEnabled || isLoading)
+        .sensoryFeedback(.impact(weight: .medium), trigger: tapTrigger)
     }
 }
 

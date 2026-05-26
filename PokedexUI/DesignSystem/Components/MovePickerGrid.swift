@@ -58,5 +58,6 @@ private extension MovePickerGrid {
         .buttonStyle(.plain)
         .opacity(atCap ? Opacity.disabled : 1)
         .disabled(atCap)
+        .sensoryFeedback(.impact(weight: .light), trigger: selected)
     }
 }

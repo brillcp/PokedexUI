@@ -136,6 +136,7 @@ private extension BattleView {
                         .equatable()
                 }
                 .disabled(disabled)
+                .sensoryFeedback(.impact(weight: .light), trigger: viewModel.isResolvingTurn)
             }
         }
         .disabled(disabled)
