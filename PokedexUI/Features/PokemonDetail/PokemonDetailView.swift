@@ -11,6 +11,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     @State private var battleLaunch: BattleLaunch?
     @State private var evolutionTarget: Pokemon?
     @State private var selectedType: String?
+    @State private var spriteBlur: CGFloat = 0
 
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
@@ -19,10 +20,22 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     var body: some View {
         ScrollView {
             VStack(spacing: 16.0) {
-                spriteImage()
+                Spacer().frame(height: 320)
                 loadedContent(pokemon: viewModel.pokemon)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .onScrollGeometryChange(for: CGFloat.self) { geo in
+            geo.contentOffset.y + geo.contentInsets.top
+        } action: { _, offset in
+            spriteBlur = max(0, (offset - 100) / 32)
+        }
+        .background {
+            VStack {
+                spriteImage()
+                    .blur(radius: spriteBlur)
+                Spacer()
+            }
         }
         .scrollIndicators(.hidden)
         .task(id: viewModel.pokemon.id) {
@@ -79,6 +92,10 @@ private extension PokemonDetailView {
         viewModel.color?.isLight ?? false ? Color.darkGrey : .white
     }
 
+    var tintColor: Color? {
+        viewModel.color?.opacity(0.3)
+    }
+
     var divider: some View {
         Divider()
             .frame(minHeight: 1.5)
@@ -95,36 +112,64 @@ private extension PokemonDetailView {
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundStyle(textColor)
-                    .background(textColor.opacity(0.1))
+                    .glassEffect(.clear.tint(tintColor), in: RoundedRectangle.card)
                     .clipShape(RoundedRectangle.card)
             }
-            typesRow(pokemon: pokemon)
-            DetailRow(title: "Height", subtitle: pokemon.height)
-            DetailRow(title: "Weight", subtitle: pokemon.weight)
+            DetailSection(title: "Data", tint: tintColor) {
+                VStack(spacing: 32) {
+                    typesRow(pokemon: pokemon)
+                    DetailRow(title: "Height", subtitle: pokemon.height)
+                    DetailRow(title: "Weight", subtitle: pokemon.weight)
 
-            if let habitat = pokemon.habitat {
-                DetailRow(title: "Habitat", subtitle: habitat)
-            }
-            DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
-            if pokemon.genderRate > 0 {
-                GenderRow(rate: pokemon.genderRate, textColor: textColor)
-            }
-            WeaknessGridView(
-                pokemon: pokemon,
-                textColor: textColor,
-                onSelectType: { selectedType = $0 }
-            )
+                    if let habitat = pokemon.habitat {
+                        DetailRow(title: "Habitat", subtitle: habitat)
+                    }
+                    DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
+                    if pokemon.genderRate > 0 {
+                        GenderRow(rate: pokemon.genderRate, textColor: textColor)
+                    }
+                    WeaknessGridView(
+                        pokemon: pokemon,
+                        textColor: textColor,
+                        onSelectType: { selectedType = $0 }
+                    )
 
-            rowSection(title: "Abilities", data: pokemon.abilities)
-            rowSection(title: "Moves", data: pokemon.moves)
-            divider
-            statsSection(pokemon: pokemon)
-            divider
-            EvolutionChainView(
-                stages: viewModel.evolutionStages,
-                textColor: textColor,
-                onSelect: navigateToEvolution
-            )
+                    rowSection(title: "Abilities", data: pokemon.abilities)
+                    rowSection(title: "Moves", data: pokemon.moves)
+                }
+                .padding()
+            }
+
+            DetailSection(title: "Stats", tint: tintColor) {
+                VStack(alignment: .leading) {
+                    ForEach(pokemon.stats) { stat in
+                        DetailRowStat(
+                            title: stat.stat.name,
+                            value: stat.baseStat,
+                            textColor: textColor
+                        )
+                    }
+                    HStack {
+                        Text("Total")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text("\(pokemon.baseStatTotal)")
+                    }
+                    .font(.pixel14)
+                    .padding(.top, 4)
+                }
+                .padding()
+            }
+
+            if viewModel.evolutionStages.count > 2 {
+                DetailSection(title: "Evolution", tint: tintColor) {
+                    EvolutionChainView(
+                        stages: viewModel.evolutionStages,
+                        textColor: textColor,
+                        onSelect: navigateToEvolution
+                    )
+                }
+            }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 32.0)
@@ -173,6 +218,7 @@ private extension PokemonDetailView {
                         Chip.type(type)
                     }
                     .buttonStyle(.plain)
+                    .sensoryFeedback(.impact(weight: .light), trigger: selectedType)
                 }
                 Spacer()
             }
@@ -207,26 +253,6 @@ private extension PokemonDetailView {
 
 // MARK: - Private
 private extension PokemonDetailView {
-    func statsSection(pokemon: PokemonViewModel) -> some View {
-        VStack(alignment: .leading) {
-            ForEach(pokemon.stats) { stat in
-                DetailRowStat(
-                    title: stat.stat.name,
-                    value: stat.baseStat,
-                    textColor: textColor
-                )
-            }
-            HStack {
-                Text("Total")
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("\(pokemon.baseStatTotal)")
-            }
-            .font(.pixel14)
-            .padding(.top, 4)
-        }
-    }
-
     func rowSection(title: String, data: String) -> some View {
         VStack(alignment: .leading) {
             Text(title)

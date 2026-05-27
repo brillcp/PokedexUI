@@ -17,6 +17,24 @@ struct DetailButton: View {
     }
 }
 
+/// Titled section with glass-effect card. Used for Data, Stats, and Evolution
+/// sections in the detail view.
+struct DetailSection<Content: View>: View {
+    let title: String
+    var tint: Color?
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .frame(maxWidth: .infinity)
+            content()
+                .glassEffect(.clear.tint(tint), in: RoundedRectangle.card)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 /// Generic "Label: value" row with fixed-width labels for alignment.
 struct DetailRow: View {
     let title: String

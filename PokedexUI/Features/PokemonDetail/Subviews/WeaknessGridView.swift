@@ -9,6 +9,8 @@ struct WeaknessGridView: View {
     let textColor: Color
     let onSelectType: (String) -> Void
 
+    @State private var tapTrigger = false
+
     var body: some View {
         if PokeBattleKit.isInitialized {
             VStack(alignment: .leading, spacing: 24) {
@@ -85,13 +87,17 @@ private extension WeaknessGridView {
     }
 
     func typeChips(_ types: [String]) -> some View {
-        FlowLayout(spacing: 4) {
+        FlowLayout(spacing: 6) {
             ForEach(types, id: \.self) { type in
-                Button { onSelectType(type) } label: {
+                Button {
+                    tapTrigger.toggle()
+                    onSelectType(type)
+                } label: {
                     Chip.type(type)
                 }
                 .buttonStyle(.plain)
             }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: tapTrigger)
     }
 }

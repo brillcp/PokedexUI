@@ -7,26 +7,18 @@ struct EvolutionChainView: View {
     let onSelect: (Int) -> Void
 
     var body: some View {
-        if stages.count < 2 {
-            EmptyView()
-        } else {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Evolution")
-                    .foregroundStyle(.secondary)
-                HStack(alignment: .center, spacing: 0) {
-                    ForEach(Array(stages.enumerated()), id: \.offset) { index, stage in
-                        stageCell(stage)
-                            .frame(maxWidth: .infinity)
-                        if index < stages.count - 1 {
-                            arrow(for: stages[index + 1].trigger)
-                                .frame(width: 56)
-                        }
-                    }
+        HStack(alignment: .center, spacing: 0) {
+            ForEach(Array(stages.enumerated()), id: \.offset) { index, stage in
+                stageCell(stage)
+                    .frame(maxWidth: .infinity)
+                if index < stages.count - 1 {
+                    arrow(for: stages[index + 1].trigger)
+                        .frame(width: 56)
                 }
-                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
         }
+        .frame(maxWidth: .infinity)
+        .padding()
     }
 }
 
