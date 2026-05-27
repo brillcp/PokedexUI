@@ -222,7 +222,7 @@ private extension MultiplayerMovePickerView {
             isLoading: viewModel.phase == .waitingForOpponent,
             action: viewModel.submitLoadout
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 28)
         .padding(.bottom)
     }
 }

@@ -19,7 +19,9 @@ struct ItemDetailRowView: View {
                 }
             }
         }
-        .padding(.vertical)
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.cardBackground)
     }
 }
 

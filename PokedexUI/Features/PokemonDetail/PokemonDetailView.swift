@@ -10,6 +10,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
     @State private var showOpponentPicker = false
     @State private var battleLaunch: BattleLaunch?
     @State private var evolutionTarget: Pokemon?
+    @State private var selectedType: String?
 
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
@@ -41,6 +42,9 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         }
         .navigationDestination(item: $battleLaunch) { launch in
             BattleView(viewModel: launch.viewModel)
+        }
+        .navigationDestination(item: $selectedType) { typeName in
+            TypePokemonListView(typeName: typeName)
         }
         .navigationDestination(item: $evolutionTarget) { target in
             PokemonDetailView<PokemonDetailViewModel>(
@@ -107,7 +111,8 @@ private extension PokemonDetailView {
             }
             WeaknessGridView(
                 pokemon: pokemon,
-                textColor: textColor
+                textColor: textColor,
+                onSelectType: { selectedType = $0 }
             )
 
             rowSection(title: "Abilities", data: pokemon.abilities)
@@ -164,7 +169,10 @@ private extension PokemonDetailView {
                 .frame(width: 82, alignment: .leading)
             HStack {
                 ForEach(pokemon.typeNames, id: \.self) { type in
-                    Chip.type(type)
+                    Button { selectedType = type } label: {
+                        Chip.type(type)
+                    }
+                    .buttonStyle(.plain)
                 }
                 Spacer()
             }

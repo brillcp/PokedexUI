@@ -5,10 +5,10 @@ struct ItemDetailView<ViewModel: ItemDetailViewModelProtocol>: View {
     @State var viewModel: ViewModel
 
     var body: some View {
-        List(viewModel.items, id: \.id) { item in
-            ItemDetailRowView(item: item)
-                .listRowBackground(Color.clear)
-                .listRowSeparatorTint(Color.cardBackground)
+        ScrollView {
+            LazyVStack(spacing: 2) {
+                ForEach(viewModel.items, id: \.id, content: ItemDetailRowView.init)
+            }
         }
         .font(.pixel14)
         .foregroundStyle(.white)

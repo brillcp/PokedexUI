@@ -241,7 +241,7 @@ private extension BattleSetupView {
                 ? startBattle
                 : { Task { await viewModel.requestOpponentLoadout() } }
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 28)
         .padding(.bottom)
     }
 }

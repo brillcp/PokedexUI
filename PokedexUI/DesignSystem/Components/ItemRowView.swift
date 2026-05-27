@@ -11,8 +11,10 @@ struct ItemRowView: View {
             Text(item.prettyTitle)
             Spacer()
             Text(">")
+                .foregroundStyle(.secondary)
         }
-        .padding(.vertical)
+        .padding()
+        .background(Color.cardBackground)
     }
 }
 

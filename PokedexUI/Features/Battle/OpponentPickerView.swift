@@ -76,7 +76,7 @@ private extension OpponentPickerView {
             isLoading: isAIThinking,
             action: pickSmart
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 28)
         .padding(.bottom)
     }
 

@@ -3,7 +3,7 @@ import SwiftUI
 extension Color {
     static let darkGrey = Color(hex: "181818")!
     static let pokedexRed = Color(hex: "d53b47")!
-    static let cardBackground = Color.white.opacity(0.05)
+    static let cardBackground = Color(hex: "202020")!
 
     init?(hex: String, alpha: Double = 1.0) {
         var hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines)

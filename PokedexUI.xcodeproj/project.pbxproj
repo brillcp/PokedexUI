@@ -95,6 +95,7 @@
 		D5E0000000000000000000D3 /* GenderRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D4 /* GenderRow.swift */; };
 		D5E0000000000000000000D5 /* EvolutionChainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D6 /* EvolutionChainView.swift */; };
 		D5E0000000000000000000D7 /* DetailRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000D8 /* DetailRow.swift */; };
+		D5E0000000000000000000D9 /* TypePokemonListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000DA /* TypePokemonListView.swift */; };
 		D5E0000000000000000000E1 /* HPCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E2 /* HPCard.swift */; };
 		D5E0000000000000000000E5 /* BattlerSprite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E6 /* BattlerSprite.swift */; };
 		D5E0000000000000000000E7 /* ShakeEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0000000000000000000E8 /* ShakeEffect.swift */; };
@@ -192,6 +193,7 @@
 		D5E0000000000000000000D4 /* GenderRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenderRow.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000D6 /* EvolutionChainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionChainView.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000D8 /* DetailRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailRow.swift; sourceTree = "<group>"; };
+		D5E0000000000000000000DA /* TypePokemonListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypePokemonListView.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000E2 /* HPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPCard.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000E6 /* BattlerSprite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattlerSprite.swift; sourceTree = "<group>"; };
 		D5E0000000000000000000E8 /* ShakeEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShakeEffect.swift; sourceTree = "<group>"; };
@@ -570,6 +572,7 @@
 				D5E0000000000000000000D4 /* GenderRow.swift */,
 				D5E0000000000000000000D6 /* EvolutionChainView.swift */,
 				D5E0000000000000000000D8 /* DetailRow.swift */,
+				D5E0000000000000000000DA /* TypePokemonListView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -736,6 +739,7 @@
 				D5E0000000000000000000D3 /* GenderRow.swift in Sources */,
 				D5E0000000000000000000D5 /* EvolutionChainView.swift in Sources */,
 				D5E0000000000000000000D7 /* DetailRow.swift in Sources */,
+				D5E0000000000000000000D9 /* TypePokemonListView.swift in Sources */,
 				D5E0000000000000000000E1 /* HPCard.swift in Sources */,
 				D5E0000000000000000000E5 /* BattlerSprite.swift in Sources */,
 				D5E0000000000000000000F1 /* BattleLogFeed.swift in Sources */,
@@ -892,7 +896,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PokedexUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pokedex+";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.role-playing-games";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -932,7 +936,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PokedexUI/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Pokedex+";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.role-playing-games";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.reference";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

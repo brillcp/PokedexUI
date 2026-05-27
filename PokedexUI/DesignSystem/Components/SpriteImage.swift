@@ -39,9 +39,9 @@ private extension SpriteImage {
     @ViewBuilder var placeholder: some View {
         switch style {
         case .circle:
-            Color.cardBackground.clipShape(Circle())
+            Color.white.opacity(0.05).clipShape(Circle())
         case .plain:
-            Color.cardBackground
+            Color.white.opacity(0.05)
         }
     }
 }
