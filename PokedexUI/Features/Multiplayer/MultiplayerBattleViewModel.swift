@@ -78,13 +78,6 @@ final class MultiplayerBattleViewModel {
             self.typeChart = chart
             self.engine = BattleEngine(state: state!, typeChart: chart)
         }
-        let stream = multipeer.messages()
-        Task { [weak self] in
-            for await message in stream {
-                guard let self else { return }
-                await self.handle(message)
-            }
-        }
     }
 }
 
@@ -95,6 +88,7 @@ extension MultiplayerBattleViewModel: BattleViewModelProtocol {
     }
 
     func prepare() async {
+        startListening()
         async let entrance: Void = playEntrance()
         async let colors: Void = spriteColors.resolve(
             playerID: selfSummary.id,
@@ -119,6 +113,18 @@ extension MultiplayerBattleViewModel: BattleViewModelProtocol {
 
 // MARK: - Message handling
 private extension MultiplayerBattleViewModel {
+    func startListening() {
+        let stream = multipeer.events()
+        Task { [weak self] in
+            for await event in stream {
+                guard let self else { return }
+                if case .message(let message) = event {
+                    await self.handle(message)
+                }
+            }
+        }
+    }
+
     func handle(_ message: BattleMessage) async {
         switch message {
         case .moveCommitted(let moveName, let turn):

@@ -27,9 +27,10 @@ struct MultiplayerLaunch: Identifiable, Hashable {
     }
 }
 
-/// Drives `MultiplayerSetupView`. Owns peer discovery, the local pokemon +
-/// move selection, the wire handshake, and the assembly of the live battle
-/// view model once both peers have submitted their loadouts.
+/// Drives `MultiplayerSetupView`. Owns peer discovery state, connection
+/// lifecycle, the local pokemon + move selection, the wire handshake, and
+/// the assembly of the live battle view model once both peers have submitted
+/// their loadouts.
 @MainActor
 @Observable
 final class MultiplayerSetupViewModel {
@@ -49,21 +50,23 @@ final class MultiplayerSetupViewModel {
     var selectedPokemon: Pokemon?
     var invitedPeer: PeerHandle?
     var launch: MultiplayerLaunch?
+    var discoveredPeers: [PeerHandle] = []
+    var pendingInvitation: PendingInvitation?
 
     init(container: AppContainer) {
         self.container = container
         self.multipeer = container.multipeerService
     }
 
-    /// Begin listening for peer messages. Call once from the view's `.task`
+    /// Begin listening for multipeer events. Call once from the view's `.task`
     /// modifier so the listen loop is tied to view lifetime, not init.
     func startListening() {
         guard listenTask == nil else { return }
-        let stream = multipeer.messages()
+        let stream = multipeer.events()
         listenTask = Task { [weak self] in
-            for await message in stream {
+            for await event in stream {
                 guard let self else { return }
-                await self.handle(message)
+                await self.handle(event)
             }
         }
     }
@@ -74,12 +77,12 @@ extension MultiplayerSetupViewModel {
     /// Start advertising + browsing. Called when the versus tab appears.
     func startDiscovery() {
         guard phase == .discovering else { return }
+        discoveredPeers = []
         multipeer.startDiscovery()
     }
 
     /// Stop advertising + browsing. Called when the versus tab disappears.
     func stopDiscovery() {
-        guard phase == .discovering else { return }
         multipeer.stopDiscovery()
     }
 
@@ -89,29 +92,15 @@ extension MultiplayerSetupViewModel {
         phase = .connecting
     }
 
-    /// Called when MC reports a successful peer connection.
-    func peerConnected() {
-        connectedPeerName = multipeer.connectedPeers.first?.displayName
-        receivedBattleEnded = false
-        showPicker = true
-    }
-
     func acceptInvitation() {
         multipeer.acceptInvitation()
+        pendingInvitation = nil
         phase = .connecting
     }
 
     func declineInvitation() {
         multipeer.declineInvitation()
-    }
-
-    /// Called when the peer we invited declined (MC went idle while connecting).
-    func inviteDeclined() {
-        let name = invitedPeer?.name ?? "Trainer"
-        invitedPeer = nil
-        phase = .discovering
-        errorMessage = "\(name) declined the battle."
-        multipeer.startDiscovery()
+        pendingInvitation = nil
     }
 
     /// Called when the picker sheet is dismissed without completing.
@@ -120,32 +109,21 @@ extension MultiplayerSetupViewModel {
         multipeer.disconnect()
         resetSelection()
         phase = .discovering
-        multipeer.startDiscovery()
+        startDiscovery()
     }
 
     func dismissError() {
         errorMessage = nil
         if phase == .discovering {
-            multipeer.startDiscovery()
+            startDiscovery()
         }
-    }
-
-    /// Called when MC drops unexpectedly during picking, waiting, or battle.
-    func connectionLost() {
-        if !battleEnded {
-            let name = connectedPeerName ?? "Opponent"
-            errorMessage = "\(name) canceled."
-        }
-        showPicker = false
-        reset()
-        multipeer.startDiscovery()
     }
 
     /// Called when navigating back from a finished battle.
     func returnToLobby() {
         multipeer.disconnect()
         reset()
-        multipeer.startDiscovery()
+        startDiscovery()
     }
 
     func selectPokemon(_ pokemon: Pokemon) {
@@ -177,23 +155,46 @@ extension MultiplayerSetupViewModel {
         }
     }
 
-    var pendingInvitation: PendingInvitation? { multipeer.pendingInvitation }
-
-    var connectionState: MultipeerConnectionState { multipeer.connectionState }
-
-    var discoveredPeers: [PeerHandle] {
-        multipeer.discoveredPeers.map(PeerHandle.init(id:))
-    }
-
-    var isConnected: Bool { !multipeer.connectedPeers.isEmpty }
-
     /// Derived from `.battleEnded` message or launch VM's winner.
     var battleEnded: Bool { receivedBattleEnded || launch?.viewModel.winner != nil }
 }
 
 // MARK: - Private
 private extension MultiplayerSetupViewModel {
-    func handle(_ message: BattleMessage) async {
+    func handle(_ event: MultipeerEvent) async {
+        switch event {
+        case .peerFound(let peerID):
+            let handle = PeerHandle(id: peerID)
+            if !discoveredPeers.contains(handle) {
+                discoveredPeers.append(handle)
+            }
+        case .peerLost(let peerID):
+            discoveredPeers.removeAll { $0.id == peerID }
+        case .peerConnecting:
+            break
+        case .peerConnected(let peerID):
+            connectedPeerName = peerID.displayName
+            discoveredPeers = []
+            receivedBattleEnded = false
+            showPicker = true
+        case .peerDisconnected:
+            if phase == .connecting {
+                inviteDeclined()
+            } else if phase != .discovering {
+                connectionLost()
+            }
+        case .invitationReceived(let peerName):
+            pendingInvitation = PendingInvitation(peerName: peerName)
+        case .advertisingFailed(let error):
+            errorMessage = error.localizedDescription
+        case .browsingFailed(let error):
+            errorMessage = error.localizedDescription
+        case .message(let battleMessage):
+            await handleBattleMessage(battleMessage)
+        }
+    }
+
+    func handleBattleMessage(_ message: BattleMessage) async {
         switch message {
         case .hello(let version, _, _):
             if version != MultipeerProtocol.version {
@@ -221,12 +222,32 @@ private extension MultiplayerSetupViewModel {
             }
             showPicker = false
             reset()
-            multipeer.startDiscovery()
+            startDiscovery()
         case .battleEnded:
             receivedBattleEnded = true
         case .moveCommitted, .roundResolved, .rematch:
             break
         }
+    }
+
+    /// Peer we invited declined (MC disconnected while connecting).
+    func inviteDeclined() {
+        let name = invitedPeer?.name ?? "Trainer"
+        invitedPeer = nil
+        phase = .discovering
+        errorMessage = "\(name) declined the battle."
+        startDiscovery()
+    }
+
+    /// MC dropped unexpectedly during picking, waiting, or battle.
+    func connectionLost() {
+        if !battleEnded {
+            let name = connectedPeerName ?? "Opponent"
+            errorMessage = "\(name) canceled."
+        }
+        showPicker = false
+        reset()
+        startDiscovery()
     }
 
     func tryLaunch() {
@@ -259,6 +280,7 @@ private extension MultiplayerSetupViewModel {
     func reset() {
         invitedPeer = nil
         phase = .discovering
+        discoveredPeers = []
         resetSelection()
     }
 
@@ -270,7 +292,6 @@ private extension MultiplayerSetupViewModel {
         connectedPeerName = nil
         launch = nil
     }
-
 }
 
 /// Identifiable wrapper around `MCPeerID` for stable use in SwiftUI lists.

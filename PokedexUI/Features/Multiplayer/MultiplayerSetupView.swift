@@ -19,19 +19,6 @@ struct MultiplayerSetupView: View {
                 .onAppear(perform: viewModel.startDiscovery)
                 .onDisappear(perform: viewModel.stopDiscovery)
                 .animation(.default, value: viewModel.phase)
-                .onChange(of: viewModel.isConnected) { _, connected in
-                    if connected {
-                        viewModel.peerConnected()
-                    } else if viewModel.phase != .discovering {
-                        viewModel.connectionLost()
-                    }
-                }
-                .onChange(of: viewModel.connectionState) { _, newState in
-                    guard newState == .idle else { return }
-                    if viewModel.phase == .connecting {
-                        viewModel.inviteDeclined()
-                    }
-                }
                 .sheet(isPresented: $viewModel.showPicker, onDismiss: {
                     viewModel.pickerDismissed()
                 }) {
