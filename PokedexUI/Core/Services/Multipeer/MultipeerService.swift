@@ -167,87 +167,73 @@ final class MultipeerService: NSObject {
 
 // MARK: - MCSessionDelegate
 extension MultipeerService: MCSessionDelegate {
-    nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-        Task { @MainActor in
-            switch state {
-            case .connected:
-                self.connectedPeers = session.connectedPeers
-                self.connectionState = .connected(peerName: peerID.displayName)
-                self.stopDiscovery()
-            case .connecting:
-                self.connectionState = .connecting(to: peerID.displayName)
-            case .notConnected:
-                self.connectedPeers = session.connectedPeers
-                if self.connectedPeers.isEmpty {
-                    self.connectionState = .idle
-                }
-            @unknown default:
-                break
+    func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+        switch state {
+        case .connected:
+            self.connectedPeers = session.connectedPeers
+            self.connectionState = .connected(peerName: peerID.displayName)
+            self.stopDiscovery()
+        case .connecting:
+            self.connectionState = .connecting(to: peerID.displayName)
+        case .notConnected:
+            self.connectedPeers = session.connectedPeers
+            if self.connectedPeers.isEmpty {
+                self.connectionState = .idle
             }
+        @unknown default:
+            break
         }
     }
 
-    nonisolated func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+    func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         guard let message = try? JSONDecoder().decode(BattleMessage.self, from: data) else {
             #if DEBUG
             print("MultipeerService: dropped undecodable payload (\(data.count) bytes)")
             #endif
             return
         }
-        Task { @MainActor in
-            for continuation in self.subscribers.values {
-                continuation.yield(message)
-            }
+        for continuation in self.subscribers.values {
+            continuation.yield(message)
         }
     }
 
-    nonisolated func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {}
-    nonisolated func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {}
-    nonisolated func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {}
+    func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {}
+    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {}
+    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {}
 }
 
 // MARK: - MCNearbyServiceAdvertiserDelegate
 extension MultipeerService: MCNearbyServiceAdvertiserDelegate {
-    nonisolated func advertiser(
+    func advertiser(
         _ advertiser: MCNearbyServiceAdvertiser,
         didReceiveInvitationFromPeer peerID: MCPeerID,
         withContext context: Data?,
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
         let session = self.session
-        Task { @MainActor in
-            self.pendingInvitation = PendingInvitation(peerName: peerID.displayName) { accepted in
-                invitationHandler(accepted, accepted ? session : nil)
-            }
+        self.pendingInvitation = PendingInvitation(peerName: peerID.displayName) { accepted in
+            invitationHandler(accepted, accepted ? session : nil)
         }
     }
 
-    nonisolated func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
-        Task { @MainActor in
-            self.connectionState = .failed(error.localizedDescription)
-        }
+    func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
+        self.connectionState = .failed(error.localizedDescription)
     }
 }
 
 // MARK: - MCNearbyServiceBrowserDelegate
 extension MultipeerService: MCNearbyServiceBrowserDelegate {
-    nonisolated func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
-        Task { @MainActor in
-            if !self.discoveredPeers.contains(peerID) {
-                self.discoveredPeers.append(peerID)
-            }
+    func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
+        if !discoveredPeers.contains(peerID) {
+            discoveredPeers.append(peerID)
         }
     }
 
-    nonisolated func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        Task { @MainActor in
-            self.discoveredPeers.removeAll { $0 == peerID }
-        }
+    func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
+        discoveredPeers.removeAll { $0 == peerID }
     }
 
-    nonisolated func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
-        Task { @MainActor in
-            self.connectionState = .failed(error.localizedDescription)
-        }
+    func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
+        connectionState = .failed(error.localizedDescription)
     }
 }
