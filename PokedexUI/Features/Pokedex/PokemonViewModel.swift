@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 import PokeBattleKit
 
 /// Display-ready data for a single Pokemon, computed eagerly on init.

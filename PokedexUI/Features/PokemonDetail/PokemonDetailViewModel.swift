@@ -6,8 +6,6 @@ import SwiftData
 protocol PokemonDetailViewModelProtocol {
     /// Display-ready data for the focused pokemon.
     var pokemon: PokemonViewModel { get }
-    /// `true` while evolution chain or other secondary data is in-flight.
-    var isLoadingDetails: Bool { get }
     /// Bookmark state mirrored from SwiftData.
     var isBookmarked: Bool { get }
     /// Front sprite image once loaded, otherwise `nil`.
@@ -40,7 +38,6 @@ final class PokemonDetailViewModel {
     private let modelContext: ModelContext
 
     var pokemon: PokemonViewModel
-    var isLoadingDetails: Bool = false
     var isBookmarked: Bool
     var sprite: Image?
     var color: Color?

@@ -21,6 +21,8 @@ protocol PokedexViewModelProtocol {
     var sortDirection: SortDirection { get set }
 
     var openFavourites: Bool { get set }
+    /// Pokemon sorted by current sort settings.
+    var sortedPokemon: [Pokemon] { get }
     /// Load all Pokemon: cache first, then network if needed.
     func requestPokemon() async
 }
@@ -51,6 +53,10 @@ final class PokedexViewModel {
 // MARK: - PokedexViewModelProtocol
 
 extension PokedexViewModel: PokedexViewModelProtocol {
+    var sortedPokemon: [Pokemon] {
+        pokemon.sorted(by: sortType.comparator(direction: sortDirection))
+    }
+
     func requestPokemon() async {
         guard !isLoading else { return }
 

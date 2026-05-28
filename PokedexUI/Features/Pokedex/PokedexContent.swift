@@ -7,7 +7,7 @@ struct PokedexContent<ViewModel: PokedexViewModelProtocol>: View {
     var body: some View {
         NavigationStack {
             PokedexGridView(
-                pokemon: viewModel.pokemon.sorted(by: viewModel.sortType.comparator(direction: viewModel.sortDirection)),
+                pokemon: viewModel.sortedPokemon,
                 grid: viewModel.grid,
                 isLoading: viewModel.isLoading,
                 loadingProgress: viewModel.loadingProgress
