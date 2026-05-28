@@ -17,6 +17,16 @@ protocol BattleViewModelProtocol: AnyObject {
 
     func prepare() async
     func submit(_ move: Move) async
+
+    /// Type effectiveness of `move` against current opponent.
+    func effectiveness(for move: Move) -> Double?
+}
+
+extension BattleViewModelProtocol {
+    func effectiveness(for move: Move) -> Double? {
+        guard let types = state?.opponent.typeNames, !types.isEmpty else { return nil }
+        return PokeBattleKit.typeChart.multiplier(attacking: move.typeName, defenders: types)
+    }
 }
 
 /// Concrete `BattleViewModelProtocol` implementation.
@@ -36,7 +46,7 @@ final class BattleViewModel {
     let animator:        BattleAnimator
     let displayMoves:    [Move]
 
-    var engine: BattleEngine?
+    private var engine: BattleEngine?
     var state:  BattleState?
     var log:    [AttributedString] = []
     var isResolvingTurn  = false
@@ -165,34 +175,7 @@ private extension BattleViewModel {
 
     func apply(_ event: Event) {
         guard var snapshot = state else { return }
-        switch event {
-        case .damaged(let side, let amount, _, _),
-             .statusTick(let side, _, let amount),
-             .recoil(let side, let amount):
-            mutate(side, in: &snapshot) { $0.currentHP = max(0, $0.currentHP - amount) }
-            animator.postDamage(side: side, amount: amount)
-        case .healed(let side, let amount):
-            mutate(side, in: &snapshot) { $0.currentHP = min($0.maxHP, $0.currentHP + amount) }
-        case .statusApplied(let side, let status):
-            mutate(side, in: &snapshot) {
-                $0.status = status
-                if status == .sleep { $0.sleepTurns = 2 }
-            }
-        case .wokeUp(let side):
-            mutate(side, in: &snapshot) { $0.status = Status.none; $0.sleepTurns = 0 }
-        case .statChanged(let side, let stat, let delta):
-            mutate(side, in: &snapshot) { $0.applyStage(stat, delta: delta) }
-        case .used, .missed, .fullyParalyzed, .fastAsleep, .recharging, .lostFocus, .fainted, .ended:
-            break
-        }
+        BattleStateReducer.apply(event, to: &snapshot, animator: animator)
         state = snapshot
-    }
-
-    func mutate(_ side: Side, in state: inout BattleState, _ body: (inout Combatant) -> Void) {
-        if side == .player {
-            body(&state.player)
-        } else {
-            body(&state.opponent)
-        }
     }
 }

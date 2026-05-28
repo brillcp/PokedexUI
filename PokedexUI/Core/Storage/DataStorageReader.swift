@@ -29,7 +29,9 @@ actor DataStorageReader {
             try context.delete(model: M.self)
             try context.save()
         } catch {
+            #if DEBUG
             print("Skipped clear for \(M.self): \(error)")
+            #endif
         }
     }
 

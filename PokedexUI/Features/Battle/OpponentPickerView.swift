@@ -142,27 +142,3 @@ private extension OpponentPickerView {
         return result
     }
 }
-
-/// Sprite-over-name grid cell for the opponent picker.
-struct PokemonSpriteCard: View, Equatable {
-    let pokemon: Pokemon
-
-    var body: some View {
-        VStack(spacing: 12) {
-            SpriteImage(url: pokemon.frontSprite)
-                .frame(height: 92)
-            Text(pokemon.name)
-                .font(.pixel12)
-                .lineLimit(1)
-            HStack {
-                ForEach(pokemon.types) { type in
-                    Chip.type(type)
-                }
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color.cardBackground)
-        .foregroundStyle(.white)
-    }
-}

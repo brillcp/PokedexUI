@@ -219,7 +219,7 @@ The guest reverses `.player`/`.opponent` in received events via `side.opposite` 
 ## Key design decisions
 
 - **Separate VM, not branching**: `MultiplayerBattleViewModel` conforms to `BattleViewModelProtocol` alongside `BattleViewModel`. `BattleView` renders either without knowing which one it has.
-- **Shared components**: `PokemonPickerGrid`, `MoveLoadoutView`, and `MovePickerGrid` are used by both single-player and multiplayer flows. Screen-level orchestration stays separate.
+- **Shared components**: `PokemonPickerGrid`, `PokemonSpriteCard`, `MoveLoadoutView`, `MovePickerGrid`, and `MoveSelection` (observable selection state class) are used by both single-player and multiplayer flows. `BattleStateReducer` handles state mutation for both battle VMs. Screen-level orchestration stays separate.
 - **Rematch reuses MC session**: no need to re-discover. Just exchange new `ChallengePayload`s.
 
 ---
@@ -302,6 +302,7 @@ Pixel font, gameboy-style aesthetic, glass effects:
 - **`TypeColor`**: centralized type-to-color map used by every move chip, type tag, and weakness grid row.
 - **`PokemonGrid<Cell>`**: generic grid taking a `GridLayout` and a `@ViewBuilder` cell closure. Handles only scrolling and layout; navigation, search, and overlays are the caller's responsibility.
 - **`PokedexGridView`**: wraps `PokemonGrid` with color-analyzed cells (dominant-color backgrounds via `ImageColorAnalyzer`), `NavigationLink` routing, and a loading overlay. Toggleable between 3 and 4 columns.
+- **`PokemonSpriteCard`**: sprite-over-name grid cell with type chips. Used by search results, bookmarks, type lists, opponent picker, and multiplayer fighter picker.
 - **`PokemonPickerGrid`**: wraps `PokemonGrid` with a toolbar search bar and cached haystack filtering (name, type, genus, habitat, legendary/mythical, abilities). Used by opponent picker, multiplayer fighter picker, and bookmarks.
 - **`GridLayout`**: single source of truth for grid column counts and spacing across the app (`.two`, `.three`, `.four`).
 - **`MoveLoadoutView`**: pokemon summary card + `MovePickerGrid` + caller-provided bottom bar slot. Shared across single-player and multiplayer move selection.

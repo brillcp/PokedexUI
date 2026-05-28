@@ -123,16 +123,12 @@ private extension BattleView {
 
     func moveGrid(state: BattleState) -> some View {
         let disabled = !viewModel.canSelectMove || viewModel.isResolvingTurn || viewModel.winner != nil
-        let opponentTypes = state.opponent.typeNames
         return LazyVGrid(columns: GridLayout.two.layout, spacing: GridLayout.two.spacing) {
             ForEach(viewModel.displayMoves, id: \.name) { move in
-                let effectiveness: Double? = opponentTypes.isEmpty
-                    ? nil
-                    : PokeBattleKit.typeChart.multiplier(attacking: move.typeName, defenders: opponentTypes)
                 Button {
                     Task { await viewModel.submit(move) }
                 } label: {
-                    MoveCell(move: move, mode: .battle, effectiveness: effectiveness)
+                    MoveCell(move: move, mode: .battle, effectiveness: viewModel.effectiveness(for: move))
                         .equatable()
                 }
                 .disabled(disabled)

@@ -72,7 +72,9 @@ extension PokedexViewModel: PokedexViewModelProtocol {
             pokemon = bootstrap.pokemon
             try await fetcher.persist(bootstrap)
         } catch {
+            #if DEBUG
             print("PokedexViewModel: fetch failed: \(error)")
+            #endif
         }
     }
 }

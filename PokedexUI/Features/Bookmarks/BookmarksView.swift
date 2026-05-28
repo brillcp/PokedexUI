@@ -5,6 +5,7 @@ import SwiftData
 struct BookmarksView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.container) private var container
+    @Environment(\.modelContext) private var modelContext
     @Namespace private var namespace
 
     @Query(
@@ -39,7 +40,8 @@ struct BookmarksView: View {
                     PokemonDetailView(
                         viewModel: PokemonDetailViewModel(
                             summary: pokemon,
-                            container: container
+                            container: container,
+                            modelContext: modelContext
                         )
                     )
                     .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))

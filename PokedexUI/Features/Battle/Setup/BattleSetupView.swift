@@ -34,7 +34,7 @@ private extension BattleSetupView {
         let battleViewModel = BattleViewModel(
             player: player,
             opponent: opponent,
-            playerMoves: viewModel.playerMoves(),
+            playerMoves: viewModel.selection.selectedMoves,
             opponentMoves: opponentMoves,
             container: container
         )
@@ -214,11 +214,11 @@ private extension BattleSetupView {
 
     var movePicker: some View {
         MovePickerGrid(
-            moves: viewModel.playerMovePool,
-            selectedNames: viewModel.selectedMoveNames,
-            maxSelections: viewModel.maxSelections,
+            moves: viewModel.selection.pool,
+            selectedNames: viewModel.selection.selectedNames,
+            maxSelections: viewModel.selection.maxSelections,
             opponentTypes: viewModel.opponentPokemon?.typeNames ?? [],
-            onToggle: viewModel.toggle
+            onToggle: viewModel.selection.toggle
         )
     }
 
@@ -226,7 +226,8 @@ private extension BattleSetupView {
 
     var battleButton: some View {
         let phase = viewModel.phase
-        let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
+        let sel = viewModel.selection
+        let remaining = sel.maxSelections - sel.selectedNames.count
         let label: String = switch phase {
         case .readyToStart: "Start"
         case .picking where remaining > 0: "Pick \(remaining) \(remaining == 1 ? "move" : "moves")"

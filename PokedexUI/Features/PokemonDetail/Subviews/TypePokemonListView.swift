@@ -8,6 +8,7 @@ struct TypePokemonListView: View {
     let typeName: String
 
     @Environment(\.container) private var container
+    @Environment(\.modelContext) private var modelContext
     @Namespace private var namespace
     @Query(sort: \Pokemon.id) private var allPokemon: [Pokemon]
     @State private var selectedPokemon: Pokemon?
@@ -27,7 +28,8 @@ struct TypePokemonListView: View {
             PokemonDetailView(
                 viewModel: PokemonDetailViewModel(
                     summary: pokemon,
-                    container: container
+                    container: container,
+                    modelContext: modelContext
                 )
             )
             .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))

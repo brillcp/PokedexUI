@@ -195,11 +195,11 @@ private struct MultiplayerMovePickerView: View {
     var body: some View {
         MoveLoadoutView(
             pokemon: pokemon,
-            moves: viewModel.movePool,
-            selectedNames: viewModel.selectedMoveNames,
-            maxSelections: viewModel.maxSelections,
+            moves: viewModel.selection.pool,
+            selectedNames: viewModel.selection.selectedNames,
+            maxSelections: viewModel.selection.maxSelections,
             isDisabled: viewModel.phase == .waitingForOpponent,
-            onToggle: viewModel.toggleMove
+            onToggle: viewModel.selection.toggle
         ) {
             submitButton
         }
@@ -211,9 +211,9 @@ private struct MultiplayerMovePickerView: View {
 // MARK: - Private
 private extension MultiplayerMovePickerView {
     var submitButton: some View {
-        let ready = viewModel.selectedPokemon != nil
-            && viewModel.selectedMoveNames.count == viewModel.maxSelections
-        let remaining = viewModel.maxSelections - viewModel.selectedMoveNames.count
+        let sel = viewModel.selection
+        let ready = viewModel.selectedPokemon != nil && sel.isFull
+        let remaining = sel.maxSelections - sel.selectedNames.count
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
             title: ready ? "Ready" : "Pick \(remaining) more",

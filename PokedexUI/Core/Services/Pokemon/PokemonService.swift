@@ -100,9 +100,7 @@ extension PokemonService {
 /// `DataFetcher` conformer for the pokedex bootstrap. Owns storage + API
 /// calls: cache lookup, multi-phase download, and bulk persist.
 struct PokemonFetcher: DataFetcher {
-    typealias StoredData = Pokemon
-    typealias APIData = Pokemon
-    typealias ViewModel = Pokemon
+    typealias Model = Pokemon
 
     struct Bootstrap {
         let pokemon: [Pokemon]
@@ -157,7 +155,4 @@ struct PokemonFetcher: DataFetcher {
     func storeData(_ data: [Pokemon]) async throws {
         try await storage.store(data)
     }
-
-    func transformToViewModel(_ data: Pokemon) -> Pokemon { data }
-    func transformForStorage(_ data: Pokemon) -> Pokemon { data }
 }

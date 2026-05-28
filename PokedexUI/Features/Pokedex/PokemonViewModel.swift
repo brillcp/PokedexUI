@@ -54,7 +54,11 @@ extension PokemonViewModel {
             .replacingOccurrences(of: "GENERATION-", with: "GEN ")
     }
     var genderRate: Int { pokemon.genderRate }
-    var captureRate: Int { pokemon.captureRate }
+    /// Capture rate as a percentage string, e.g. "45%".
+    var capturePercent: String {
+        let pct = Int(round(Double(pokemon.captureRate) / 255.0 * 100.0))
+        return "\(pct)%"
+    }
     var evolutionChainId: String? { pokemon.evolutionChainId }
     var baseStatTotal: Int { pokemon.stats.map(\.baseStat).reduce(0, +) }
     var isLegendary: Bool { pokemon.isLegendary }

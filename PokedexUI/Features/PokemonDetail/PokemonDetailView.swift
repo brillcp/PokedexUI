@@ -42,7 +42,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             await viewModel.loadSpritesAndColor()
         }
         .task(id: viewModel.pokemon.evolutionChainId) {
-            await viewModel.loadEvolutionChain(context: modelContext)
+            await viewModel.loadEvolutionChain()
         }
         .sheet(isPresented: $showOpponentPicker) {
             OpponentPickerView(
@@ -63,14 +63,15 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             PokemonDetailView<PokemonDetailViewModel>(
                 viewModel: PokemonDetailViewModel(
                     summary: target,
-                    container: container
+                    container: container,
+                    modelContext: modelContext
                 )
             )
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    viewModel.toggleBookmark(in: modelContext)
+                    viewModel.toggleBookmark()
                 } label: {
                     Image(systemName: viewModel.isBookmarked ? "heart.fill" : "heart")
                         .foregroundStyle(textColor)
@@ -96,12 +97,6 @@ private extension PokemonDetailView {
         viewModel.color?.opacity(0.3)
     }
 
-    var divider: some View {
-        Divider()
-            .frame(minHeight: 1.5)
-            .overlay(.secondary)
-    }
-
     func loadedContent(pokemon: PokemonViewModel) -> some View {
         VStack(spacing: 32) {
             actionButtons(pokemon: pokemon)
@@ -121,7 +116,7 @@ private extension PokemonDetailView {
                 if let habitat = pokemon.habitat {
                     DetailRow(title: "Habitat", subtitle: habitat)
                 }
-                DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
+                DetailRow(title: "Capture", subtitle: pokemon.capturePercent)
                 if pokemon.genderRate > 0 {
                     GenderRow(rate: pokemon.genderRate, textColor: textColor)
                 }
@@ -171,15 +166,7 @@ private extension PokemonDetailView {
 
     func navigateToEvolution(speciesId: Int) {
         guard speciesId != viewModel.pokemon.id else { return }
-        let descriptor = FetchDescriptor<Pokemon>(predicate: #Predicate { $0.id == speciesId })
-        if let summary = try? modelContext.fetch(descriptor).first {
-            evolutionTarget = summary
-        }
-    }
-
-    func capturePercentText(for pokemon: PokemonViewModel) -> String {
-        let pct = Int(round(Double(pokemon.captureRate) / 255.0 * 100.0))
-        return "\(pct)%"
+        evolutionTarget = viewModel.pokemonForEvolution(speciesId: speciesId)
     }
 
     func spriteImage() -> some View {
@@ -188,10 +175,7 @@ private extension PokemonDetailView {
             .aspectRatio(contentMode: .fit)
             .frame(height: 320)
     }
-}
 
-// MARK: - Private
-private extension PokemonDetailView {
     func actionButtons(pokemon: PokemonViewModel) -> some View {
         HStack {
             if pokemon.latestCry != nil {
@@ -211,7 +195,13 @@ private extension PokemonDetailView {
 
 
 #Preview {
-    let vm = PokemonDetailViewModel(summary: .pikachu, container: .live)
+    let container = try! ModelContainer(for: Pokemon.self, configurations: .init(isStoredInMemoryOnly: true))
+    let vm = PokemonDetailViewModel(
+        summary: .pikachu,
+        container: .live,
+        modelContext: container.mainContext
+    )
     PokemonDetailView(viewModel: vm)
+        .modelContainer(container)
         .colorScheme(.dark)
 }

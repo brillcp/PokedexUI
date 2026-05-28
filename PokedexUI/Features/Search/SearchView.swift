@@ -6,6 +6,7 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
     @FocusState private var isSearchFocused: Bool
     @Namespace private var namespace
     @Environment(\.container) private var container
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Pokemon.id) private var corpus: [Pokemon]
 
     @State var viewModel: ViewModel
@@ -52,7 +53,8 @@ struct SearchView<ViewModel: SearchViewModelProtocol>: View {
                 PokemonDetailView(
                     viewModel: PokemonDetailViewModel(
                         summary: pokemon,
-                        container: container
+                        container: container,
+                        modelContext: modelContext
                     )
                 )
                 .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))
@@ -90,7 +92,8 @@ private extension SearchView {
             PokemonDetailView(
                 viewModel: PokemonDetailViewModel(
                     summary: pokemon,
-                    container: container
+                    container: container,
+                    modelContext: modelContext
                 )
             )
             .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))

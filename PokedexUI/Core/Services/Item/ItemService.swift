@@ -51,9 +51,7 @@ extension ItemService {
 
 /// `DataFetcher` conformer for the items list.
 struct ItemFetcher: DataFetcher {
-    typealias StoredData = ItemData
-    typealias APIData = ItemData
-    typealias ViewModel = ItemData
+    typealias Model = ItemData
 
     private let storage: DataStorageReader
     private let service: ItemServiceProtocol
@@ -74,7 +72,4 @@ struct ItemFetcher: DataFetcher {
     func storeData(_ data: [ItemData]) async throws {
         try await storage.store(data)
     }
-
-    func transformToViewModel(_ data: ItemData) -> ItemData { data }
-    func transformForStorage(_ data: ItemData) -> ItemData { data }
 }

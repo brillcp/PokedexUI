@@ -1,10 +1,12 @@
 import SwiftUI
+import SwiftData
 
 /// Pokedex tab grid. Wraps `PokemonGrid` with color-analyzed cells,
 /// navigation destination, and a loading overlay for first-launch fetch.
 struct PokedexGridView: View {
     @Namespace private var namespace
     @Environment(\.container) private var container
+    @Environment(\.modelContext) private var modelContext
 
     let pokemon: [Pokemon]
     var grid: GridLayout = .three
@@ -32,7 +34,8 @@ struct PokedexGridView: View {
             PokemonDetailView(
                 viewModel: PokemonDetailViewModel(
                     summary: pokemon,
-                    container: container
+                    container: container,
+                    modelContext: modelContext
                 )
             )
             .navigationTransition(.zoom(sourceID: pokemon.id, in: namespace))

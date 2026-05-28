@@ -40,16 +40,13 @@ final class MultiplayerSetupViewModel {
     private var connectedPeerName: String?
     private var receivedBattleEnded: Bool = false
 
-    let maxSelections: Int = 4
     let multipeer: MultipeerService
+    let selection = MoveSelection()
 
     var phase: MultiplayerSetupPhase = .discovering
     var showPicker: Bool = false
     var errorMessage: String?
     var selectedPokemon: Pokemon?
-    var movePool: [Move] = []
-    var selectedMoveNames: Set<String> = []
-    var selectionOrder: [String] = []
     var invitedPeer: PeerHandle?
     var launch: MultiplayerLaunch?
 
@@ -153,37 +150,19 @@ extension MultiplayerSetupViewModel {
 
     func selectPokemon(_ pokemon: Pokemon) {
         selectedPokemon = pokemon
-        movePool = Self.rankedByImpact(movesForPokemon(pokemon))
-        selectedMoveNames = []
-        selectionOrder = []
+        selection.load(for: pokemon)
         phase = .picking
-    }
-
-    func toggleMove(_ move: Move) {
-        if selectedMoveNames.contains(move.name) {
-            selectedMoveNames.remove(move.name)
-            selectionOrder.removeAll { $0 == move.name }
-            return
-        }
-        guard selectedMoveNames.count < maxSelections else { return }
-        selectedMoveNames.insert(move.name)
-        selectionOrder.append(move.name)
-    }
-
-    func selectedMoves() -> [Move] {
-        let byName = Dictionary(movePool.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
-        return selectionOrder.compactMap { byName[$0] }
     }
 
     /// Send the locally chosen loadout to the peer.
     func submitLoadout() {
         guard let pokemon = selectedPokemon,
-              selectedMoveNames.count == maxSelections,
+              selection.isFull,
               let role = multipeer.role
         else { return }
         let payload = ChallengePayload(
             pokemon: PokemonSummary(pokemon: pokemon),
-            moveNames: selectionOrder
+            moveNames: selection.selectionOrder
         )
         switch role {
         case .host:  multipeer.send(.challengeProposed(payload))
@@ -256,9 +235,9 @@ private extension MultiplayerSetupViewModel {
               let role = multipeer.role,
               let pokemon = selectedPokemon
         else { return }
-        let selfMoves = selectedMoves()
+        let selfMoves = selection.selectedMoves
         let peerMoves = peerChallenge.moveNames.compactMap { PokeBattleKit.move(named: $0) }
-        guard peerMoves.count == maxSelections else {
+        guard peerMoves.count == selection.maxSelections else {
             errorMessage = "Opponent sent an invalid loadout."
             showPicker = false
             reset()
@@ -285,31 +264,13 @@ private extension MultiplayerSetupViewModel {
 
     func resetSelection() {
         selectedPokemon = nil
-        movePool = []
-        selectedMoveNames = []
-        selectionOrder = []
+        selection.load(ranked: [])
         ownChallengeSent = false
         peerChallenge = nil
         connectedPeerName = nil
         launch = nil
     }
 
-    func movesForPokemon(_ pokemon: Pokemon) -> [Move] {
-        let names = Set(pokemon.moveNames)
-        return PokeBattleKit.allMoves.filter { names.contains($0.name) && $0.isBattleReady }
-    }
-
-    static func rankedByImpact(_ moves: [Move]) -> [Move] {
-        moves.sorted { lhs, rhs in
-            let lDamage = (lhs.power ?? 0) > 0
-            let rDamage = (rhs.power ?? 0) > 0
-            if lDamage != rDamage { return lDamage }
-            let lp = lhs.power ?? 0
-            let rp = rhs.power ?? 0
-            if lp != rp { return lp > rp }
-            return (lhs.accuracy ?? 100) > (rhs.accuracy ?? 100)
-        }
-    }
 }
 
 /// Identifiable wrapper around `MCPeerID` for stable use in SwiftUI lists.
