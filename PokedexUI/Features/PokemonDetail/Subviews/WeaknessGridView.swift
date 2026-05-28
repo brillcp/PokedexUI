@@ -73,7 +73,6 @@ private extension WeaknessGridView {
         if !buckets.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .foregroundStyle(.secondary)
                 ForEach(buckets, id: \.label) { row in
                     HStack(alignment: .top, spacing: 12) {
                         Text(row.label)

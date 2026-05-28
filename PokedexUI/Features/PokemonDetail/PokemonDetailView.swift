@@ -28,7 +28,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         .onScrollGeometryChange(for: CGFloat.self) { geo in
             geo.contentOffset.y + geo.contentInsets.top
         } action: { _, offset in
-            spriteBlur = max(0, (offset - 100) / 32)
+            spriteBlur = min(12, max(0, (offset - 160) / 12))
         }
         .background {
             VStack {
@@ -105,63 +105,55 @@ private extension PokemonDetailView {
     func loadedContent(pokemon: PokemonViewModel) -> some View {
         VStack(spacing: 32) {
             actionButtons(pokemon: pokemon)
-            speciesHeader(pokemon: pokemon)
+            SpeciesHeader(pokemon: pokemon, textColor: textColor)
 
             if let flavorText = pokemon.flavorText?.pretty {
-                Text(flavorText)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundStyle(textColor)
-                    .glassEffect(.clear.tint(tintColor), in: RoundedRectangle.card)
-                    .clipShape(RoundedRectangle.card)
+                DetailSection(tint: tintColor) {
+                    Text(flavorText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             DetailSection(title: "Data", tint: tintColor) {
-                VStack(spacing: 32) {
-                    typesRow(pokemon: pokemon)
-                    DetailRow(title: "Height", subtitle: pokemon.height)
-                    DetailRow(title: "Weight", subtitle: pokemon.weight)
+                TypesRow(typeNames: pokemon.typeNames) { selectedType = $0 }
+                DetailRow(title: "Height", subtitle: pokemon.height)
+                DetailRow(title: "Weight", subtitle: pokemon.weight)
 
-                    if let habitat = pokemon.habitat {
-                        DetailRow(title: "Habitat", subtitle: habitat)
-                    }
-                    DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
-                    if pokemon.genderRate > 0 {
-                        GenderRow(rate: pokemon.genderRate, textColor: textColor)
-                    }
-                    WeaknessGridView(
-                        pokemon: pokemon,
-                        textColor: textColor,
-                        onSelectType: { selectedType = $0 }
-                    )
-
-                    rowSection(title: "Abilities", data: pokemon.abilities)
-                    rowSection(title: "Moves", data: pokemon.moves)
+                if let habitat = pokemon.habitat {
+                    DetailRow(title: "Habitat", subtitle: habitat)
                 }
-                .padding()
+                DetailRow(title: "Capture", subtitle: capturePercentText(for: pokemon))
+                if pokemon.genderRate > 0 {
+                    GenderRow(rate: pokemon.genderRate, textColor: textColor)
+                }
             }
 
+            DetailSection(title: "Type chart") {
+                WeaknessGridView(
+                    pokemon: pokemon,
+                    textColor: textColor,
+                    onSelectType: { selectedType = $0 }
+                )
+            }
+            DetailSection(title: "Moves / Abilities") {
+                DetailRow(subtitle: pokemon.moves, axis: .vertical)
+                DetailRow(subtitle: pokemon.abilities, axis: .vertical)
+            }
             DetailSection(title: "Stats", tint: tintColor) {
-                VStack(alignment: .leading) {
-                    ForEach(pokemon.stats) { stat in
-                        DetailRowStat(
-                            title: stat.stat.name,
-                            value: stat.baseStat,
-                            textColor: textColor
-                        )
-                    }
-                    HStack {
-                        Text("Total")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text("\(pokemon.baseStatTotal)")
-                    }
-                    .font(.pixel14)
-                    .padding(.top, 4)
+                ForEach(pokemon.stats) { stat in
+                    DetailRowStat(
+                        title: stat.stat.name,
+                        value: stat.baseStat,
+                        textColor: textColor
+                    )
                 }
-                .padding()
+                HStack {
+                    Text("Total")
+                    Spacer()
+                    Text("\(pokemon.baseStatTotal)")
+                }
             }
 
-            if viewModel.evolutionStages.count > 2 {
+            if viewModel.evolutionStages.count > 1 {
                 DetailSection(title: "Evolution", tint: tintColor) {
                     EvolutionChainView(
                         stages: viewModel.evolutionStages,
@@ -171,27 +163,10 @@ private extension PokemonDetailView {
                 }
             }
         }
-        .padding(.horizontal, 24)
         .padding(.bottom, 32.0)
         .foregroundStyle(textColor)
         .lineHeight(.loose)
         .font(.pixel14)
-    }
-
-    func speciesHeader(pokemon: PokemonViewModel) -> some View {
-        HStack {
-            if let genus = pokemon.genus {
-                Text(genus.pretty)
-                    .font(.pixel14)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            if let gen = pokemon.generationName?.uppercased().replacingOccurrences(of: "GENERATION-", with: "GEN ") {
-                Chip(gen, style: .custom(background: textColor.opacity(0.1), foreground: textColor))
-            }
-            if pokemon.isLegendary { Chip("LEGENDARY", style: .primary) }
-            if pokemon.isMythical { Chip("MYTHICAL", style: .primary) }
-        }
     }
 
     func navigateToEvolution(speciesId: Int) {
@@ -205,24 +180,6 @@ private extension PokemonDetailView {
     func capturePercentText(for pokemon: PokemonViewModel) -> String {
         let pct = Int(round(Double(pokemon.captureRate) / 255.0 * 100.0))
         return "\(pct)%"
-    }
-
-    func typesRow(pokemon: PokemonViewModel) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            Text("Types")
-                .foregroundStyle(.secondary)
-                .frame(width: 82, alignment: .leading)
-            HStack {
-                ForEach(pokemon.typeNames, id: \.self) { type in
-                    Button { selectedType = type } label: {
-                        Chip.type(type)
-                    }
-                    .buttonStyle(.plain)
-                    .sensoryFeedback(.impact(weight: .light), trigger: selectedType)
-                }
-                Spacer()
-            }
-        }
     }
 
     func spriteImage() -> some View {
@@ -248,20 +205,10 @@ private extension PokemonDetailView {
             }
         }
         .tint(textColor)
+        .padding(.horizontal, 24)
     }
 }
 
-// MARK: - Private
-private extension PokemonDetailView {
-    func rowSection(title: String, data: String) -> some View {
-        VStack(alignment: .leading) {
-            Text(title)
-                .foregroundStyle(.secondary)
-            Text(data)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
 
 #Preview {
     let vm = PokemonDetailViewModel(summary: .pikachu, container: .live)

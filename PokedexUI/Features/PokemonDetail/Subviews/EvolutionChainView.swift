@@ -18,7 +18,6 @@ struct EvolutionChainView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding()
     }
 }
 
@@ -56,7 +55,6 @@ private extension EvolutionChainView {
                     .font(.pixel9)
             }
         }
-        .foregroundStyle(.secondary)
     }
 
     func label(for detail: EvolutionDetail?) -> String? {

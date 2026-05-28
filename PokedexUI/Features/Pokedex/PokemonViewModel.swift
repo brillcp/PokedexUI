@@ -32,7 +32,7 @@ struct PokemonViewModel {
         self.abilities = pokemon.abilities.map { $0.ability }.joinedCapitalizedNames
 
         let capitalized = pokemon.moveNames.map { $0.capitalized }
-        let displayed = Array(capitalized.prefix(10))
+        let displayed = Array(capitalized.prefix(16))
         let joined = displayed.joined(separator: ", ")
         self.moves = capitalized.count > displayed.count ? "\(joined)…" : joined
     }

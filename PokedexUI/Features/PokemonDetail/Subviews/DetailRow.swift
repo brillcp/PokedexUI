@@ -20,34 +20,104 @@ struct DetailButton: View {
 /// Titled section with glass-effect card. Used for Data, Stats, and Evolution
 /// sections in the detail view.
 struct DetailSection<Content: View>: View {
-    let title: String
+    var title: String?
     var tint: Color?
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(title)
-                .frame(maxWidth: .infinity)
-            content()
-                .glassEffect(.clear.tint(tint), in: RoundedRectangle.card)
+            if let title {
+                Text(title)
+                    .padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            VStack(spacing: 32) {
+                content()
+            }
+            .padding(24.0)
+            .glassEffect(.clear, in: Rectangle())
         }
-        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Species genus, generation badge, and legendary/mythical tags.
+struct SpeciesHeader: View {
+    let pokemon: PokemonViewModel
+    let textColor: Color
+
+    var body: some View {
+        HStack {
+            if let genus = pokemon.genus {
+                Text(genus.pretty)
+                    .font(.pixel14)
+            }
+            Spacer()
+            if let gen = pokemon.generationName?.uppercased().replacingOccurrences(of: "GENERATION-", with: "GEN ") {
+                Chip(gen, style: .custom(background: textColor.opacity(0.1), foreground: textColor))
+            }
+            if pokemon.isLegendary { Chip("LEGENDARY", style: .primary) }
+            if pokemon.isMythical { Chip("MYTHICAL", style: .primary) }
+        }
+        .padding(.horizontal, 24)
     }
 }
 
 /// Generic "Label: value" row with fixed-width labels for alignment.
+/// Use `.vertical` axis for stacked label/value layout (abilities, moves).
 struct DetailRow: View {
-    let title: String
+    var title: String?
     let subtitle: String
+    var axis: Axis = .horizontal
+
+    var body: some View {
+        switch axis {
+        case .horizontal:
+            HStack(alignment: .top, spacing: 16) {
+                if let title {
+                    Text(title)
+                        .frame(width: 82, alignment: .leading)
+                }
+                Text(subtitle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        case .vertical:
+            VStack(alignment: .leading) {
+                if let title {
+                    Text(title)
+                }
+                Text(subtitle)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+/// Tappable type chips row for the detail view.
+struct TypesRow: View {
+    let typeNames: [String]
+    let onSelectType: (String) -> Void
+
+    @State private var tapTrigger = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            Text(title)
-                .foregroundStyle(.secondary)
+            Text("Types")
                 .frame(width: 82, alignment: .leading)
-            Text(subtitle)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack {
+                ForEach(typeNames, id: \.self) { type in
+                    Button {
+                        tapTrigger.toggle()
+                        onSelectType(type)
+                    } label: {
+                        Chip.type(type)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Spacer()
+            }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: tapTrigger)
     }
 }
 
@@ -59,13 +129,13 @@ struct DetailRowStat: View {
 
     private var abbreviatedTitle: String {
         switch title.lowercased() {
-        case "special-attack": return "SATK"
-        case "attack":         return "ATK"
-        case "hp":             return "HP"
-        case "speed":          return "SPD"
+        case "special-attack":  return "SATK"
+        case "attack":          return "ATK"
+        case "hp":              return "HP"
+        case "speed":           return "SPD"
         case "special-defense": return "SDEF"
-        case "defense":        return "DEF"
-        default:               return title.capitalized
+        case "defense":         return "DEF"
+        default:                return title.capitalized
         }
     }
 
@@ -76,7 +146,6 @@ struct DetailRowStat: View {
 
         HStack {
             Text(abbreviatedTitle)
-                .foregroundStyle(.secondary)
                 .frame(width: 58, alignment: .leading)
                 .lineLimit(1)
             Text("\(clampedValue)")
@@ -84,8 +153,7 @@ struct DetailRowStat: View {
             ProgressView(value: progress)
                 .tint(textColor)
             Text("\(maxValue)")
-                .foregroundStyle(.secondary)
+                .frame(width: 32)
         }
-        .padding(.vertical)
     }
 }
