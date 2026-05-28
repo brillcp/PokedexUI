@@ -47,6 +47,23 @@ struct EvolutionDetail: Codable, Sendable {
     let timeOfDay: String?
     let minHappiness: Int?
 
+    /// Display-ready trigger label, e.g. "Lv 16", "Thunder Stone", "Friendship".
+    var triggerLabel: String? {
+        if let level = minLevel {
+            return "Lv \(level)"
+        }
+        if let item = item?.name {
+            return item.pretty
+        }
+        if let trigger = trigger?.name, trigger != "level-up" {
+            return trigger.pretty
+        }
+        if (minHappiness ?? 0) > 0 {
+            return "Friendship"
+        }
+        return nil
+    }
+
     private enum CodingKeys: String, CodingKey {
         case minLevel = "min_level"
         case trigger
@@ -61,6 +78,9 @@ struct EvolutionDetail: Codable, Sendable {
 struct SpeciesRef: Codable, Sendable, Hashable {
     let name: String
     let url: String?
+
+    /// Display-ready name, e.g. "Pikachu".
+    var displayName: String { name.capitalized }
 
     var id: Int? {
         guard let url, let last = URL(string: url)?

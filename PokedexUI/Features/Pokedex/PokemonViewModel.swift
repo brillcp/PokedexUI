@@ -45,9 +45,14 @@ extension PokemonViewModel {
     var latestCry: String? { pokemon.cries.latest }
     var stats: [Stat] { pokemon.stats }
     var habitat: String? { pokemon.habitat?.capitalized }
-    var flavorText: String? { pokemon.flavorText }
-    var genus: String? { pokemon.genus }
-    var generationName: String? { pokemon.generationName }
+    var flavorText: String? { pokemon.flavorText?.pretty }
+    var genus: String? { pokemon.genus?.pretty }
+    /// Short generation label, e.g. "GEN IV".
+    var generationLabel: String? {
+        pokemon.generationName?
+            .uppercased()
+            .replacingOccurrences(of: "GENERATION-", with: "GEN ")
+    }
     var genderRate: Int { pokemon.genderRate }
     var captureRate: Int { pokemon.captureRate }
     var evolutionChainId: String? { pokemon.evolutionChainId }

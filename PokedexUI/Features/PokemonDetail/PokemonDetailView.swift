@@ -107,7 +107,7 @@ private extension PokemonDetailView {
             actionButtons(pokemon: pokemon)
             SpeciesHeader(pokemon: pokemon, textColor: textColor)
 
-            if let flavorText = pokemon.flavorText?.pretty {
+            if let flavorText = pokemon.flavorText {
                 DetailSection(tint: tintColor) {
                     Text(flavorText)
                         .frame(maxWidth: .infinity, alignment: .leading)

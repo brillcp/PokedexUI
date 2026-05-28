@@ -49,11 +49,11 @@ struct SpeciesHeader: View {
     var body: some View {
         HStack {
             if let genus = pokemon.genus {
-                Text(genus.pretty)
+                Text(genus)
                     .font(.pixel14)
             }
             Spacer()
-            if let gen = pokemon.generationName?.uppercased().replacingOccurrences(of: "GENERATION-", with: "GEN ") {
+            if let gen = pokemon.generationLabel {
                 Chip(gen, style: .custom(background: textColor.opacity(0.1), foreground: textColor))
             }
             if pokemon.isLegendary { Chip("LEGENDARY", style: .primary) }
