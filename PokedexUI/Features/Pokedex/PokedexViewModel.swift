@@ -36,14 +36,15 @@ final class PokedexViewModel {
     private let fetcher: PokemonFetcher
     private var downloadTicks: Int = 0
 
-    var pokemon: [Pokemon] = []
+    var pokemon: [Pokemon] = [] { didSet { invalidateSortCache() } }
     var isLoading: Bool = false
     var loadingProgress: Double = 0
     var selectedTab: Tabs = .pokedex
     var grid: GridLayout = .three
-    var sortType: SortType = .number
-    var sortDirection: SortDirection = .ascending
+    var sortType: SortType = .number { didSet { invalidateSortCache() } }
+    var sortDirection: SortDirection = .ascending { didSet { invalidateSortCache() } }
     var openFavourites: Bool = false
+    private var cachedSortedPokemon: [Pokemon]?
 
     init(modelContext: ModelContext, container: AppContainer) {
         self.fetcher = PokemonFetcher(modelContext: modelContext, container: container)
@@ -54,7 +55,10 @@ final class PokedexViewModel {
 
 extension PokedexViewModel: PokedexViewModelProtocol {
     var sortedPokemon: [Pokemon] {
-        pokemon.sorted(by: sortType.comparator(direction: sortDirection))
+        if let cached = cachedSortedPokemon { return cached }
+        let sorted = pokemon.sorted(by: sortType.comparator(direction: sortDirection))
+        cachedSortedPokemon = sorted
+        return sorted
     }
 
     func requestPokemon() async {
@@ -87,6 +91,10 @@ extension PokedexViewModel: PokedexViewModelProtocol {
 
 // MARK: - Private
 private extension PokedexViewModel {
+    func invalidateSortCache() {
+        cachedSortedPokemon = nil
+    }
+
     func resetProgress() {
         downloadTicks = 0
         loadingProgress = 0

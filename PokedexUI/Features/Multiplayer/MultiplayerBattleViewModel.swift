@@ -22,6 +22,7 @@ final class MultiplayerBattleViewModel {
     private var turnNumber: Int = 0
     private var pendingSelfMove: Move?
     private var pendingPeerMoveName: String?
+    private var listenTask: Task<Void, Never>?
 
     let animator: BattleAnimator
     let displayMoves: [Move]
@@ -114,8 +115,9 @@ extension MultiplayerBattleViewModel: BattleViewModelProtocol {
 // MARK: - Message handling
 private extension MultiplayerBattleViewModel {
     func startListening() {
+        guard listenTask == nil else { return }
         let stream = multipeer.events()
-        Task { [weak self] in
+        listenTask = Task { [weak self] in
             for await event in stream {
                 guard let self else { return }
                 if case .message(let message) = event {
