@@ -52,6 +52,7 @@ struct MultiplayerSetupView: View {
                     Text(message)
                 }
         }
+        .interactiveDismissDisabled()
     }
 }
 
