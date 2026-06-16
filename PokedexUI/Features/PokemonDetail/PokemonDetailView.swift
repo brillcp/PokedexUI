@@ -28,7 +28,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
         .onScrollGeometryChange(for: CGFloat.self) { geo in
             geo.contentOffset.y + geo.contentInsets.top
         } action: { _, offset in
-            spriteBlur = min(12, max(0, (offset - 160) / 12))
+            spriteBlur = min(32, max(0, (offset - 160) / 12))
         }
         .background {
             VStack {
@@ -93,22 +93,18 @@ private extension PokemonDetailView {
         viewModel.color?.isLight ?? false ? Color.darkGrey : .white
     }
 
-    var tintColor: Color? {
-        viewModel.color?.opacity(0.3)
-    }
-
     func loadedContent(pokemon: PokemonViewModel) -> some View {
         VStack(spacing: 32) {
             actionButtons(pokemon: pokemon)
             SpeciesHeader(pokemon: pokemon, textColor: textColor)
 
             if let flavorText = pokemon.flavorText {
-                DetailSection(tint: tintColor) {
+                DetailSection {
                     Text(flavorText)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            DetailSection(title: "Data", tint: tintColor) {
+            DetailSection(title: "Data") {
                 TypesRow(typeNames: pokemon.typeNames) { selectedType = $0 }
                 DetailRow(title: "Height", subtitle: pokemon.height)
                 DetailRow(title: "Weight", subtitle: pokemon.weight)
@@ -133,7 +129,7 @@ private extension PokemonDetailView {
                 DetailRow(subtitle: pokemon.moves, axis: .vertical)
                 DetailRow(subtitle: pokemon.abilities, axis: .vertical)
             }
-            DetailSection(title: "Stats", tint: tintColor) {
+            DetailSection(title: "Stats") {
                 ForEach(pokemon.stats) { stat in
                     DetailRowStat(
                         title: stat.stat.name,
@@ -149,7 +145,7 @@ private extension PokemonDetailView {
             }
 
             if viewModel.evolutionStages.count > 1 {
-                DetailSection(title: "Evolution", tint: tintColor) {
+                DetailSection(title: "Evolution") {
                     EvolutionChainView(
                         stages: viewModel.evolutionStages,
                         textColor: textColor,

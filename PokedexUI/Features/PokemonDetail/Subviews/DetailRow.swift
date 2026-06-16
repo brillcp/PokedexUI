@@ -21,7 +21,6 @@ struct DetailButton: View {
 /// sections in the detail view.
 struct DetailSection<Content: View>: View {
     var title: String?
-    var tint: Color?
     @ViewBuilder let content: () -> Content
 
     var body: some View {
