@@ -9,7 +9,7 @@ protocol BattleViewModelProtocol: AnyObject {
     var animator: BattleAnimator { get }
     var state: BattleState? { get }
     var canSelectMove: Bool { get }
-    var log: [AttributedString] { get }
+    var log: [BattleLogEntry] { get }
     var isResolvingTurn: Bool { get }
     var winner: Side? { get }
     var errorMessage: String? { get }
@@ -48,7 +48,7 @@ final class BattleViewModel {
 
     private var engine: BattleEngine?
     var state:  BattleState?
-    var log:    [AttributedString] = []
+    var log:    [BattleLogEntry] = []
     var isResolvingTurn  = false
     var winner: Side?
     var errorMessage: String?
@@ -68,16 +68,23 @@ final class BattleViewModel {
         self.audioPlayer     = container.audioPlayer
         self.aiDriver        = BattleAIDriver(service: container.battleAI)
         self.spriteColors    = SpriteColorResolver(
-            spriteLoader:       container.spriteLoader,
+            spriteLoader: container.spriteLoader,
             imageColorAnalyzer: container.imageColorAnalyzer
         )
-        self.animator        = BattleAnimator()
-        self.formatter       = BattleLogFormatter(
-            playerName:   player.name,
+        self.animator = BattleAnimator()
+        self.formatter = BattleLogFormatter(
+            playerName: player.name,
             opponentName: opponent.name
         )
-        let p = Combatant(pokemon: player,   moves: playerMoves.map { MoveSnapshot(from: $0) }, hpBonus: 1.2)
-        let o = Combatant(pokemon: opponent, moves: opponentMoves.map { MoveSnapshot(from: $0) })
+        let p = Combatant(
+            pokemon: player,
+            moves: playerMoves.map { MoveSnapshot(from: $0) },
+            hpBonus: 1.2
+        )
+        let o = Combatant(
+            pokemon: opponent,
+            moves: opponentMoves.map { MoveSnapshot(from: $0) }
+        )
         let initialState = BattleState(player: p, opponent: o)
         self.state = initialState
         let chart = PokeBattleKit.typeChart
@@ -108,20 +115,18 @@ extension BattleViewModel: BattleViewModelProtocol {
         animator.attackTick += 1
         isResolvingTurn = true
 
-        log.append("...")
+        log.append(.placeholder)
 
         let opponentMove = await aiDriver.nextOpponentMove(
-            attacker:      snapshot.opponent,
-            defender:      snapshot.player,
+            attacker: snapshot.opponent,
+            defender: snapshot.player,
             opponentMoves: opponentMoves,
-            playerMoves:   playerMoves,
-            typeChart:     typeChart
+            playerMoves: playerMoves,
+            typeChart: typeChart
         )
 
         withAnimation(.easeOut(duration: 0.25)) {
-            if let idx = log.lastIndex(where: { String($0.characters).contains("...") }) {
-                log.remove(at: idx)
-            }
+            log.removeAll { $0.kind == .placeholder }
         }
 
         let events = eng.resolveRound(playerMove: move, opponentMove: opponentMove)
@@ -129,7 +134,7 @@ extension BattleViewModel: BattleViewModelProtocol {
 
         for event in events {
             let line = formatter.format(event, playerColor: animator.playerCues.color, opponentColor: animator.opponentCues.color)
-            log.append(line)
+            log.append(.regular(line))
             #if DEBUG
             print("⚔️ \(String(line.characters))")
             #endif
@@ -153,12 +158,12 @@ private extension BattleViewModel {
 
     func activateEngine(state: BattleState, chart: TypeChart) {
         self.typeChart = chart
-        self.engine    = BattleEngine(state: state, typeChart: chart)
+        self.engine = BattleEngine(state: state, typeChart: chart)
     }
 
     func playEntrance() async {
         await animator.playEntrance()
-        log.append(formatter.wildAppeared(opponentColor: animator.opponentCues.color))
+        log.append(.regular(formatter.wildAppeared(opponentColor: animator.opponentCues.color)))
 
         if let cry = opponentPokemon.latestCry {
             await audioPlayer.play(from: cry)

@@ -1,6 +1,26 @@
 import SwiftUI
 import PokeBattleKit
 
+/// A single row in the battle log with a stable identity.
+struct BattleLogEntry: Identifiable {
+    enum Kind { case regular, placeholder, prompt }
+    let id = UUID()
+    let attributed: AttributedString
+    let kind: Kind
+
+    static func regular(_ attributed: AttributedString) -> BattleLogEntry {
+        BattleLogEntry(attributed: attributed, kind: .regular)
+    }
+    static func prompt(_ attributed: AttributedString) -> BattleLogEntry {
+        BattleLogEntry(attributed: attributed, kind: .prompt)
+    }
+    static var placeholder: BattleLogEntry {
+        var str = AttributedString("...")
+        str.foregroundColor = .gray
+        return BattleLogEntry(attributed: str, kind: .placeholder)
+    }
+}
+
 /// Formats `Event` values into styled `AttributedString` for the log feed.
 struct BattleLogFormatter {
     let playerName:   String
@@ -123,11 +143,11 @@ private extension BattleLogFormatter {
 
     func statusColor(_ status: Status) -> Color {
         switch status {
-        case .none:      return .white
-        case .paralysis: return .yellow
-        case .burn:      return .orange
-        case .poison:    return .purple
-        case .sleep:     return .gray
+        case .none: .white
+        case .paralysis: .yellow
+        case .burn: .orange
+        case .poison: .purple
+        case .sleep: .gray
         }
     }
 }

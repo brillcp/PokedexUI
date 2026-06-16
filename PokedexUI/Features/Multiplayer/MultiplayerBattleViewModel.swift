@@ -30,7 +30,7 @@ final class MultiplayerBattleViewModel {
     let opponentName: String
 
     var state: BattleState?
-    var log: [AttributedString] = []
+    var log: [BattleLogEntry] = []
     var isResolvingTurn: Bool = false
     var winner: Side?
     var errorMessage: String?
@@ -103,10 +103,11 @@ extension MultiplayerBattleViewModel: BattleViewModelProtocol {
 
     func submit(_ move: Move) async {
         guard canSelectMove else { return }
+
         animator.attackTick += 1
         pendingSelfMove = move
         turnNumber += 1
-        log.append(formatter.waitingForOpponent())
+        log.append(.prompt(formatter.waitingForOpponent()))
         multipeer.send(.moveCommitted(moveName: move.name, turnNumber: turnNumber))
         if role == .host { await tryResolveHostTurn() }
     }
@@ -116,6 +117,7 @@ extension MultiplayerBattleViewModel: BattleViewModelProtocol {
 private extension MultiplayerBattleViewModel {
     func startListening() {
         guard listenTask == nil else { return }
+
         let stream = multipeer.events()
         listenTask = Task { [weak self] in
             for await event in stream {
@@ -145,20 +147,22 @@ private extension MultiplayerBattleViewModel {
 
     func receivePeerMove(name: String, turn: Int) async {
         if pendingSelfMove == nil {
-            log.append(formatter.chooseMove())
+            log.append(.prompt(formatter.chooseMove()))
         }
-        guard role == .host else { return }
-        guard turn == turnNumber || turn == turnNumber + (pendingSelfMove == nil ? 1 : 0) else { return }
+        guard role == .host,
+              turn == turnNumber || turn == turnNumber + (pendingSelfMove == nil ? 1 : 0)
+        else { return }
+
         pendingPeerMoveName = name
         await tryResolveHostTurn()
     }
 
     func receiveResolution(events: [Event], turn: Int) async {
-        guard role == .guest else { return }
-        guard turn == turnNumber else { return }
+        guard role == .guest, turn == turnNumber else { return }
+
         isResolvingTurn = true
         removePromptLines()
-        let flipped = events.map(flip(_:))
+        let flipped = events.map(flip)
         await play(events: flipped)
         pendingSelfMove = nil
         isResolvingTurn = false
@@ -193,7 +197,7 @@ private extension MultiplayerBattleViewModel {
                 playerColor: animator.playerCues.color,
                 opponentColor: animator.opponentCues.color
             )
-            log.append(line)
+            log.append(.regular(line))
             apply(event)
             await animator.play(event)
             try? await Task.sleep(for: .milliseconds(650))
@@ -216,7 +220,7 @@ private extension MultiplayerBattleViewModel {
 
     func playEntrance() async {
         await animator.playEntrance()
-        log.append(formatter.opponentReady(opponentColor: animator.opponentCues.color))
+        log.append(.regular(formatter.opponentReady(opponentColor: animator.opponentCues.color)))
         if let cry = peerSummary.cryURL {
             await audioPlayer.play(from: cry)
         }
@@ -232,30 +236,27 @@ private extension MultiplayerBattleViewModel {
 
     func removePromptLines() {
         withAnimation(.easeOut(duration: 0.25)) {
-            log.removeAll { line in
-                let text = String(line.characters)
-                return text.contains("Waiting for opponent") || text.contains("Pick a move")
-            }
+            log.removeAll { $0.kind == .prompt }
         }
     }
 
     func flip(_ event: Event) -> Event {
         switch event {
-        case .used(let s, let m):                return .used(s.opposite, moveName: m)
-        case .missed(let s):                     return .missed(s.opposite)
-        case .damaged(let s, let a, let e, let c): return .damaged(s.opposite, amount: a, effectiveness: e, crit: c)
-        case .statusApplied(let s, let st):      return .statusApplied(s.opposite, st)
-        case .statusTick(let s, let st, let a):  return .statusTick(s.opposite, st, amount: a)
-        case .statChanged(let s, let st, let d): return .statChanged(s.opposite, stat: st, delta: d)
-        case .healed(let s, let a):              return .healed(s.opposite, amount: a)
-        case .recoil(let s, let a):              return .recoil(s.opposite, amount: a)
-        case .recharging(let s):                 return .recharging(s.opposite)
-        case .wokeUp(let s):                     return .wokeUp(s.opposite)
-        case .fastAsleep(let s):                 return .fastAsleep(s.opposite)
-        case .fullyParalyzed(let s):             return .fullyParalyzed(s.opposite)
-        case .lostFocus(let s):                  return .lostFocus(s.opposite)
-        case .fainted(let s):                    return .fainted(s.opposite)
-        case .ended(let w):                      return .ended(winner: w?.opposite)
+        case .used(let s, let m): .used(s.opposite, moveName: m)
+        case .missed(let s): .missed(s.opposite)
+        case .damaged(let s, let a, let e, let c): .damaged(s.opposite, amount: a, effectiveness: e, crit: c)
+        case .statusApplied(let s, let st): .statusApplied(s.opposite, st)
+        case .statusTick(let s, let st, let a): .statusTick(s.opposite, st, amount: a)
+        case .statChanged(let s, let st, let d): .statChanged(s.opposite, stat: st, delta: d)
+        case .healed(let s, let a): .healed(s.opposite, amount: a)
+        case .recoil(let s, let a): .recoil(s.opposite, amount: a)
+        case .recharging(let s): .recharging(s.opposite)
+        case .wokeUp(let s): .wokeUp(s.opposite)
+        case .fastAsleep(let s): .fastAsleep(s.opposite)
+        case .fullyParalyzed(let s): .fullyParalyzed(s.opposite)
+        case .lostFocus(let s): .lostFocus(s.opposite)
+        case .fainted(let s): .fainted(s.opposite)
+        case .ended(let w): .ended(winner: w?.opposite)
         }
     }
 }

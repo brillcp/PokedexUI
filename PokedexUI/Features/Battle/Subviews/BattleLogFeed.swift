@@ -3,13 +3,13 @@ import SwiftUI
 /// Scrollable battle log pinned to the latest event, with a fade/shrink
 /// effect on the top row so the player can scroll back through history.
 struct BattleLogFeed: View {
-    let log: [AttributedString]
+    let log: [BattleLogEntry]
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Layout.lineSpacing) {
-                ForEach(Array(log.enumerated()), id: \.offset) { _, line in
-                    Text(line)
+                ForEach(log) { entry in
+                    Text(entry.attributed)
                         .font(.pixel12)
                         .lineLimit(2)
                         .truncationMode(.tail)
