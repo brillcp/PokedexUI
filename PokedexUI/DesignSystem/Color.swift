@@ -37,6 +37,18 @@ extension Color {
         }
         return Color(hue: h, saturation: s, brightness: min(max(b + delta, 0), 1), opacity: a)
     }
+
+    /// Returns the color with its HSB hue and brightness shifted, both wrapping/clamping to [0, 1].
+    func shifted(hue dh: CGFloat, brightness db: CGFloat = 0) -> Color {
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard UIColor(self).getHue(&h, saturation: &s, brightness: &b, alpha: &a) else {
+            return self
+        }
+        return Color(hue: (h + dh).truncatingRemainder(dividingBy: 1),
+                     saturation: s,
+                     brightness: min(max(b + db, 0), 1),
+                     opacity: a)
+    }
 }
 
 /// Standard opacity values used across the design system.

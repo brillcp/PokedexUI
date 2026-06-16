@@ -31,7 +31,6 @@ struct PrimaryCapsuleButton: View {
             .foregroundStyle(.white)
         }
         .glassEffect(.regular.tint(.pokedexRed.opacity(0.8)).interactive())
-        .opacity(isEnabled ? 1 : Opacity.disabled)
         .disabled(!isEnabled || isLoading)
         .sensoryFeedback(.impact(weight: .medium), trigger: tapTrigger)
     }

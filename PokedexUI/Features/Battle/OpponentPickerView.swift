@@ -34,36 +34,34 @@ struct OpponentPickerView: View {
     var body: some View {
         NavigationStack {
             PokemonPickerGrid(pokemon: allPokemon, onSelect: { setupOpponent = $0 })
+                .opacity(isAIThinking ? Opacity.disabled : 1)
                 .safeAreaBar(edge: .bottom) { pickerButton }
                 .disabled(isAIThinking)
-            .opacity(isAIThinking ? Opacity.disabled : 1)
-            .animation(.easeInOut(duration: 0.2), value: isAIThinking)
-            .foregroundStyle(.white)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(role: .cancel, action: dismiss.callAsFunction)
-                }
-            }
-            .applyPokedexStyling(title: "Pick opponent", navColor: .darkGrey)
-            .task(id: allPokemon.count) {
-                await prebuildCandidatesIfNeeded()
-            }
-            .navigationDestination(item: $setupOpponent) { opp in
-                BattleSetupView(
-                    viewModel: BattleSetupViewModel(
-                        player: player,
-                        opponent: opp,
-                        aiService: container.battleAI
-                    ),
-                    onStart: { launch in
-                        dismiss()
-                        onStart(launch)
+                .animation(.easeInOut(duration: 0.2), value: isAIThinking)
+                .foregroundStyle(.white)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(role: .cancel, action: dismiss.callAsFunction)
                     }
-                )
-            }
+                }
+                .applyPokedexStyling(title: "Pick opponent", navColor: .darkGrey)
+                .task(id: allPokemon.count) {
+                    await prebuildCandidatesIfNeeded()
+                }
+                .navigationDestination(item: $setupOpponent) { opp in
+                    BattleSetupView(
+                        viewModel: BattleSetupViewModel(
+                            player: player,
+                            opponent: opp,
+                            aiService: container.battleAI
+                        ), onStart: { launch in
+                            dismiss()
+                            onStart(launch)
+                        }
+                    )
+                }
         }
     }
-
 }
 
 // MARK: - Private
@@ -77,7 +75,7 @@ private extension OpponentPickerView {
             action: pickSmart
         )
         .padding(.horizontal, 28)
-        .padding(.bottom)
+        .padding(.bottom, 8)
     }
 
     func pickSmart() {

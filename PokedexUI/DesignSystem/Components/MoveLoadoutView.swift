@@ -6,12 +6,9 @@ import PokeBattleKit
 /// single-player and multiplayer loadout flows.
 struct MoveLoadoutView<BottomBar: View>: View {
     let pokemon: Pokemon
-    let moves: [Move]
-    let selectedNames: Set<String>
-    let maxSelections: Int
+    let moveSelection: MoveSelection
     var opponentTypes: [String] = []
     var isDisabled: Bool = false
-    let onToggle: (Move) -> Void
     @ViewBuilder let bottomBar: () -> BottomBar
 
     var body: some View {
@@ -19,11 +16,8 @@ struct MoveLoadoutView<BottomBar: View>: View {
             VStack(spacing: 16) {
                 pokemonSummary
                 MovePickerGrid(
-                    moves: moves,
-                    selectedNames: selectedNames,
-                    maxSelections: maxSelections,
-                    opponentTypes: opponentTypes,
-                    onToggle: onToggle
+                    moveSelection: moveSelection,
+                    opponentTypes: opponentTypes
                 )
             }
         }
@@ -31,7 +25,12 @@ struct MoveLoadoutView<BottomBar: View>: View {
         .disabled(isDisabled)
         .opacity(isDisabled ? Opacity.disabled : 1)
         .animation(.easeInOut(duration: 0.2), value: isDisabled)
-        .safeAreaBar(edge: .bottom, content: bottomBar)
+        .safeAreaBar(edge: .bottom) {
+            if moveSelection.isFull {
+                bottomBar().transition(.move(edge: .bottom).combined(with: .blurReplace))
+            }
+        }
+        .animation(.snappy(duration: 0.2), value: moveSelection.isFull)
     }
 }
 

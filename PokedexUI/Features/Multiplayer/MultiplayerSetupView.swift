@@ -181,11 +181,8 @@ private struct MultiplayerMovePickerView: View {
     var body: some View {
         MoveLoadoutView(
             pokemon: pokemon,
-            moves: viewModel.selection.pool,
-            selectedNames: viewModel.selection.selectedNames,
-            maxSelections: viewModel.selection.maxSelections,
-            isDisabled: viewModel.phase == .waitingForOpponent,
-            onToggle: viewModel.selection.toggle
+            moveSelection: viewModel.selection,
+            isDisabled: viewModel.phase == .waitingForOpponent
         ) {
             submitButton
         }
@@ -199,16 +196,15 @@ private extension MultiplayerMovePickerView {
     var submitButton: some View {
         let sel = viewModel.selection
         let ready = viewModel.selectedPokemon != nil && sel.isFull
-        let remaining = sel.maxSelections - sel.selectedNames.count
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
-            title: ready ? "Ready" : "Pick \(remaining) more",
+            title: "Ready",
             loadingTitle: "Waiting for opponent",
             isEnabled: ready,
             isLoading: viewModel.phase == .waitingForOpponent,
             action: viewModel.submitLoadout
         )
         .padding(.horizontal, 28)
-        .padding(.bottom)
+        .padding(.bottom, 8)
     }
 }

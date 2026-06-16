@@ -92,7 +92,12 @@ private extension BattleSetupView {
         .opacity(busy ? Opacity.disabled : 1)
         .animation(.easeInOut(duration: 0.2), value: busy)
         .scrollIndicators(.hidden)
-        .safeAreaBar(edge: .bottom) { battleButton }
+        .safeAreaBar(edge: .bottom) {
+            if viewModel.selection.isFull {
+                battleButton.transition(.move(edge: .bottom).combined(with: .blurReplace))
+            }
+        }
+        .animation(.snappy(duration: 0.2), value: viewModel.selection.isFull)
     }
 
     var matchupRow: some View {
@@ -214,11 +219,8 @@ private extension BattleSetupView {
 
     var movePicker: some View {
         MovePickerGrid(
-            moves: viewModel.selection.pool,
-            selectedNames: viewModel.selection.selectedNames,
-            maxSelections: viewModel.selection.maxSelections,
-            opponentTypes: viewModel.opponentPokemon?.typeNames ?? [],
-            onToggle: viewModel.selection.toggle
+            moveSelection: viewModel.selection,
+            opponentTypes: viewModel.opponentPokemon?.typeNames ?? []
         )
     }
 
@@ -226,16 +228,9 @@ private extension BattleSetupView {
 
     var battleButton: some View {
         let phase = viewModel.phase
-        let sel = viewModel.selection
-        let remaining = sel.maxSelections - sel.selectedNames.count
-        let label: String = switch phase {
-        case .readyToStart: "Start"
-        case .picking where remaining > 0: "Pick \(remaining) \(remaining == 1 ? "move" : "moves")"
-        default: "Start"
-        }
         return PrimaryCapsuleButton(
             icon: "bolt.fill",
-            title: label,
+            title: "Start",
             isEnabled: phase == .readyToStart || phase == .readyToRequest,
             isLoading: phase == .awaitingAI,
             action: phase == .readyToStart
