@@ -37,6 +37,10 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
                 Spacer()
             }
         }
+        .background {
+            MeshGradientBackground(color: viewModel.color ?? .darkGrey)
+                .ignoresSafeArea()
+        }
         .scrollIndicators(.hidden)
         .task(id: viewModel.pokemon.id) {
             await viewModel.loadSpritesAndColor()
@@ -82,7 +86,7 @@ struct PokemonDetailView<ViewModel: PokemonDetailViewModelProtocol & Sendable>: 
             title: "\(viewModel.pokemon.name) #\(viewModel.pokemon.id)",
             navColor: .clear,
             titleColor: textColor,
-            background: viewModel.color
+            background: nil
         )
     }
 }

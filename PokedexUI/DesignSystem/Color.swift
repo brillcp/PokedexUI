@@ -28,6 +28,15 @@ extension Color {
         }
         return false
     }
+
+    /// Returns the color with its HSB brightness shifted by `delta`, clamped to [0, 1].
+    func shifted(brightness delta: CGFloat) -> Color {
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard UIColor(self).getHue(&h, saturation: &s, brightness: &b, alpha: &a) else {
+            return self
+        }
+        return Color(hue: h, saturation: s, brightness: min(max(b + delta, 0), 1), opacity: a)
+    }
 }
 
 /// Standard opacity values used across the design system.
