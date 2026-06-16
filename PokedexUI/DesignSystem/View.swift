@@ -12,7 +12,7 @@ extension View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text(title)
-                        .font(.pixel17)
+                        .font(.pixel18)
                         .foregroundStyle(titleColor)
                 }
             }

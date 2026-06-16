@@ -133,7 +133,7 @@ private extension SearchView {
                 Spacer()
                 Button(action: viewModel.clearRecentSearches) {
                     Image(systemName: "trash.fill")
-                        .font(.pixel17)
+                        .font(.pixel16)
                         .foregroundStyle(Color.pokedexRed)
                 }
             }

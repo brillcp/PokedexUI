@@ -9,11 +9,11 @@ struct PixelSpinner: View {
     let lineLength: CGFloat
 
     init(
-        size: CGFloat = 24,
+        size: CGFloat = 22,
         color: Color = .secondary,
         lineCount: Int = 8,
-        lineWidth: CGFloat = 2.5,
-        lineLength: CGFloat = 7
+        lineWidth: CGFloat = 2.2,
+        lineLength: CGFloat = 6.4
     ) {
         self.size = size
         self.color = color

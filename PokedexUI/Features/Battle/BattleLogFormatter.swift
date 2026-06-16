@@ -25,7 +25,7 @@ struct BattleLogFormatter {
             if effectiveness == 0 {
                 return plain("It had no effect on ") + nameAttr(side)
             }
-            var line = nameAttr(side) + plain(" took ") + colored("\(amount) dmg", .red)
+            var line = nameAttr(side) + plain(" took ") + colored("\(amount) dmg", Color.pokedexRed)
             if crit { line += colored(" (critical hit)", .yellow) }
             if effectiveness >= 2 { line += colored(" (super effective)", .green) }
             else if effectiveness < 1 { line += colored(" (not very effective)", .gray) }
@@ -33,17 +33,17 @@ struct BattleLogFormatter {
         case .statusApplied(let side, let status):
             return nameAttr(side) + plain(" was inflicted with ") + colored(status.displayName, statusColor(status))
         case .statusTick(let side, let status, let amount):
-            return nameAttr(side) + plain(" hurt by ") + colored(status.displayName, statusColor(status)) + plain(" (") + colored("-\(amount)", .red) + plain(")")
+            return nameAttr(side) + plain(" hurt by ") + colored(status.displayName, statusColor(status)) + plain(" (") + colored("-\(amount)", Color.pokedexRed) + plain(")")
         case .statChanged(let side, let stat, let delta):
             let pretty = stat.replacingOccurrences(of: "-", with: " ").capitalized
             let direction = delta > 0 ? "rose" : "fell"
             let magnitude = abs(delta) >= 2 ? " sharply" : ""
-            let tint: Color = delta > 0 ? .green : .red
+            let tint: Color = delta > 0 ? .green : Color.pokedexRed
             return nameAttr(side) + plain("'s \(pretty)\(magnitude) ") + colored(direction, tint)
         case .healed(let side, let amount):
             return nameAttr(side) + plain(" restored ") + colored("\(amount) HP", .green)
         case .recoil(let side, let amount):
-            return nameAttr(side) + plain(" took ") + colored("\(amount) recoil", .red) + plain(" damage")
+            return nameAttr(side) + plain(" took ") + colored("\(amount) recoil", Color.pokedexRed) + plain(" damage")
         case .wokeUp(let side):
             return nameAttr(side) + plain(" woke up")
         case .fastAsleep(let side):
@@ -55,7 +55,7 @@ struct BattleLogFormatter {
         case .lostFocus(let side):
             return nameAttr(side) + plain(" lost its ") + colored("focus", .gray)
         case .fainted(let side):
-            return nameAttr(side) + colored(" fainted!", .red)
+            return nameAttr(side) + colored(" fainted!", Color.pokedexRed)
         case .ended(let w):
             guard let winner = w else { return plain("It's a draw.") }
             return nameAttr(winner) + colored(" wins!", .green)

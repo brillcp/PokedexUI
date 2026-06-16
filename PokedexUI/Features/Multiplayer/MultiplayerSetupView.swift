@@ -19,9 +19,7 @@ struct MultiplayerSetupView: View {
                 .onAppear(perform: viewModel.startDiscovery)
                 .onDisappear(perform: viewModel.stopDiscovery)
                 .animation(.default, value: viewModel.phase)
-                .sheet(isPresented: $viewModel.showPicker, onDismiss: {
-                    viewModel.pickerDismissed()
-                }) {
+                .sheet(isPresented: $viewModel.showPicker, onDismiss: viewModel.pickerDismissed) {
                     MultiplayerPickerSheet(viewModel: viewModel)
                 }
                 .navigationDestination(item: $viewModel.launch) { launch in
@@ -52,7 +50,6 @@ struct MultiplayerSetupView: View {
                     Text(message)
                 }
         }
-        .interactiveDismissDisabled()
     }
 }
 
@@ -85,7 +82,7 @@ private extension MultiplayerSetupView {
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .resizable()
                             .frame(width: 24, height: 24)
-                        Text("No nearby trainers")
+                        Text("No trainers nearby")
                     }
                     Spacer()
                 }
@@ -151,6 +148,7 @@ private struct MultiplayerPickerSheet: View {
             }
             .applyPokedexStyling(title: "Pick your fighter", navColor: .darkGrey)
             .foregroundStyle(.white)
+            .interactiveDismissDisabled()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(role: .cancel, action: dismiss.callAsFunction)

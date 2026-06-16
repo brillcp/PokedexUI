@@ -37,7 +37,7 @@ private extension HPCard {
         let ratio = Double(currentHP) / Double(maxHP)
         if ratio > 0.5 { return .green }
         if ratio > 0.2 { return .yellow }
-        return .red
+        return Color.pokedexRed
     }
 
     var statusColor: Color {
