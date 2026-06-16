@@ -1,22 +1,15 @@
 import Foundation
 import FoundationModels
 
-/// Owns the on-device Foundation Models session, generation retries, and
-/// per-decision instruction text. Concurrent calls into `generate(...)`
-/// are serialised via an internal slot mutex so the underlying model
-/// is never asked to produce two responses at once.
+/// Owns the on-device Foundation Models session and per-decision instruction
+/// text. Each call to `decide(...)` makes one structured-generation request
+/// and falls back to the heuristic on error or model unavailability.
 actor LanguageModelClient {
     private let model = SystemLanguageModel(guardrails: .permissiveContentTransformations)
-    private var isGenerating = false
-    private let maxAttempts: Int
 
     var isAvailable: Bool {
         if case .available = model.availability { return true }
         return false
-    }
-
-    init(maxAttempts: Int = 3) {
-        self.maxAttempts = maxAttempts
     }
 }
 
@@ -24,40 +17,27 @@ actor LanguageModelClient {
 
 extension LanguageModelClient {
 
-    /// Generate a structured result using @Generable with optional tools.
+    /// Generate a structured result using @Generable.
     func generate<T: Generable>(
         prompt: String,
         generating type: T.Type,
-        tools: [any Tool],
         temperature: Double,
         instructions: Instructions
     ) async throws -> T {
-        var lastError: Error?
-        for _ in 1 ... maxAttempts {
-            await waitForGenerationSlot()
-            do {
-                defer { isGenerating = false }
-                let session = LanguageModelSession(model: model, tools: tools, instructions: instructions.text)
-                return try await session.respond(
-                    to: prompt,
-                    generating: type,
-                    options: .init(temperature: temperature)
-                ).content
-            } catch {
-                isGenerating = false
-                lastError = error
-            }
-        }
-        throw lastError ?? CancellationError()
+        let session = LanguageModelSession(model: model, instructions: instructions.text)
+        return try await session.respond(
+            to: prompt,
+            generating: type,
+            options: .init(temperature: temperature)
+        ).content
     }
 
-    /// Structured decision: tries @Generable generation with tools,
+    /// Structured decision: tries @Generable generation,
     /// falls back to heuristic if the model is unavailable or fails.
     func decide<Pick, Result: Generable>(
         fallback: Pick,
         prompt: @autoclosure () -> String,
         generating type: Result.Type,
-        tools: [any Tool],
         temperature: Double,
         instructions: Instructions,
         resolve: (Result) -> Pick?,
@@ -71,7 +51,7 @@ extension LanguageModelClient {
             let promptText = prompt()
             aiLog("PROMPT:\n\(promptText)")
             let result = try await generate(
-                prompt: promptText, generating: type, tools: tools,
+                prompt: promptText, generating: type,
                 temperature: temperature, instructions: instructions
             )
             aiLog("LLM RESULT: \(result)")
@@ -98,7 +78,7 @@ extension LanguageModelClient {
 
         static let move = Instructions(
             resource: "BattleAIMoveInstructions",
-            fallback: "You are an expert Pokemon battler. Use the tools to check type effectiveness and estimate damage before picking a move."
+            fallback: "You are a Pokemon battle assistant. Pick the move that maximises damage output this turn. Return only the move name."
         )
         static let opponent = Instructions(
             resource: "BattleAIOpponentInstructions",
@@ -106,7 +86,7 @@ extension LanguageModelClient {
         )
         static let loadout = Instructions(
             resource: "BattleAILoadoutInstructions",
-            fallback: "You are an expert Pokemon battler picking a loadout. Use tools to evaluate type matchups. Pick 4 moves with good coverage."
+            fallback: "You are a Pokemon battle assistant picking a loadout. Pick 4 moves with good type coverage and power."
         )
 
         private init(resource: String, fallback: String) {
@@ -118,15 +98,5 @@ extension LanguageModelClient {
             }
             self.text = text
         }
-    }
-}
-
-// MARK: - Private
-private extension LanguageModelClient {
-    func waitForGenerationSlot() async {
-        while isGenerating {
-            try? await Task.sleep(nanoseconds: 100_000_000)
-        }
-        isGenerating = true
     }
 }

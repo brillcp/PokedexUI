@@ -53,7 +53,7 @@ extension Color {
 
 /// Standard opacity values used across the design system.
 enum Opacity {
-    static let disabled: Double = 0.6
+    static let disabled: Double = 0.4
 }
 
 /// Standard corner radii used across the design system.

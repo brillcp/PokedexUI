@@ -32,14 +32,14 @@ enum BattleContext {
         let hpFrac = Double(attacker.currentHP) / Double(max(1, attacker.maxHP))
         let defHpFrac = Double(defender.currentHP) / Double(max(1, defender.maxHP))
 
-        if defHpFrac <= 0.30 { return "Opponent is low. Pick the move that KOs." }
-        if hpFrac <= 0.30 { return "Low HP. Pick highest damage." }
+        if defHpFrac <= 0.30 { return "Opponent has low health. Select the decisive finishing move." }
+        if hpFrac <= 0.30 { return "Low health. Select the highest-power move." }
         if !attacker.isBoosted, hpFrac >= 0.70,
            moves.contains(where: { ($0.power ?? 0) == 0 && $0.statChangeDeltas.contains { $0 > 0 } }) {
-            return "Consider a boost move to set up."
+            return "Consider a stat-boosting move to set up."
         }
-        if attacker.isBoosted { return "You are boosted. Pick highest damage." }
-        return "Pick highest damage."
+        if attacker.isBoosted { return "Stats are boosted. Select the highest-power move." }
+        return "Select the highest-power move."
     }
 
     /// Three-letter stat abbreviation for compact prompt rows.

@@ -17,9 +17,8 @@ private func hpPct(_ c: Combatant) -> Int {
 /// concrete `BattleAIService` uses an LLM where available and falls back
 /// to heuristics otherwise.
 protocol BattleAIServiceProtocol: Sendable {
-    /// Pick the best move for this turn. `defenderMoves` is the defender's
-    /// full loadout; `defenderSeenMoves` is the subset already used in the
-    /// current battle and is the only one shown to the LLM.
+    /// Pick the best move for this turn. `defenderSeenMoves` is the subset
+    /// of the defender's moves already used in the current battle.
     func chooseMove(
         attacker: Combatant,
         defender: Combatant,
@@ -49,7 +48,7 @@ protocol BattleAIServiceProtocol: Sendable {
 /// Thin facade composing a `LanguageModelClient` with per-decision
 /// strategy + prompt helpers. Each public method follows the same shape:
 /// 1. Strategy produces a deterministic fallback.
-/// 2. Structured generation with tools attempts a smarter pick.
+/// 2. Structured generation attempts a smarter pick.
 /// 3. Strategy.adjust runs post-pick corrections against either branch.
 actor BattleAIService {
     private let client = LanguageModelClient()
@@ -71,12 +70,6 @@ extension BattleAIService: BattleAIServiceProtocol {
         aiLog("\(attacker.name) \(hpPct(attacker))% vs \(defender.name) \(hpPct(defender))%")
         aiLog("Loadout: \(moves.map(\.name).joined(separator: ", "))")
         aiLog("Recent: \(recentMoves.joined(separator: ", "))")
-        let scores = moves.map { m in
-            let s = MoveScoring.inBattleScore(move: m, attacker: attacker, defender: defender, typeChart: typeChart, recentMoves: recentMoves)
-            return "\(m.name)=\(String(format: "%.1f", s))"
-        }
-        aiLog("Scores: \(scores.joined(separator: ", "))")
-
         guard let first = moves.first else { return PokeBattleKit.move(named: "tackle")! }
         let fallback = MoveStrategy.heuristicPick(
             attacker: attacker, defender: defender, moves: moves, typeChart: typeChart, recentMoves: recentMoves
@@ -84,18 +77,20 @@ extension BattleAIService: BattleAIServiceProtocol {
         aiLog("Heuristic fallback: \(fallback.name)")
 
         let movesByName = Dictionary(moves.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
-        let tools: [any Tool] = [
-            CheckTypeTool(typeChart: typeChart),
-            EstimateDamageTool(attacker: attacker, defender: defender, typeChart: typeChart, movesByName: movesByName)
-        ]
 
         let seen = defenderSeenMoves.isEmpty ? "" : "\nDefender used: \(defenderSeenMoves.joined(separator: ", "))"
-        let moveList = moves.map(\.promptDescription).joined(separator: "\n")
+        let moveData = moves.map { m in
+            let mult = typeChart.multiplier(attacking: m.typeName, defenders: defender.typeNames)
+            let dmg = DamageCalculator.estimateDamage(move: m, attacker: attacker, defender: defender, typeChart: typeChart)
+            let ko = dmg >= defender.currentHP
+            let score = MoveScoring.inBattleScore(move: m, attacker: attacker, defender: defender, typeChart: typeChart, recentMoves: recentMoves)
+            return "\(m.name) (\(m.typeName)) | \(mult)x type | \(dmg) dmg\(ko ? " KO" : "") | score \(String(format: "%.1f", score))"
+        }.joined(separator: "\n")
         let prompt = """
         \(BattleContext.compact(attacker: attacker, defender: defender, turnNumber: turnNumber))\(seen)
 
-        Available moves:
-        \(moveList)
+        Available moves (type multiplier, estimated output, heuristic score):
+        \(moveData)
 
         \(BattleContext.tacticalHint(attacker: attacker, defender: defender, moves: moves))
         """
@@ -104,7 +99,6 @@ extension BattleAIService: BattleAIServiceProtocol {
             fallback: fallback,
             prompt: prompt,
             generating: MovePickResult.self,
-            tools: tools,
             temperature: 0.35,
             instructions: .move,
             resolve: { result in
@@ -144,7 +138,6 @@ extension BattleAIService: BattleAIServiceProtocol {
             fallback: fallback,
             prompt: output.prompt,
             generating: OpponentPickResult.self,
-            tools: [],
             temperature: 0.3,
             instructions: .opponent,
             resolve: { OpponentPrompt.parsePick(raw: String($0.index), indexMap: output.indexMap) },
@@ -178,26 +171,25 @@ extension BattleAIService: BattleAIServiceProtocol {
         aiLog("Shortlist: \(shortlist.count) moves")
 
         let movesByName = Dictionary(shortlist.map { ($0.name, $0) }, uniquingKeysWith: { _, last in last })
-        let tools: [any Tool] = [
-            CheckTypeTool(typeChart: typeChart),
-            EstimateDamageTool(attacker: fighter, defender: opponent, typeChart: typeChart, movesByName: movesByName)
-        ]
 
-        let moveList = shortlist.map(\.promptDescription).joined(separator: "\n")
+        let moveData = shortlist.map { m in
+            let mult = typeChart.multiplier(attacking: m.typeName, defenders: opponent.typeNames)
+            let dmg = DamageCalculator.estimateDamage(move: m, attacker: fighter, defender: opponent, typeChart: typeChart)
+            return "\(m.name) (\(m.typeName)) | \(mult)x type | \(dmg) dmg"
+        }.joined(separator: "\n")
         let prompt = """
         Pick 4 moves for \(fighter.name) (\(fighter.typeNames.joined(separator: "/"))) vs \(opponent.name) (\(opponent.typeNames.joined(separator: "/"))).
 
-        Available moves:
-        \(moveList)
+        Available moves (type multiplier, estimated output):
+        \(moveData)
 
-        Pick a balanced loadout: damage moves with good type coverage, plus utility (status, boosts).
+        Select a balanced set: powerful moves with good type coverage, plus utility (status, boosts).
         """
 
         let picks = await client.decide(
             fallback: fallback,
             prompt: prompt,
             generating: LoadoutPickResult.self,
-            tools: tools,
             temperature: 0.4,
             instructions: .loadout,
             resolve: { result in
