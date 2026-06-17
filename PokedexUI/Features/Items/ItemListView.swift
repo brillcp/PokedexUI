@@ -17,12 +17,7 @@ struct ItemListView<ViewModel: ItemListViewModelProtocol>: View {
             .scrollIndicators(.hidden)
             .background {
                 if viewModel.isLoading {
-                    VStack(spacing: 16) {
-                        PixelSpinner()
-                        Text("Loading items…")
-                            .font(.pixel14)
-                            .foregroundStyle(.secondary)
-                    }
+                    PixelSpinner(text: "Loading items")
                 }
             }
             .task { await viewModel.loadItems() }

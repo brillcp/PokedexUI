@@ -98,7 +98,7 @@ struct BattleLogFormatter {
     /// Placeholder line shown after the local player commits a move while
     /// the remote peer's commit is still in flight.
     func waitingForOpponent() -> AttributedString {
-        var str = AttributedString("Waiting for opponent...")
+        var str = AttributedString("Waiting for opponent")
         str.foregroundColor = .gray
         return str
     }

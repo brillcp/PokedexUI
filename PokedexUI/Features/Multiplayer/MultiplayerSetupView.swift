@@ -75,13 +75,13 @@ private extension MultiplayerSetupView {
                 VStack(spacing: 16) {
                     Spacer()
                     if viewModel.phase == .connecting {
-                        PixelSpinner()
-                        Text("Connecting…")
+                        PixelSpinner(text: "Connecting")
                             .frame(maxWidth: .infinity)
-                        } else {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
+                    } else {
+                        Image(systemName: "iphone.gen3.radiowaves.left.and.right")
                             .resizable()
-                            .frame(width: 24, height: 24)
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 28, height: 28)
                         Text("No trainers nearby")
                     }
                     Spacer()

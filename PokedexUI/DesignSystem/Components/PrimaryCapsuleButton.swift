@@ -4,7 +4,7 @@ import SwiftUI
 struct PrimaryCapsuleButton: View {
     let icon: String
     let title: String
-    var loadingTitle: String = "Thinking..."
+    var loadingTitle: String = "Thinking"
     var isEnabled: Bool = true
     var isLoading: Bool = false
     let action: () -> Void
@@ -24,7 +24,7 @@ struct PrimaryCapsuleButton: View {
                 }
                 Text(isLoading ? loadingTitle : title)
             }
-            .font(.pixel14)
+            .font(.pixel16)
             .frame(height: 24)
             .frame(maxWidth: .infinity)
             .padding(.vertical)
@@ -54,18 +54,4 @@ struct SecondaryCapsuleButton: View {
         .glassEffect(.clear.interactive())
         .disabled(!isEnabled)
     }
-}
-#Preview {
-    @Previewable @State var isLoading: Bool = false
-
-    PrimaryCapsuleButton(
-        icon: "heart",
-        title: "Tap here",
-        loadingTitle: "Thinking...",
-        isLoading: isLoading,
-        action: {
-            isLoading.toggle()
-        }
-    )
-    .padding()
 }
