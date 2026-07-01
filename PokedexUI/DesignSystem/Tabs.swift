@@ -6,7 +6,7 @@ enum Tabs: Int {
 extension Tabs {
     var title: String {
         switch self {
-            case .pokedex: "Pokedex"
+            case .pokedex: "PocketDex+"
             case .items: "Items"
             case .favourites: "Favourites"
             case .battle: "Gym"
