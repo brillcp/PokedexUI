@@ -14,15 +14,7 @@ actor AudioPlayer {
     private var player: AVPlayer?
 
     init() {
-        let shared = AVAudioSession.sharedInstance()
-        try? shared.setCategory(.ambient, mode: .default)
-        Task {
-            if #available(iOS 27.0, *) {
-                try? await shared.activate()
-            } else {
-                try? shared.setActive(true)
-            }
-        }
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: .mixWithOthers)
     }
 }
 
