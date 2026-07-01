@@ -7,16 +7,8 @@
       "layers" : [
         {
           "glass" : false,
-          "hidden" : false,
-          "image-name" : "pika.png",
-          "name" : "pika",
-          "position" : {
-            "scale" : 14,
-            "translation-in-points" : [
-              0,
-              0
-            ]
-          }
+          "image-name" : "new-icon 3.png",
+          "name" : "new-icon 3"
         }
       ],
       "shadow" : {
