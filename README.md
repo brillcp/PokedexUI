@@ -1,4 +1,4 @@
-![icon](https://github.com/user-attachments/assets/d7a242d8-5392-4718-9b0a-4a4392f66d82)
+![icon](https://github.com/user-attachments/assets/1fce965f-9324-485a-8287-ff49827fc5e3)
 
 ![swift](https://img.shields.io/badge/Swift-5.0-green)
 ![release](https://img.shields.io/github/v/release/brillcp/PocketDex)
