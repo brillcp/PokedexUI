@@ -1,16 +1,16 @@
 ![icon](https://github.com/user-attachments/assets/d7a242d8-5392-4718-9b0a-4a4392f66d82)
 
 ![swift](https://img.shields.io/badge/Swift-5.0-green)
-![release](https://img.shields.io/github/v/release/brillcp/pokedexui)
+![release](https://img.shields.io/github/v/release/brillcp/PocketDex)
 ![platforms](https://img.shields.io/badge/Platforms-iOS%2026%2B-blue)
 ![apple-intelligence](https://img.shields.io/badge/Apple%20Intelligence-FoundationModels-purple)
 [![spm](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-green)](#swift-package-manager)
-[![license](https://img.shields.io/github/license/brillcp/pokedexui)](/LICENSE)
-![stars](https://img.shields.io/github/stars/brillcp/pokedexui?style=social)
+[![license](https://img.shields.io/github/license/brillcp/PocketDex)](/LICENSE)
+![stars](https://img.shields.io/github/stars/brillcp/PocketDex?style=social)
 
-# PokedexUI
+# PocketDex+
 
-PokedexUI is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokemon battle mode driven by **Apple's on-device FoundationModels framework** and **local multiplayer** over MultipeerConnectivity. Browse the dex, dig into a pokemon, pick a fight against AI or a friend nearby.
+PocketDex+ is a SwiftUI app built on top of the [PokeAPI](https://pokeapi.co), with a working turn-based Pokemon battle mode driven by **Apple's on-device FoundationModels framework** and **local multiplayer** over MultipeerConnectivity. Browse the dex, dig into a pokemon, pick a fight against AI or a friend nearby.
 
 If you're a senior iOS engineer looking for a worked example of modern SwiftUI patterns (actors, `@Observable`, SwiftData, on-device AI, MultipeerConnectivity), or someone earlier in their iOS journey trying to see how these pieces fit together in a real app, hopefully there's something here for you. Every feature is small enough to read end-to-end, and every public type plus every protocol member carries a doc comment explaining why it exists.
 
@@ -22,7 +22,7 @@ Built by [Viktor Gidlöf](https://viktorgidlof.com).
 
 # Architecture 🏛
 
-PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressive actor isolation.
+PocketDex+ is **Protocol-Oriented MVVM** with clear layer boundaries and aggressive actor isolation.
 
 ## Key architectural benefits
 
@@ -47,7 +47,7 @@ PokedexUI is **Protocol-Oriented MVVM** with clear layer boundaries and aggressi
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  App/                                                   │
-│    PokedexUIApp        AppContainer (composition root)  │
+│    PocketUIApp        AppContainer (composition root)  │
 ├─────────────────────────────────────────────────────────┤
 │  Features/                                              │
 │    Pokedex   PokemonDetail   Battle   Search            │
@@ -126,7 +126,7 @@ The opponent is driven entirely by **Apple's `FoundationModels` framework**, run
 
 ## What the AI does
 
-PokedexUI uses `SystemLanguageModel.default` with **structured generation** (`@Generable`) and **tool use** (`Tool` protocol) for three decisions:
+PocketDex+ uses `SystemLanguageModel.default` with **structured generation** (`@Generable`) and **tool use** (`Tool` protocol) for three decisions:
 
 1. **Opponent picking** ("Random" button in the picker sheet)
    The model receives the player's name, types, and BST plus a shuffled roster of up to 50 pre-filtered candidates with matchup annotations. It returns a structured `OpponentPickResult` with the chosen index.
