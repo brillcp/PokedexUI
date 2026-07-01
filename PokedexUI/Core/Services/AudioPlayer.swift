@@ -15,8 +15,8 @@ actor AudioPlayer {
 
     init() {
         let shared = AVAudioSession.sharedInstance()
-        try? shared.setCategory(.playback, mode: .default)
-        try? shared.setActive(true)
+        try? shared.setCategory(.ambient, mode: .default)
+        Task { await try? shared.activate() }
     }
 }
 
